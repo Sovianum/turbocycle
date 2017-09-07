@@ -1,18 +1,18 @@
 package core
 
 type Port struct {
-	state    IPortState
-	src      Node
-	dest     Node
-	linkPort *Port
+	state     IPortState
+	innerNode Node
+	outerNode Node
+	linkPort  *Port
 }
 
 func NewPort() *Port {
 	return &Port{
-		state:    nil,
-		src:      nil,
-		dest:     nil,
-		linkPort: nil,
+		state:     nil,
+		innerNode: nil,
+		outerNode: nil,
+		linkPort:  nil,
 	}
 }
 
@@ -24,26 +24,23 @@ func (port *Port) SetState(state IPortState) {
 	port.state = state
 }
 
-func (port *Port) GetSrc() Node {
-	return port.src
+func (port *Port) GetInnerNode() Node {
+	return port.innerNode
 }
 
-func (port *Port) SetSrc(src Node) {
-	port.src = src
+func (port *Port) SetInnerNode(src Node) {
+	port.innerNode = src
 }
 
-func (port *Port) GetDest() Node {
-	return port.dest
+func (port *Port) GetOuterNode() Node {
+	return port.outerNode
 }
 
-func (port *Port) SetDest(dest Node) {
-	port.dest = dest
+func (port *Port) SetOuterNode(dest Node) {
+	port.outerNode = dest
 }
 
-func Link(outputPort *Port, inputPort *Port) {
-	inputPort.src = outputPort.src
-	outputPort.dest = inputPort.dest
-
-	outputPort.linkPort = inputPort
-	inputPort.linkPort = outputPort
+func Link(port1 *Port, port2 *Port) {
+	port1.outerNode = port2.innerNode
+	port2.outerNode = port1.innerNode
 }

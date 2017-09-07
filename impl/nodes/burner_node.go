@@ -38,10 +38,10 @@ func NewBurnerNode(
 	}
 
 	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetDest(result)
+	result.ports[gasInput].SetInnerNode(result)
 
 	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetSrc(result)
+	result.ports[gasOutput].SetInnerNode(result)
 
 	return result
 }
@@ -50,6 +50,14 @@ func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64
 	return NewBurnerNode(
 		fuel, tgStag, tFuel, sigma, etaBurn, 3, 290, 0.01,
 	)
+}
+
+func (node *burnerNode) GetRequiredPorts() []string {
+	return []string{gasInput}
+}
+
+func (node *burnerNode) GetUpdatedPorts() []string {
+	return []string{gasOutput}
 }
 
 func (node *burnerNode) GetPorts() core.PortsType {

@@ -26,15 +26,23 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 	}
 
 	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetDest(result)
+	result.ports[gasInput].SetInnerNode(result)
 
 	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetSrc(result)
+	result.ports[gasOutput].SetInnerNode(result)
 
 	result.ports[powerOutput] = core.NewPort()
-	result.ports[powerOutput].SetSrc(result)
+	result.ports[powerOutput].SetInnerNode(result)
 
 	return result
+}
+
+func (node *freeTurbineNode) GetRequiredPorts() []string {
+	return []string{gasInput, gasOutput}
+}
+
+func (node *freeTurbineNode) GetUpdatedPorts() []string {
+	return []string{gasOutput, powerOutput}
 }
 
 func (node *freeTurbineNode) GasInput() *core.Port {

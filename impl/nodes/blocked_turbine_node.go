@@ -27,22 +27,30 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 	}
 
 	result.ports[powerInput] = core.NewPort()
-	result.ports[powerInput].SetDest(result)
+	result.ports[powerInput].SetInnerNode(result)
 
 	result.ports[powerOutput] = core.NewPort()
-	result.ports[powerOutput].SetSrc(result)
+	result.ports[powerOutput].SetInnerNode(result)
 
 	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetDest(result)
+	result.ports[gasInput].SetInnerNode(result)
 
 	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetSrc(result)
+	result.ports[gasOutput].SetInnerNode(result)
 
 	return result
 }
 
 func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) *blockedTurbineNode {
 	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel) // TODO remove hardcoded constants
+}
+
+func (node *blockedTurbineNode) GetRequiredPorts() []string {
+	return []string{gasInput, powerInput}
+}
+
+func (node *blockedTurbineNode) GetUpdatedPorts() []string {
+	return []string{gasOutput, powerOutput}
 }
 
 func (node *blockedTurbineNode) GetPorts() core.PortsType {

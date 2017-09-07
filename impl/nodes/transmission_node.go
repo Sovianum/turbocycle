@@ -18,14 +18,22 @@ func NewTransmissionNode(etaM float64) *transmissionNode {
 	}
 
 	var inputPort = core.NewPort()
-	inputPort.SetDest(transmissionNode)
+	inputPort.SetInnerNode(transmissionNode)
 	transmissionNode.ports[powerInput] = inputPort
 
 	var outputPort = core.NewPort()
-	outputPort.SetSrc(transmissionNode)
+	outputPort.SetInnerNode(transmissionNode)
 	transmissionNode.ports[powerOutput] = outputPort
 
 	return transmissionNode
+}
+
+func (node *transmissionNode) GetRequiredPorts() []string {
+	return []string{powerInput}
+}
+
+func (node *transmissionNode) GetUpdatedPorts() []string {
+	return []string{powerOutput}
 }
 
 func (node *transmissionNode) GetPorts() core.PortsType {

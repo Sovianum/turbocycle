@@ -27,15 +27,23 @@ func NewCompressorNode(etaAd, piStag, precision float64) *compressorNode {
 	}
 
 	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetDest(result)
+	result.ports[gasInput].SetInnerNode(result)
 
 	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetSrc(result)
+	result.ports[gasOutput].SetInnerNode(result)
 
 	result.ports[powerOutput] = core.NewPort()
-	result.ports[powerOutput].SetSrc(result)
+	result.ports[powerOutput].SetInnerNode(result)
 
 	return result
+}
+
+func (node *compressorNode) GetRequiredPorts() []string {
+	return []string{gasInput}
+}
+
+func (node *compressorNode) GetUpdatedPorts() []string {
+	return []string{gasOutput, powerOutput}
 }
 
 func (node *compressorNode) GetPorts() core.PortsType {
