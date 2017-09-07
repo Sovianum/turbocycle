@@ -29,7 +29,7 @@ func (state GasPortState) Mix(another core.IPortState, relaxCoef float64) (core.
 		var casted = another.(GasPortState)
 
 		return NewGasPortState(
-			state.Gas,	// TODO add gas check
+			state.Gas, // TODO add gas check
 			common.Lerp(state.TStag, casted.TStag, relaxCoef),
 			common.Lerp(state.PStag, casted.PStag, relaxCoef),
 			common.Lerp(state.MassRateRel, casted.MassRateRel, relaxCoef),

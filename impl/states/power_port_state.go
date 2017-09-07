@@ -1,8 +1,8 @@
 package states
 
 import (
-	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core"
 )
 
 type PowerPortState struct {
@@ -35,4 +35,3 @@ func (state PowerPortState) MaxResidual(another core.IPortState) (float64, error
 		return 0, common.GetTypeError("PowerPortState", v)
 	}
 }
-

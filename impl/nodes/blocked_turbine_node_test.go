@@ -1,0 +1,28 @@
+package nodes
+
+import (
+	"testing"
+	"github.com/stretchr/testify/assert"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/fuel"
+	"fmt"
+)
+
+func TestBlockedTurbineNode_Process(t *testing.T) {	// smoke testing
+	var btn = NewBlockedTurbineNodeShort(0.92, func(node TurbineNode) float64 {
+		return 0
+	})
+
+	assert.NotNil(t, btn)
+
+	var gasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(3.5), 1800, 6e5, 1)
+	btn.GasInput().SetState(gasState)
+
+	var powerState = states.NewPowerPortState(-219742)
+	btn.PowerInput().SetState(powerState)
+
+	btn.Process()
+	fmt.Println(btn.PowerOutput().GetState())
+	fmt.Println(btn.GasInput().GetState())
+	fmt.Println(btn.GasOutput().GetState())
+}

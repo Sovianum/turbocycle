@@ -1,9 +1,9 @@
 package nodes
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewTransmissionNode(t *testing.T) {
@@ -15,5 +15,5 @@ func TestNewTransmissionNode(t *testing.T) {
 	assert.Nil(t, err)
 
 	var outputState = node.PowerOutput().GetState().(states.PowerPortState)
-	assert.Equal(t, 100 / 0.99, outputState.LSpecific)
+	assert.Equal(t, 100/0.99, outputState.LSpecific)
 }

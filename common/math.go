@@ -1,11 +1,15 @@
 package common
 
 import (
-	"math"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 )
+
+func Converged(x0, x1, precision float64) bool {
+	return math.Abs(x0 - x1) / math.Abs(x0) <= precision
+}
 
 func GetRelResidual(x0 float64, x1 float64) float64 {
 	return math.Abs(x0-x1) / math.Abs(x0)
@@ -29,18 +33,18 @@ func Interp(x float64, xArr []float64, yArr []float64) (float64, error) {
 	if x < xArr[0] {
 		return 0, errors.New(fmt.Sprintf("x(x == %f) < xArr[0](xArr[0] == %f)", x, xArr[0]))
 	}
-	if x > xArr[len(xArr) - 1] {
-		return 0, errors.New(fmt.Sprintf("x(x == %f) > xArr[-1](xArr[-1] == %f)", x, xArr[len(xArr) - 1]))
+	if x > xArr[len(xArr)-1] {
+		return 0, errors.New(fmt.Sprintf("x(x == %f) > xArr[-1](xArr[-1] == %f)", x, xArr[len(xArr)-1]))
 	}
 
-	for i := 0; i != len(xArr) - 1; i++ {
-		if x <= xArr[i] && x < xArr[i + 1] {
-			var interpCoef = (x - xArr[i]) / (xArr[i + 1] - xArr[i])
-			return Lerp(yArr[i], yArr[i + 1], interpCoef), nil
+	for i := 0; i != len(xArr)-1; i++ {
+		if x <= xArr[i] && x < xArr[i+1] {
+			var interpCoef = (x - xArr[i]) / (xArr[i+1] - xArr[i])
+			return Lerp(yArr[i], yArr[i+1], interpCoef), nil
 		}
 	}
 
-	return yArr[len(yArr) - 1], nil
+	return yArr[len(yArr)-1], nil
 }
 
 func Average(f func(float64) float64, x0 float64, x1 float64, n int) float64 {

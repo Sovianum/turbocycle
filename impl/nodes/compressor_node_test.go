@@ -1,11 +1,11 @@
 package nodes
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/Sovianum/turbocycle/impl/states"
-	"github.com/Sovianum/turbocycle/gases"
 	"fmt"
+	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestCompressorNode_PStagIn(t *testing.T) {
@@ -30,4 +30,5 @@ func TestCompressorNode_Process(t *testing.T) {
 	assert.Equal(t, compressor.PStagOut(), float64(600))
 
 	fmt.Println(compressor.GasOutput().GetState())
+	fmt.Println(compressor.PowerOutput().GetState())
 }

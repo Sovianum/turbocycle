@@ -5,7 +5,7 @@ import (
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
-	"math"
+	"github.com/Sovianum/turbocycle/common"
 )
 
 type BurnerNode struct {
@@ -57,11 +57,11 @@ func (node *BurnerNode) GetPorts() core.PortsType {
 }
 
 func (node *BurnerNode) GasInput() *core.Port {
-	return node.ports[gasInput]
+	return node.gasInput()
 }
 
 func (node *BurnerNode) GasOutput() *core.Port {
-	return node.ports[gasOutput]
+	return node.gasOutput()
 }
 
 func (node *BurnerNode) TStagIn() float64 {
@@ -90,40 +90,16 @@ func (node *BurnerNode) Process() error {
 	gasState.PStag = node.pStagIn() * node.sigma
 	gasState.MassRateRel *= 1 + fuelMassRateRel
 
-	node.GasOutput().SetState(gasState)
+	node.gasOutput().SetState(gasState)
 
 	return nil
 }
 
-func (node *BurnerNode) inletGas() gases.Gas {
-	return node.GasInput().GetState().(states.GasPortState).Gas
-}
-
-func (node *BurnerNode) tStagIn() float64 {
-	return node.GasInput().GetState().(states.GasPortState).TStag
-}
-
-func (node *BurnerNode) tStagOut() float64 {
-	return node.GasOutput().GetState().(states.GasPortState).TStag
-}
-
-func (node *BurnerNode) pStagIn() float64 {
-	return node.GasInput().GetState().(states.GasPortState).PStag
-}
-
-func (node *BurnerNode) pStagOut() float64 {
-	return node.GasOutput().GetState().(states.GasPortState).PStag
-}
-
 func (node *BurnerNode) getFuelParameters(initAlpha float64) (float64, float64) {
-	var converged = func(currAlpha, nextAlpha float64) bool {
-		return math.Abs(currAlpha-nextAlpha)/currAlpha <= node.precision
-	}
-
 	var currAlpha = initAlpha
 	var nextAlpha = node.getNextAlpha(currAlpha)
 
-	for !converged(currAlpha, nextAlpha) {
+	for !common.Converged(currAlpha, nextAlpha, node.precision) {
 		currAlpha = nextAlpha
 		nextAlpha = node.getNextAlpha(currAlpha)
 	}
@@ -147,4 +123,32 @@ func (node *BurnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 	var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, defaultN) * (node.tFuel - node.t0)
 
 	return (num1 + num2) / (denom1 + denom2 + denom3)
+}
+
+func (node *BurnerNode) inletGas() gases.Gas {
+	return node.gasInput().GetState().(states.GasPortState).Gas
+}
+
+func (node *BurnerNode) tStagIn() float64 {
+	return node.gasInput().GetState().(states.GasPortState).TStag
+}
+
+func (node *BurnerNode) tStagOut() float64 {
+	return node.gasOutput().GetState().(states.GasPortState).TStag
+}
+
+func (node *BurnerNode) pStagIn() float64 {
+	return node.gasInput().GetState().(states.GasPortState).PStag
+}
+
+func (node *BurnerNode) pStagOut() float64 {
+	return node.gasOutput().GetState().(states.GasPortState).PStag
+}
+
+func (node *BurnerNode) gasInput() *core.Port {
+	return node.ports[gasInput]
+}
+
+func (node *BurnerNode) gasOutput() *core.Port {
+	return node.ports[gasOutput]
 }

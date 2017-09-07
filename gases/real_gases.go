@@ -20,14 +20,15 @@ func GetH2OVapour() Gas {
 	return h2oVapour{}
 }
 
-type air struct {}
+type air struct{}
 
 func (air) Cp(t float64) float64 {
+	// TODO check last value (taken at random)
 	var tArr = []float64{
-		260, 333,  393,  413,  433,  453,  473,  523,  573,  623,  673,  773, 873,  973, 1073, 1173, 1273, 1373, 1473,
+		260, 333, 393, 413, 433, 453, 473, 523, 573, 623, 673, 773, 873, 973, 1073, 1173, 1273, 1373, 1473, 2000,
 	}
 	var cpArr = []float64{
-		1000, 1005, 1009, 1013, 1017, 1022, 1026, 1038, 1047, 1059, 1068, 1093, 1114, 1135, 1156, 1172, 1185, 1197, 1210,
+		1000, 1005, 1009, 1013, 1017, 1022, 1026, 1038, 1047, 1059, 1068, 1093, 1114, 1135, 1156, 1172, 1185, 1197, 1210, 1300,
 	}
 
 	var cp, err = common.Interp(t, tArr, cpArr)
@@ -42,7 +43,7 @@ func (air) R() float64 {
 	return 287.
 }
 
-type nitrogen struct {}
+type nitrogen struct{}
 
 func (nitrogen) Cp(t float64) float64 {
 	var tArr = []float64{
@@ -66,7 +67,7 @@ func (nitrogen) R() float64 {
 	return common.UniversalGasConstant / common.N2Weight
 }
 
-type co2 struct {}
+type co2 struct{}
 
 func (co2) Cp(t float64) float64 {
 	var tArr = []float64{
@@ -90,7 +91,7 @@ func (co2) R() float64 {
 	return common.UniversalGasConstant / common.CO2Weight
 }
 
-type h2oVapour struct {}
+type h2oVapour struct{}
 
 func (h2oVapour) Cp(t float64) float64 {
 	var tArr = []float64{

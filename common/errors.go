@@ -1,8 +1,8 @@
 package common
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 func GetTypeError(expected string, got interface{}) error {
