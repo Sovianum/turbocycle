@@ -37,11 +37,11 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 	return result
 }
 
-func (node *freeTurbineNode) GetRequiredPorts() []string {
+func (node *freeTurbineNode) GetRequirePortTags() []string {
 	return []string{gasInput, gasOutput}
 }
 
-func (node *freeTurbineNode) GetUpdatedPorts() []string {
+func (node *freeTurbineNode) GetUpdatePortTags() []string {
 	return []string{gasOutput, powerOutput}
 }
 

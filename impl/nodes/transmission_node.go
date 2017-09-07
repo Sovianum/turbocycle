@@ -28,11 +28,11 @@ func NewTransmissionNode(etaM float64) *transmissionNode {
 	return transmissionNode
 }
 
-func (node *transmissionNode) GetRequiredPorts() []string {
+func (node *transmissionNode) GetRequirePortTags() []string {
 	return []string{powerInput}
 }
 
-func (node *transmissionNode) GetUpdatedPorts() []string {
+func (node *transmissionNode) GetUpdatePortTags() []string {
 	return []string{powerOutput}
 }
 

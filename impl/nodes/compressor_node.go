@@ -38,11 +38,11 @@ func NewCompressorNode(etaAd, piStag, precision float64) *compressorNode {
 	return result
 }
 
-func (node *compressorNode) GetRequiredPorts() []string {
+func (node *compressorNode) GetRequirePortTags() []string {
 	return []string{gasInput}
 }
 
-func (node *compressorNode) GetUpdatedPorts() []string {
+func (node *compressorNode) GetUpdatePortTags() []string {
 	return []string{gasOutput, powerOutput}
 }
 

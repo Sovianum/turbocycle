@@ -52,11 +52,11 @@ func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64
 	)
 }
 
-func (node *burnerNode) GetRequiredPorts() []string {
+func (node *burnerNode) GetRequirePortTags() []string {
 	return []string{gasInput}
 }
 
-func (node *burnerNode) GetUpdatedPorts() []string {
+func (node *burnerNode) GetUpdatePortTags() []string {
 	return []string{gasOutput}
 }
 

@@ -45,11 +45,11 @@ func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) floa
 	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel) // TODO remove hardcoded constants
 }
 
-func (node *blockedTurbineNode) GetRequiredPorts() []string {
+func (node *blockedTurbineNode) GetRequirePortTags() []string {
 	return []string{gasInput, powerInput}
 }
 
-func (node *blockedTurbineNode) GetUpdatedPorts() []string {
+func (node *blockedTurbineNode) GetUpdatePortTags() []string {
 	return []string{gasOutput, powerOutput}
 }
 
