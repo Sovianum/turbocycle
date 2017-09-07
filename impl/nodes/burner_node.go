@@ -8,7 +8,7 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 )
 
-type BurnerNode struct {
+type burnerNode struct {
 	ports     core.PortsType
 	fuel      fuel.GasFuel
 	outletGas gases.Gas
@@ -24,8 +24,8 @@ type BurnerNode struct {
 
 func NewBurnerNode(
 	fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn, initAlpha, t0, precision float64,
-) *BurnerNode {
-	var result = &BurnerNode{
+) *burnerNode {
+	var result = &burnerNode{
 		ports:     make(core.PortsType),
 		fuel:      fuel,
 		tgStag:    tgStag,
@@ -46,41 +46,41 @@ func NewBurnerNode(
 	return result
 }
 
-func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64) *BurnerNode {
+func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64) *burnerNode {
 	return NewBurnerNode(
 		fuel, tgStag, tFuel, sigma, etaBurn, 3, 290, 0.01,
 	)
 }
 
-func (node *BurnerNode) GetPorts() core.PortsType {
+func (node *burnerNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *BurnerNode) GasInput() *core.Port {
+func (node *burnerNode) GasInput() *core.Port {
 	return node.gasInput()
 }
 
-func (node *BurnerNode) GasOutput() *core.Port {
+func (node *burnerNode) GasOutput() *core.Port {
 	return node.gasOutput()
 }
 
-func (node *BurnerNode) TStagIn() float64 {
+func (node *burnerNode) TStagIn() float64 {
 	return node.tStagIn()
 }
 
-func (node *BurnerNode) TStagOut() float64 {
+func (node *burnerNode) TStagOut() float64 {
 	return node.tStagOut()
 }
 
-func (node *BurnerNode) PStagIn() float64 {
+func (node *burnerNode) PStagIn() float64 {
 	return node.pStagIn()
 }
 
-func (node *BurnerNode) PStagOut() float64 {
+func (node *burnerNode) PStagOut() float64 {
 	return node.pStagOut()
 }
 
-func (node *BurnerNode) Process() error {
+func (node *burnerNode) Process() error {
 	var fuelMassRateRel, alpha = node.getFuelParameters(node.initAlpha)
 	node.alpha = alpha
 
@@ -95,7 +95,7 @@ func (node *BurnerNode) Process() error {
 	return nil
 }
 
-func (node *BurnerNode) getFuelParameters(initAlpha float64) (float64, float64) {
+func (node *burnerNode) getFuelParameters(initAlpha float64) (float64, float64) {
 	var currAlpha = initAlpha
 	var nextAlpha = node.getNextAlpha(currAlpha)
 
@@ -108,11 +108,11 @@ func (node *BurnerNode) getFuelParameters(initAlpha float64) (float64, float64) 
 	return fuelMassRateRel, nextAlpha
 }
 
-func (node *BurnerNode) getNextAlpha(currAlpha float64) float64 {
+func (node *burnerNode) getNextAlpha(currAlpha float64) float64 {
 	return 1 / (node.getFuelMassRateRel(currAlpha) * node.fuel.AirMassTheory())
 }
 
-func (node *BurnerNode) getFuelMassRateRel(currAlpha float64) float64 {
+func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 	node.outletGas = node.fuel.GetCombustionGas(currAlpha)
 
 	var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
@@ -125,30 +125,30 @@ func (node *BurnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 	return (num1 + num2) / (denom1 + denom2 + denom3)
 }
 
-func (node *BurnerNode) inletGas() gases.Gas {
+func (node *burnerNode) inletGas() gases.Gas {
 	return node.gasInput().GetState().(states.GasPortState).Gas
 }
 
-func (node *BurnerNode) tStagIn() float64 {
+func (node *burnerNode) tStagIn() float64 {
 	return node.gasInput().GetState().(states.GasPortState).TStag
 }
 
-func (node *BurnerNode) tStagOut() float64 {
+func (node *burnerNode) tStagOut() float64 {
 	return node.gasOutput().GetState().(states.GasPortState).TStag
 }
 
-func (node *BurnerNode) pStagIn() float64 {
+func (node *burnerNode) pStagIn() float64 {
 	return node.gasInput().GetState().(states.GasPortState).PStag
 }
 
-func (node *BurnerNode) pStagOut() float64 {
+func (node *burnerNode) pStagOut() float64 {
 	return node.gasOutput().GetState().(states.GasPortState).PStag
 }
 
-func (node *BurnerNode) gasInput() *core.Port {
+func (node *burnerNode) gasInput() *core.Port {
 	return node.ports[gasInput]
 }
 
-func (node *BurnerNode) gasOutput() *core.Port {
+func (node *burnerNode) gasOutput() *core.Port {
 	return node.ports[gasOutput]
 }

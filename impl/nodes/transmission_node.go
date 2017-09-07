@@ -6,13 +6,13 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
-type TransmissionNode struct {
+type transmissionNode struct {
 	ports core.PortsType
 	etaM  float64
 }
 
-func NewTransmissionNode(etaM float64) *TransmissionNode {
-	var transmissionNode = &TransmissionNode{
+func NewTransmissionNode(etaM float64) *transmissionNode {
+	var transmissionNode = &transmissionNode{
 		ports: make(map[string]*core.Port),
 		etaM:  etaM,
 	}
@@ -28,19 +28,19 @@ func NewTransmissionNode(etaM float64) *TransmissionNode {
 	return transmissionNode
 }
 
-func (node *TransmissionNode) GetPorts() core.PortsType {
+func (node *transmissionNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *TransmissionNode) PowerInput() *core.Port {
+func (node *transmissionNode) PowerInput() *core.Port {
 	return node.powerInput()
 }
 
-func (node *TransmissionNode) PowerOutput() *core.Port {
+func (node *transmissionNode) PowerOutput() *core.Port {
 	return node.powerOutput()
 }
 
-func (node *TransmissionNode) Process() error {
+func (node *transmissionNode) Process() error {
 	var inputState = node.PowerInput().GetState()
 
 	switch v := inputState.(type) {
@@ -54,10 +54,10 @@ func (node *TransmissionNode) Process() error {
 	}
 }
 
-func (node *TransmissionNode) powerInput() *core.Port {
+func (node *transmissionNode) powerInput() *core.Port {
 	return node.ports[powerInput]
 }
 
-func (node *TransmissionNode) powerOutput() *core.Port {
+func (node *transmissionNode) powerOutput() *core.Port {
 	return node.ports[powerOutput]
 }

@@ -4,9 +4,11 @@ import (
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/gdf"
 	"math"
+	"github.com/Sovianum/turbocycle/core"
 )
 
 type TurbineNode interface {
+	core.Node
 	TStagIn() float64
 	TStagOut() float64
 	PStagIn() float64

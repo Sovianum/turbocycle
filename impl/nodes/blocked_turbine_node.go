@@ -9,7 +9,7 @@ import (
 	"math"
 )
 
-type BlockedTurbineNode struct {
+type blockedTurbineNode struct {
 	ports           core.PortsType
 	etaT            float64
 	precision       float64
@@ -17,8 +17,8 @@ type BlockedTurbineNode struct {
 	massRateRelFunc func(TurbineNode) float64
 }
 
-func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) *BlockedTurbineNode {
-	var result = &BlockedTurbineNode{
+func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) *blockedTurbineNode {
+	var result = &blockedTurbineNode{
 		ports:make(core.PortsType),
 		etaT:etaT,
 		precision:precision,
@@ -41,59 +41,59 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 	return result
 }
 
-func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) *BlockedTurbineNode {
+func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) *blockedTurbineNode {
 	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel)	// TODO remove hardcoded constants
 }
 
-func (node *BlockedTurbineNode) GetPorts() core.PortsType {
+func (node *blockedTurbineNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *BlockedTurbineNode) LambdaOut() float64 {
+func (node *blockedTurbineNode) LambdaOut() float64 {
 	return node.lambdaOut
 }
 
-func (node *BlockedTurbineNode) InputGas() gases.Gas {
+func (node *blockedTurbineNode) InputGas() gases.Gas {
 	return node.inputGas()
 }
 
-func (node *BlockedTurbineNode) TStagIn() float64 {
+func (node *blockedTurbineNode) TStagIn() float64 {
 	return node.tStagIn()
 }
 
-func (node *BlockedTurbineNode) PStagIn() float64 {
+func (node *blockedTurbineNode) PStagIn() float64 {
 	return node.pStagIn()
 }
 
-func (node *BlockedTurbineNode) TStagOut() float64 {
+func (node *blockedTurbineNode) TStagOut() float64 {
 	return node.tStagOut()
 }
 
-func (node *BlockedTurbineNode) PStagOut() float64 {
+func (node *blockedTurbineNode) PStagOut() float64 {
 	return node.pStagOut()
 }
 
-func (node *BlockedTurbineNode) Pit() float64 {
+func (node *blockedTurbineNode) Pit() float64 {
 	return node.pit(node.tStagOut())
 }
 
-func (node *BlockedTurbineNode) GasInput() *core.Port {
+func (node *blockedTurbineNode) GasInput() *core.Port {
 	return node.gasInput()
 }
 
-func (node *BlockedTurbineNode) GasOutput() *core.Port {
+func (node *blockedTurbineNode) GasOutput() *core.Port {
 	return node.gasOutput()
 }
 
-func (node *BlockedTurbineNode) PowerInput() *core.Port {
+func (node *blockedTurbineNode) PowerInput() *core.Port {
 	return node.powerInput()
 }
 
-func (node *BlockedTurbineNode) PowerOutput() *core.Port {
+func (node *blockedTurbineNode) PowerOutput() *core.Port {
 	return node.powerOutput()
 }
 
-func (node *BlockedTurbineNode) Process() error {
+func (node *blockedTurbineNode) Process() error {
 	var gasState = node.GasInput().GetState().(states.GasPortState)
 	gasState.TStag = node.getTStagOut(node.turbineLabour())
 
@@ -103,12 +103,12 @@ func (node *BlockedTurbineNode) Process() error {
 	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
 
 	node.gasOutput().SetState(gasState)
-	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour()))
+	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour()))	// TODO maybe need to pass sum of labours
 
 	return nil
 }
 
-func (node *BlockedTurbineNode) getTStagOut(turbineLabour float64) float64 {
+func (node *blockedTurbineNode) getTStagOut(turbineLabour float64) float64 {
 	var tTStagCurr = node.getInitTtStag(node.turbineLabour())
 	var tTStagNew = node.getNewTtStag(tTStagCurr, node.turbineLabour())
 
@@ -120,11 +120,11 @@ func (node *BlockedTurbineNode) getTStagOut(turbineLabour float64) float64 {
 	return tTStagNew
 }
 
-func (node *BlockedTurbineNode) getInitTtStag(turbineLabour float64) float64 {
+func (node *blockedTurbineNode) getInitTtStag(turbineLabour float64) float64 {
 	return node.getNewTtStag(0.8*node.tStagIn(), turbineLabour) // TODO move 0.8 out of code
 }
 
-func (node *BlockedTurbineNode) getNewTtStag(currTtStag, turbineLabour float64) float64 {
+func (node *blockedTurbineNode) getNewTtStag(currTtStag, turbineLabour float64) float64 {
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), currTtStag, defaultN)
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), currTtStag, defaultN)
 
@@ -133,18 +133,18 @@ func (node *BlockedTurbineNode) getNewTtStag(currTtStag, turbineLabour float64) 
 	return node.tStagIn() * (1 - (1-math.Pow(pit, (1-k)/k))*node.etaT)
 }
 
-func (node *BlockedTurbineNode) getPit(k, cp, turbineLabour float64) float64 {
+func (node *blockedTurbineNode) getPit(k, cp, turbineLabour float64) float64 {
 	return math.Pow(
 		1-turbineLabour/(cp*node.tStagIn()*node.etaT),
 		k/(1-k),
 	)
 }
 
-func (node *BlockedTurbineNode) inputGas() gases.Gas {
+func (node *blockedTurbineNode) inputGas() gases.Gas {
 	return node.gasInput().GetState().(states.GasPortState).Gas
 }
 
-func (node *BlockedTurbineNode) pit(tStagOut float64) float64 {
+func (node *blockedTurbineNode) pit(tStagOut float64) float64 {
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, defaultN)
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, defaultN)
 
@@ -154,38 +154,38 @@ func (node *BlockedTurbineNode) pit(tStagOut float64) float64 {
 	)
 }
 
-func (node *BlockedTurbineNode) turbineLabour() float64 {
+func (node *blockedTurbineNode) turbineLabour() float64 {
 	return -node.powerInput().GetState().(states.PowerPortState).LSpecific
 }
 
-func (node *BlockedTurbineNode) tStagIn() float64 {
+func (node *blockedTurbineNode) tStagIn() float64 {
 	return node.gasInput().GetState().(states.GasPortState).TStag
 }
 
-func (node *BlockedTurbineNode) pStagIn() float64 {
+func (node *blockedTurbineNode) pStagIn() float64 {
 	return node.gasInput().GetState().(states.GasPortState).PStag
 }
 
-func (node *BlockedTurbineNode) tStagOut() float64 {
-	return node.GasOutput().GetState().(states.GasPortState).TStag
+func (node *blockedTurbineNode) tStagOut() float64 {
+	return node.gasOutput().GetState().(states.GasPortState).TStag
 }
 
-func (node *BlockedTurbineNode) pStagOut() float64 {
-	return node.GasOutput().GetState().(states.GasPortState).PStag
+func (node *blockedTurbineNode) pStagOut() float64 {
+	return node.gasOutput().GetState().(states.GasPortState).PStag
 }
 
-func (node *BlockedTurbineNode) gasInput() *core.Port {
+func (node *blockedTurbineNode) gasInput() *core.Port {
 	return node.ports[gasInput]
 }
 
-func (node *BlockedTurbineNode) gasOutput() *core.Port {
+func (node *blockedTurbineNode) gasOutput() *core.Port {
 	return node.ports[gasOutput]
 }
 
-func (node *BlockedTurbineNode) powerInput() *core.Port {
+func (node *blockedTurbineNode) powerInput() *core.Port {
 	return node.ports[powerInput]
 }
 
-func (node *BlockedTurbineNode) powerOutput() *core.Port {
+func (node *blockedTurbineNode) powerOutput() *core.Port {
 	return node.ports[powerOutput]
 }
