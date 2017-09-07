@@ -19,11 +19,11 @@ type blockedTurbineNode struct {
 
 func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) *blockedTurbineNode {
 	var result = &blockedTurbineNode{
-		ports:make(core.PortsType),
-		etaT:etaT,
-		precision:precision,
-		lambdaOut:lambdaOut,
-		massRateRelFunc:massRateRelFunc,
+		ports:           make(core.PortsType),
+		etaT:            etaT,
+		precision:       precision,
+		lambdaOut:       lambdaOut,
+		massRateRelFunc: massRateRelFunc,
 	}
 
 	result.ports[powerInput] = core.NewPort()
@@ -42,7 +42,7 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 }
 
 func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) *blockedTurbineNode {
-	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel)	// TODO remove hardcoded constants
+	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel) // TODO remove hardcoded constants
 }
 
 func (node *blockedTurbineNode) GetPorts() core.PortsType {
@@ -103,7 +103,7 @@ func (node *blockedTurbineNode) Process() error {
 	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
 
 	node.gasOutput().SetState(gasState)
-	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour()))	// TODO maybe need to pass sum of labours
+	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
 
 	return nil
 }

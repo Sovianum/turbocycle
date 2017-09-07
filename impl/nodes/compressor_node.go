@@ -3,11 +3,11 @@ package nodes
 import (
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"math"
-	"github.com/Sovianum/turbocycle/common"
 )
 
 // TODO add collector port

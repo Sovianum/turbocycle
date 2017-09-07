@@ -1,11 +1,11 @@
 package nodes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/impl/states"
-	"github.com/Sovianum/turbocycle/gases"
-	"math"
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"math"
 )
 
 type freeTurbineNode struct {
@@ -18,11 +18,11 @@ type freeTurbineNode struct {
 
 func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) *freeTurbineNode {
 	var result = &freeTurbineNode{
-		ports:make(core.PortsType),
-		etaT:etaT,
-		precision:precision,
-		lambdaOut:lambdaOut,
-		massRateRelFunc:massRateRelFunc,
+		ports:           make(core.PortsType),
+		etaT:            etaT,
+		precision:       precision,
+		lambdaOut:       lambdaOut,
+		massRateRelFunc: massRateRelFunc,
 	}
 
 	result.ports[gasInput] = core.NewPort()
@@ -121,9 +121,9 @@ func (node *freeTurbineNode) getTStagOut() float64 {
 func (node *freeTurbineNode) tStagOutNext(pStagIn, pStagOut, tStagIn, tStagOutCurr float64) float64 {
 	var k = gases.KMean(node.inputGas(), tStagIn, tStagOutCurr, defaultN)
 	var piT = pStagIn / pStagOut
-	var x = math.Pow(piT, (1 - k) / k)
+	var x = math.Pow(piT, (1-k)/k)
 
-	return tStagIn * (1 - (1 - x) * node.etaT)
+	return tStagIn * (1 - (1-x)*node.etaT)
 }
 
 func (node *freeTurbineNode) pit() float64 {

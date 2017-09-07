@@ -8,7 +8,7 @@ import (
 )
 
 func Converged(x0, x1, precision float64) bool {
-	return math.Abs(x0 - x1) / math.Abs(x0) <= precision
+	return math.Abs(x0-x1)/math.Abs(x0) <= precision
 }
 
 func GetRelResidual(x0 float64, x1 float64) float64 {

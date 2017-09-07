@@ -1,14 +1,14 @@
 package nodes
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/Sovianum/turbocycle/impl/states"
-	"github.com/Sovianum/turbocycle/fuel"
 	"fmt"
+	"github.com/Sovianum/turbocycle/fuel"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestBlockedTurbineNode_Process(t *testing.T) {	// smoke testing
+func TestBlockedTurbineNode_Process(t *testing.T) { // smoke testing
 	var btn = NewBlockedTurbineNodeShort(0.92, func(node TurbineNode) float64 {
 		return 0
 	})

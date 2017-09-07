@@ -1,15 +1,15 @@
 package nodes
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/Sovianum/turbocycle/impl/states"
-	"github.com/Sovianum/turbocycle/fuel"
 	"fmt"
+	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestFreeTurbineNode_Process(t *testing.T) {	// smoke testing
+func TestFreeTurbineNode_Process(t *testing.T) { // smoke testing
 	var ftn = NewFreeTurbineNode(0.92, 0.3, 0.05, func(node TurbineNode) float64 {
 		return -0.01
 	})
