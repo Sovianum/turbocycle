@@ -93,38 +93,6 @@ func (node *CompressorNode) Process() error {
 	return nil
 }
 
-func (node *CompressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) float64 {
-	var xFunc = func(piCStag, tStagIn, tStagOut float64) float64 {
-		var k = gases.KMean(node.gas(), tStagIn, tStagOut, defaultN)
-		return math.Pow(piCStag, (k-1)/k)
-	}
-
-	var tStagOutNewFunc = func(piCStag, tStagIn, tStagOutCurr float64) float64 {
-		var x = xFunc(piCStag, tStagIn, tStagOutCurr)
-		return tStagIn * (1 + (x-1)/node.EtaAd)
-	}
-
-	var tOutInitFunc = func(piCStag, tStagIn float64) float64 {
-		var k = gases.K(node.gas(), tStagIn)
-		var x = math.Pow(piCStag, (k-1)/k)
-		return tStagIn * (1 + (x-1)/node.EtaAd)
-	}
-
-	var isValid = func(tCurr, tNext float64) bool {
-		return math.Abs(tCurr-tNext)/tCurr <= node.Precision
-	}
-
-	var tOutCurr = tOutInitFunc(piCStag, tStagIn)
-	var tOutNext = tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
-
-	for !isValid(tOutCurr, tOutNext) {
-		tOutCurr = tOutNext
-		tOutNext = tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
-	}
-
-	return tOutNext
-}
-
 func (node *CompressorNode) tStagIn() float64 {
 	return node.GasInput().GetState().(states.GasPortState).TStag
 }
@@ -148,4 +116,33 @@ func (node *CompressorNode) gas() gases.Gas {
 func (node *CompressorNode) lSpecific() float64 {
 	var cpMean = gases.CpMean(node.gas(), node.tStagIn(), node.tStagOut(), defaultN)
 	return cpMean * (node.tStagOut() - node.tStagIn())
+}
+
+func (node *CompressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) float64 {
+	var converged = func(tCurr, tNext float64) bool {
+		return math.Abs(tCurr-tNext)/tCurr <= node.Precision
+	}
+
+	var k = gases.K(node.gas(), tStagIn)
+	var x = math.Pow(piCStag, (k-1)/k)
+
+	var tOutCurr = tStagIn * (1 + (x-1)/node.EtaAd)
+	var tOutNext = node.tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
+
+	for !converged(tOutCurr, tOutNext) {
+		tOutCurr = tOutNext
+		tOutNext = node.tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
+	}
+
+	return tOutNext
+}
+
+func (node *CompressorNode) tStagOutNewFunc(piCStag, tStagIn, tStagOutCurr float64) float64 {
+	var x = node.xFunc(piCStag, tStagIn, tStagOutCurr)
+	return tStagIn * (1 + (x-1)/node.EtaAd)
+}
+
+func (node *CompressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
+	var k = gases.KMean(node.gas(), tStagIn, tStagOut, defaultN)
+	return math.Pow(piCStag, (k-1)/k)
 }

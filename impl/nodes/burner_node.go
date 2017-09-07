@@ -95,40 +95,6 @@ func (node *BurnerNode) Process() error {
 	return nil
 }
 
-func (node *BurnerNode) getFuelParameters(initAlpha float64) (float64, float64) {
-	var getFuelMassRateRel = func(currAlpha float64) float64 {
-		node.outletGas = node.fuel.GetCombustionGas(currAlpha)
-
-		var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
-		var num2 = -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, defaultN) * (node.tStagIn() - node.t0)
-
-		var denom1 = node.fuel.QLower() * node.etaBurn
-		var denom2 = -gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
-		var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, defaultN) * (node.tFuel - node.t0)
-
-		return (num1 + num2) / (denom1 + denom2 + denom3)
-	}
-
-	var getNextAlpha = func(currAlpha float64) float64 {
-		return 1 / (getFuelMassRateRel(currAlpha) * node.fuel.AirMassTheory())
-	}
-
-	var isValid = func(currAlpha, nextAlpha float64) bool {
-		return math.Abs(currAlpha-nextAlpha)/currAlpha <= node.precision
-	}
-
-	var currAlpha = initAlpha
-	var nextAlpha = getNextAlpha(currAlpha)
-
-	for !isValid(currAlpha, nextAlpha) {
-		currAlpha = nextAlpha
-		nextAlpha = getNextAlpha(currAlpha)
-	}
-
-	var fuelMassRateRel = getFuelMassRateRel(nextAlpha)
-	return fuelMassRateRel, nextAlpha
-}
-
 func (node *BurnerNode) inletGas() gases.Gas {
 	return node.GasInput().GetState().(states.GasPortState).Gas
 }
@@ -147,4 +113,38 @@ func (node *BurnerNode) pStagIn() float64 {
 
 func (node *BurnerNode) pStagOut() float64 {
 	return node.GasOutput().GetState().(states.GasPortState).PStag
+}
+
+func (node *BurnerNode) getFuelParameters(initAlpha float64) (float64, float64) {
+	var converged = func(currAlpha, nextAlpha float64) bool {
+		return math.Abs(currAlpha-nextAlpha)/currAlpha <= node.precision
+	}
+
+	var currAlpha = initAlpha
+	var nextAlpha = node.getNextAlpha(currAlpha)
+
+	for !converged(currAlpha, nextAlpha) {
+		currAlpha = nextAlpha
+		nextAlpha = node.getNextAlpha(currAlpha)
+	}
+
+	var fuelMassRateRel = node.getFuelMassRateRel(nextAlpha)
+	return fuelMassRateRel, nextAlpha
+}
+
+func (node *BurnerNode) getNextAlpha(currAlpha float64) float64 {
+	return 1 / (node.getFuelMassRateRel(currAlpha) * node.fuel.AirMassTheory())
+}
+
+func (node *BurnerNode) getFuelMassRateRel(currAlpha float64) float64 {
+	node.outletGas = node.fuel.GetCombustionGas(currAlpha)
+
+	var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
+	var num2 = -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, defaultN) * (node.tStagIn() - node.t0)
+
+	var denom1 = node.fuel.QLower() * node.etaBurn
+	var denom2 = -gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
+	var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, defaultN) * (node.tFuel - node.t0)
+
+	return (num1 + num2) / (denom1 + denom2 + denom3)
 }
