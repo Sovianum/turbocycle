@@ -60,6 +60,10 @@ func (node *freeTurbineNode) GetUpdatePortTags() []string {
 	return []string{gasOutput, powerOutput}
 }
 
+func (node *freeTurbineNode) GetPortTags() []string {
+	return []string{gasInput, gasOutput, powerOutput}
+}
+
 func (node *freeTurbineNode) GasInput() *core.Port {
 	return node.gasInput()
 }
