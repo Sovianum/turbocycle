@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
@@ -35,6 +37,19 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 	result.ports[powerOutput].SetInnerNode(result)
 
 	return result
+}
+
+func (node *freeTurbineNode) GetPortByTag(tag string) (*core.Port, error) {
+	switch tag {
+	case gasInput:
+		return node.gasInput(), nil
+	case gasOutput:
+		return node.gasOutput(), nil
+	case powerOutput:
+		return node.PowerOutput(), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+	}
 }
 
 func (node *freeTurbineNode) GetRequirePortTags() []string {

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/states"
@@ -28,12 +30,27 @@ func NewTransmissionNode(etaM float64) *transmissionNode {
 	return transmissionNode
 }
 
+func (node *transmissionNode) GetPortByTag(tag string) (*core.Port, error) {
+	switch tag {
+	case powerInput:
+		return node.powerInput(), nil
+	case powerOutput:
+		return node.PowerOutput(), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+	}
+}
+
 func (node *transmissionNode) GetRequirePortTags() []string {
 	return []string{powerInput}
 }
 
 func (node *transmissionNode) GetUpdatePortTags() []string {
 	return []string{powerOutput}
+}
+
+func (node *transmissionNode) GetPortTags() []string {
+	return []string{powerInput, powerOutput}
 }
 
 func (node *transmissionNode) GetPorts() core.PortsType {

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
@@ -45,12 +47,31 @@ func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) floa
 	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel) // TODO remove hardcoded constants
 }
 
+func (node *blockedTurbineNode) GetPortByTag(tag string) (*core.Port, error) {
+	switch tag {
+	case gasInput:
+		return node.gasInput(), nil
+	case gasOutput:
+		return node.gasOutput(), nil
+	case powerInput:
+		return node.powerInput(), nil
+	case powerOutput:
+		return node.PowerOutput(), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+	}
+}
+
 func (node *blockedTurbineNode) GetRequirePortTags() []string {
 	return []string{gasInput, powerInput}
 }
 
 func (node *blockedTurbineNode) GetUpdatePortTags() []string {
 	return []string{gasOutput, powerOutput}
+}
+
+func (node *blockedTurbineNode) GetPortTags() []string {
+	return []string{gasInput, powerInput, gasOutput, powerOutput}
 }
 
 func (node *blockedTurbineNode) GetPorts() core.PortsType {

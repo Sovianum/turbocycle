@@ -1,9 +1,9 @@
 package core
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestGetEmptyRoots(t *testing.T) {
@@ -55,21 +55,23 @@ func TestGetCallOrder_OK(t *testing.T) {
 	var requireTree = linkTableType{
 		0: {},
 		1: {0: true},
-		2: {1: true, 6: true},
+		2: {1: true, 6: true, 7: true},
 		3: {2: true},
 		4: {1: true, 3: true},
-		5: {2: true, 4: true},
+		5: {6: true, 4: true},
 		6: {},
+		7: {},
 	}
 
 	var updateTree = linkTableType{
 		0: {1: true},
 		1: {2: true, 4: true},
-		2: {3: true, 5: true},
+		2: {3: true, 6: true},
 		3: {4: true},
 		4: {5: true},
-		5: {2: true},
-		6: {2: true},
+		5: {6: true},
+		6: {2: true, 5: true},
+		7: {2: true},
 	}
 
 	var order, err = getCallOrder(requireTree, updateTree)

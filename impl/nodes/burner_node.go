@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
@@ -52,12 +54,27 @@ func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64
 	)
 }
 
+func (node *burnerNode) GetPortByTag(tag string) (*core.Port, error) {
+	switch tag {
+	case gasInput:
+		return node.gasInput(), nil
+	case gasOutput:
+		return node.gasOutput(), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+	}
+}
+
 func (node *burnerNode) GetRequirePortTags() []string {
 	return []string{gasInput}
 }
 
 func (node *burnerNode) GetUpdatePortTags() []string {
 	return []string{gasOutput}
+}
+
+func (node *burnerNode) GetPortTags() []string {
+	return []string{gasInput, gasOutput}
 }
 
 func (node *burnerNode) GetPorts() core.PortsType {

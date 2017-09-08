@@ -38,12 +38,29 @@ func NewCompressorNode(etaAd, piStag, precision float64) *compressorNode {
 	return result
 }
 
+func (node *compressorNode) GetPortByTag(tag string) (*core.Port, error) {
+	switch tag {
+	case gasInput:
+		return node.gasInput(), nil
+	case gasOutput:
+		return node.gasOutput(), nil
+	case powerOutput:
+		return node.PowerOutput(), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+	}
+}
+
 func (node *compressorNode) GetRequirePortTags() []string {
 	return []string{gasInput}
 }
 
 func (node *compressorNode) GetUpdatePortTags() []string {
 	return []string{gasOutput, powerOutput}
+}
+
+func (node *compressorNode) GetPortTags() []string {
+	return []string{gasInput, gasOutput, powerOutput}
 }
 
 func (node *compressorNode) GetPorts() core.PortsType {
