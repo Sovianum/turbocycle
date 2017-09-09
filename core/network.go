@@ -195,7 +195,7 @@ func getResidual(state1, state2 networkStateType) (float64, error) {
 			)
 		}
 
-		for portKey := range nodeState1{
+		for portKey := range nodeState1 {
 			var residual, err = nodeState1[portKey].MaxResidual(nodeState2[portKey])
 			if err != nil {
 				return 0, errors.New(fmt.Sprintf(

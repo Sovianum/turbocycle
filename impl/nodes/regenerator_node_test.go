@@ -1,12 +1,12 @@
 package nodes
 
 import (
-	"testing"
-	"github.com/Sovianum/turbocycle/impl/states"
-	"github.com/Sovianum/turbocycle/gases"
-	"github.com/stretchr/testify/assert"
-	"github.com/Sovianum/turbocycle/common"
 	"fmt"
+	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestRegeneratorNode_Process_ColdMode(t *testing.T) {
@@ -50,5 +50,3 @@ func TestRegeneratorNode_Process_HotMode(t *testing.T) {
 		fmt.Sprintf("Expected %f, got %f (precision %f)", 350., tHotOut, 0.01),
 	)
 }
-
-

@@ -87,9 +87,9 @@ func (node *blockedTurbineNode) Process() error {
 	var gasState = node.GasInput().GetState().(states.GasPortState)
 	gasState.TStag = node.getTStagOut(node.turbineLabour())
 
-	var pit = node.pit(gasState.TStag)
+	var piTStag = node.piTStag(gasState.TStag)
 	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), gasState.TStag, defaultN))
-	gasState.PStag = node.pStagIn() / (pit * pi)
+	gasState.PStag = node.pStagIn() / (piTStag * pi)
 	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
 
 	node.gasOutput().SetState(gasState)
@@ -122,8 +122,8 @@ func (node *blockedTurbineNode) PStagOut() float64 {
 	return node.pStagOut()
 }
 
-func (node *blockedTurbineNode) Pit() float64 {
-	return node.pit(node.tStagOut())
+func (node *blockedTurbineNode) PiTStag() float64 {
+	return node.piTStag(node.tStagOut())
 }
 
 func (node *blockedTurbineNode) GasInput() *core.Port {
@@ -162,23 +162,23 @@ func (node *blockedTurbineNode) getNewTtStag(currTtStag, turbineLabour float64) 
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), currTtStag, defaultN)
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), currTtStag, defaultN)
 
-	var pit = node.getPit(k, cp, turbineLabour)
+	var piTStag = node.getPiTStag(k, cp, turbineLabour)
 
-	return node.tStagIn() * (1 - (1-math.Pow(pit, (1-k)/k))*node.etaT)
+	return node.tStagIn() * (1 - (1-math.Pow(piTStag, (1-k)/k))*node.etaT)
 }
 
 func (node *blockedTurbineNode) inputGas() gases.Gas {
 	return node.gasInput().GetState().(states.GasPortState).Gas
 }
 
-func (node *blockedTurbineNode) pit(tStagOut float64) float64 {
+func (node *blockedTurbineNode) piTStag(tStagOut float64) float64 {
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, defaultN)
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, defaultN)
 
-	return node.getPit(k, cp, node.turbineLabour())
+	return node.getPiTStag(k, cp, node.turbineLabour())
 }
 
-func (node *blockedTurbineNode) getPit(k, cp, turbineLabour float64) float64 {
+func (node *blockedTurbineNode) getPiTStag(k, cp, turbineLabour float64) float64 {
 	return math.Pow(
 		1-turbineLabour/(cp*node.tStagIn()*node.etaT),
 		k/(1-k),

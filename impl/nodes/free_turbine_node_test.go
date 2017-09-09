@@ -2,27 +2,54 @@ package nodes
 
 import (
 	"fmt"
+	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
+	"math"
 	"testing"
 )
 
-func TestFreeTurbineNode_Process(t *testing.T) { // smoke testing
-	var ftn = NewFreeTurbineNode(0.92, 0.3, 0.05, func(node TurbineNode) float64 {
-		return -0.01
+const (
+	tInFreeT  = 1200
+	pInFreeT  = 3e5
+	pOutFreeT = 1.2e5
+)
+
+func TestFreeTurbineNode_Process(t *testing.T) {
+	var turbine = getTestFreeTurbineNode()
+	assert.NotNil(t, turbine)
+
+	var inputGasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), tInFreeT, pInFreeT, 1)
+	turbine.GasInput().SetState(inputGasState)
+	var outputGasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), 300, pOutFreeT, 1)
+	turbine.GasOutput().SetState(outputGasState)
+
+	turbine.Process()
+
+	var expectedPit = turbine.PStagIn() / turbine.PStagOut()
+	assert.Equal(t, expectedPit, turbine.PiTStag())
+
+	var k = gases.KMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), defaultN)
+	var expectedTtStag = turbine.TStagIn() * (1 - (1-math.Pow(turbine.PiTStag(), (1-k)/k))*etaT)
+	assert.True(
+		t,
+		common.ApproxEqual(expectedTtStag, turbine.TStagOut(), 0.01),
+		fmt.Sprintf("Expected T_t %f, got %f", expectedTtStag, turbine.TStagOut()),
+	)
+
+	var cp = gases.CpMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), defaultN)
+	var expectedLabour = cp * (turbine.TStagIn() - turbine.TStagOut())
+	assert.True(
+		t,
+		common.ApproxEqual(expectedLabour, turbine.TurbineLabour(), 0.01),
+		fmt.Sprintf("Expected L_t %f, got %f", expectedLabour, turbine.TurbineLabour()),
+	)
+}
+
+func getTestFreeTurbineNode() FreeTurbineNode {
+	return NewFreeTurbineNode(etaT, lambdaOut, 0.05, func(node TurbineNode) float64 {
+		return 0
 	})
-
-	assert.NotNil(t, ftn)
-
-	var inputGasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(4), 1200, 3e5, 1)
-	ftn.GasInput().SetState(inputGasState)
-	var outputGasState = states.NewGasPortState(gases.GetAir(), 300, 1e5, 1)
-	ftn.GasOutput().SetState(outputGasState)
-
-	ftn.Process()
-
-	fmt.Println(ftn.GasOutput().GetState())
-	fmt.Println(ftn.PowerOutput().GetState())
 }

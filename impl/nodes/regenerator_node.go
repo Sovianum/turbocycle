@@ -27,10 +27,10 @@ func (node *regeneratorNode) GetPorts() core.PortsType {
 
 func NewRegeneratorNode(sigma, precision float64, mode string) *regeneratorNode {
 	var result = &regeneratorNode{
-		ports:make(core.PortsType),
-		sigma:sigma,
-		precision:precision,
-		mode:mode,
+		ports:     make(core.PortsType),
+		sigma:     sigma,
+		precision: precision,
+		mode:      mode,
 	}
 
 	result.ports[hotGasInput] = core.NewPort()
@@ -148,8 +148,8 @@ func (node *regeneratorNode) getNewTOutSigmaByHotSide(tStagColdOutCurr, tStagHot
 	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, defaultN)
 	var heatRateFactor = hotHeatRate / coldHeatRate
 
-	tStagHotOut = coldGasState.TStag + node.sigma*(hotGasState.TStag - coldGasState.TStag)
-	tStagColdOut = coldGasState.TStag + heatRateFactor*node.sigma*(hotGasState.TStag - coldGasState.TStag)
+	tStagHotOut = coldGasState.TStag + node.sigma*(hotGasState.TStag-coldGasState.TStag)
+	tStagColdOut = coldGasState.TStag + heatRateFactor*node.sigma*(hotGasState.TStag-coldGasState.TStag)
 	return
 }
 

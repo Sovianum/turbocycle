@@ -13,7 +13,7 @@ type TurbineNode interface {
 	TStagOut() float64
 	PStagIn() float64
 	PStagOut() float64
-	Pit() float64
+	PiTStag() float64
 	GasInput() *core.Port
 	GasOutput() *core.Port
 	PowerOutput() *core.Port
@@ -54,7 +54,7 @@ func Ht(node TurbineNode) float64 {
 	var cp = gases.CpMean(node.InputGas(), node.TStagIn(), node.TStagOut(), defaultN)
 	var k = gases.KMean(node.InputGas(), node.TStagIn(), node.TStagOut(), defaultN)
 	var pi = gdf.Pi(node.LambdaOut(), k)
-	var x = math.Pow(node.Pit()/pi, (1-k)/k)
+	var x = math.Pow(node.PiTStag()/pi, (1-k)/k)
 
 	return cp * node.TStagIn() * (1 - x)
 }

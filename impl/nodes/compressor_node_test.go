@@ -2,12 +2,12 @@ package nodes
 
 import (
 	"fmt"
+	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
-	"testing"
 	"math"
-	"github.com/Sovianum/turbocycle/common"
+	"testing"
 )
 
 const (
@@ -26,7 +26,7 @@ func TestCompressorNode_Process(t *testing.T) {
 	var expectedPressure = float64(piC * pA)
 	assert.Equal(t, compressor.PStagOut(), expectedPressure)
 
-	var expectedTemperature = tA * (1 + 1 /etaC * (math.Pow(piC, (kAir - 1) / kAir) - 1))
+	var expectedTemperature = tA * (1 + 1/etaC*(math.Pow(piC, (kAir-1)/kAir)-1))
 	assert.True(
 		t,
 		common.ApproxEqual(expectedTemperature, compressor.TStagOut(), 0.01),

@@ -10,6 +10,11 @@ import (
 	"math"
 )
 
+type FreeTurbineNode interface {
+	TurbineNode
+	TurbineLabour() float64
+}
+
 type freeTurbineNode struct {
 	ports           core.PortsType
 	etaT            float64
@@ -18,7 +23,7 @@ type freeTurbineNode struct {
 	massRateRelFunc func(TurbineNode) float64
 }
 
-func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) *freeTurbineNode {
+func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) FreeTurbineNode {
 	var result = &freeTurbineNode{
 		ports:           make(core.PortsType),
 		etaT:            etaT,
@@ -104,8 +109,12 @@ func (node *freeTurbineNode) PStagOut() float64 {
 	return node.pStagOut()
 }
 
-func (node *freeTurbineNode) Pit() float64 {
-	return node.pit()
+func (node *freeTurbineNode) PiTStag() float64 {
+	return node.piTStag()
+}
+
+func (node *freeTurbineNode) TurbineLabour() float64 {
+	return node.turbineLabour()
 }
 
 func (node *freeTurbineNode) Process() error {
@@ -153,7 +162,7 @@ func (node *freeTurbineNode) tStagOutNext(pStagIn, pStagOut, tStagIn, tStagOutCu
 	return tStagIn * (1 - (1-x)*node.etaT)
 }
 
-func (node *freeTurbineNode) pit() float64 {
+func (node *freeTurbineNode) piTStag() float64 {
 	return node.pStagIn() / node.pStagOut()
 }
 
