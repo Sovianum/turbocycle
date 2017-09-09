@@ -9,14 +9,9 @@ import (
 
 type TurbineNode interface {
 	core.Node
-	TStagIn() float64
-	TStagOut() float64
-	PStagIn() float64
-	PStagOut() float64
+	GasChannel
+	PowerSource
 	PiTStag() float64
-	GasInput() *core.Port
-	GasOutput() *core.Port
-	PowerOutput() *core.Port
 	InputGas() gases.Gas
 	LambdaOut() float64
 }

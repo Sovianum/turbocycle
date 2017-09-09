@@ -10,6 +10,11 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
+type BurnerNode interface {
+	core.Node
+	GasChannel
+}
+
 type burnerNode struct {
 	ports     core.PortsType
 	fuel      fuel.GasFuel
@@ -54,14 +59,14 @@ func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64
 	)
 }
 
-func (node *burnerNode) GetPortByTag(tag string) (*core.Port, error) {
+func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
 		return node.gasInput(), nil
 	case gasOutput:
 		return node.gasOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
 	}
 }
 
@@ -81,11 +86,11 @@ func (node *burnerNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *burnerNode) GasInput() *core.Port {
+func (node *burnerNode) GasInput() core.Port {
 	return node.gasInput()
 }
 
-func (node *burnerNode) GasOutput() *core.Port {
+func (node *burnerNode) GasOutput() core.Port {
 	return node.gasOutput()
 }
 
@@ -170,10 +175,10 @@ func (node *burnerNode) pStagOut() float64 {
 	return node.gasOutput().GetState().(states.GasPortState).PStag
 }
 
-func (node *burnerNode) gasInput() *core.Port {
+func (node *burnerNode) gasInput() core.Port {
 	return node.ports[gasInput]
 }
 
-func (node *burnerNode) gasOutput() *core.Port {
+func (node *burnerNode) gasOutput() core.Port {
 	return node.ports[gasOutput]
 }

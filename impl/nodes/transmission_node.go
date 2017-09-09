@@ -8,14 +8,19 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
+type TransmissionNode interface {
+	core.Node
+	PowerChannel
+}
+
 type transmissionNode struct {
 	ports core.PortsType
 	etaM  float64
 }
 
-func NewTransmissionNode(etaM float64) *transmissionNode {
+func NewTransmissionNode(etaM float64) TransmissionNode {
 	var transmissionNode = &transmissionNode{
-		ports: make(map[string]*core.Port),
+		ports: make(core.PortsType),
 		etaM:  etaM,
 	}
 
@@ -30,14 +35,14 @@ func NewTransmissionNode(etaM float64) *transmissionNode {
 	return transmissionNode
 }
 
-func (node *transmissionNode) GetPortByTag(tag string) (*core.Port, error) {
+func (node *transmissionNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case powerInput:
 		return node.powerInput(), nil
 	case powerOutput:
 		return node.PowerOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
 	}
 }
 
@@ -57,11 +62,11 @@ func (node *transmissionNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *transmissionNode) PowerInput() *core.Port {
+func (node *transmissionNode) PowerInput() core.Port {
 	return node.powerInput()
 }
 
-func (node *transmissionNode) PowerOutput() *core.Port {
+func (node *transmissionNode) PowerOutput() core.Port {
 	return node.powerOutput()
 }
 
@@ -79,10 +84,10 @@ func (node *transmissionNode) Process() error {
 	}
 }
 
-func (node *transmissionNode) powerInput() *core.Port {
+func (node *transmissionNode) powerInput() core.Port {
 	return node.ports[powerInput]
 }
 
-func (node *transmissionNode) powerOutput() *core.Port {
+func (node *transmissionNode) powerOutput() core.Port {
 	return node.ports[powerOutput]
 }

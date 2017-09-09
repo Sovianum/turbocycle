@@ -1,14 +1,25 @@
 package core
 
-type Port struct {
+type Port interface {
+	GetState() IPortState
+	SetState(state IPortState)
+	GetInnerNode() Node
+	SetInnerNode(Node)
+	GetOuterNode() Node
+	SetOuterNode(Node)
+	GetLinkPort() Port
+	SetLinkPort(Port)
+}
+
+type port struct {
 	state     IPortState
 	innerNode Node
 	outerNode Node
-	linkPort  *Port
+	linkPort  Port
 }
 
-func NewPort() *Port {
-	return &Port{
+func NewPort() Port {
+	return &port{
 		state:     nil,
 		innerNode: nil,
 		outerNode: nil,
@@ -16,31 +27,39 @@ func NewPort() *Port {
 	}
 }
 
-func (port *Port) GetState() IPortState {
+func Link(port1 Port, port2 Port) {
+	port1.SetOuterNode(port2.GetInnerNode())
+	port2.SetOuterNode(port1.GetInnerNode())
+}
+
+func (port *port) GetState() IPortState {
 	return port.state
 }
 
-func (port *Port) SetState(state IPortState) {
+func (port *port) SetState(state IPortState) {
 	port.state = state
 }
 
-func (port *Port) GetInnerNode() Node {
+func (port *port) GetInnerNode() Node {
 	return port.innerNode
 }
 
-func (port *Port) SetInnerNode(src Node) {
+func (port *port) SetInnerNode(src Node) {
 	port.innerNode = src
 }
 
-func (port *Port) GetOuterNode() Node {
+func (port *port) GetOuterNode() Node {
 	return port.outerNode
 }
 
-func (port *Port) SetOuterNode(dest Node) {
+func (port *port) SetOuterNode(dest Node) {
 	port.outerNode = dest
 }
 
-func Link(port1 *Port, port2 *Port) {
-	port1.outerNode = port2.innerNode
-	port2.outerNode = port1.innerNode
+func (port *port) GetLinkPort() Port {
+	return port.linkPort
+}
+
+func (port *port) SetLinkPort(another Port) {
+	port.linkPort = another
 }

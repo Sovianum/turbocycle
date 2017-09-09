@@ -13,7 +13,7 @@ import (
 
 type BlockedTurbineNode interface {
 	TurbineNode
-	PowerInput() *core.Port
+	PowerSink
 }
 
 type blockedTurbineNode struct {
@@ -48,11 +48,7 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 	return result
 }
 
-func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) BlockedTurbineNode {
-	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel) // TODO remove hardcoded constants
-}
-
-func (node *blockedTurbineNode) GetPortByTag(tag string) (*core.Port, error) {
+func (node *blockedTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
 		return node.gasInput(), nil
@@ -63,7 +59,7 @@ func (node *blockedTurbineNode) GetPortByTag(tag string) (*core.Port, error) {
 	case powerOutput:
 		return node.PowerOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
 	}
 }
 
@@ -126,19 +122,19 @@ func (node *blockedTurbineNode) PiTStag() float64 {
 	return node.piTStag(node.tStagOut())
 }
 
-func (node *blockedTurbineNode) GasInput() *core.Port {
+func (node *blockedTurbineNode) GasInput() core.Port {
 	return node.gasInput()
 }
 
-func (node *blockedTurbineNode) GasOutput() *core.Port {
+func (node *blockedTurbineNode) GasOutput() core.Port {
 	return node.gasOutput()
 }
 
-func (node *blockedTurbineNode) PowerInput() *core.Port {
+func (node *blockedTurbineNode) PowerInput() core.Port {
 	return node.powerInput()
 }
 
-func (node *blockedTurbineNode) PowerOutput() *core.Port {
+func (node *blockedTurbineNode) PowerOutput() core.Port {
 	return node.powerOutput()
 }
 
@@ -205,18 +201,18 @@ func (node *blockedTurbineNode) pStagOut() float64 {
 	return node.gasOutput().GetState().(states.GasPortState).PStag
 }
 
-func (node *blockedTurbineNode) gasInput() *core.Port {
+func (node *blockedTurbineNode) gasInput() core.Port {
 	return node.ports[gasInput]
 }
 
-func (node *blockedTurbineNode) gasOutput() *core.Port {
+func (node *blockedTurbineNode) gasOutput() core.Port {
 	return node.ports[gasOutput]
 }
 
-func (node *blockedTurbineNode) powerInput() *core.Port {
+func (node *blockedTurbineNode) powerInput() core.Port {
 	return node.ports[powerInput]
 }
 
-func (node *blockedTurbineNode) powerOutput() *core.Port {
+func (node *blockedTurbineNode) powerOutput() core.Port {
 	return node.ports[powerOutput]
 }

@@ -14,6 +14,14 @@ const (
 	SigmaByColdSide = "sigmaByColdSide"
 )
 
+type RegeneratorNode interface {
+	core.Node
+	ColdInput() core.Port
+	ColdOutput() core.Port
+	HotInput() core.Port
+	HotOutput() core.Port
+}
+
 type regeneratorNode struct {
 	ports     core.PortsType
 	sigma     float64
@@ -25,7 +33,7 @@ func (node *regeneratorNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func NewRegeneratorNode(sigma, precision float64, mode string) *regeneratorNode {
+func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 	var result = &regeneratorNode{
 		ports:     make(core.PortsType),
 		sigma:     sigma,
@@ -48,19 +56,19 @@ func NewRegeneratorNode(sigma, precision float64, mode string) *regeneratorNode 
 	return result
 }
 
-func (node *regeneratorNode) ColdInput() *core.Port {
+func (node *regeneratorNode) ColdInput() core.Port {
 	return node.coldInput()
 }
 
-func (node *regeneratorNode) ColdOutput() *core.Port {
+func (node *regeneratorNode) ColdOutput() core.Port {
 	return node.coldOutput()
 }
 
-func (node *regeneratorNode) HotInput() *core.Port {
+func (node *regeneratorNode) HotInput() core.Port {
 	return node.hotInput()
 }
 
-func (node *regeneratorNode) HotOutput() *core.Port {
+func (node *regeneratorNode) HotOutput() core.Port {
 	return node.hotOutput()
 }
 
@@ -97,7 +105,7 @@ func (node *regeneratorNode) GetPortTags() []string {
 	return []string{coldGasInput, coldGasOutput, hotGasInput, hotGasOutput}
 }
 
-func (node *regeneratorNode) GetPortByTag(tag string) (*core.Port, error) {
+func (node *regeneratorNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case coldGasInput:
 		return node.coldInput(), nil
@@ -109,7 +117,7 @@ func (node *regeneratorNode) GetPortByTag(tag string) (*core.Port, error) {
 		return node.hotOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf(
-			"Port \"%s\" not found on regeneratorNode", tag,
+			"port \"%s\" not found on regeneratorNode", tag,
 		))
 	}
 }
@@ -169,18 +177,18 @@ func (node *regeneratorNode) tStagColdOut() float64 {
 	return node.coldOutput().GetState().(states.GasPortState).TStag
 }
 
-func (node *regeneratorNode) coldInput() *core.Port {
+func (node *regeneratorNode) coldInput() core.Port {
 	return node.ports[coldGasInput]
 }
 
-func (node *regeneratorNode) coldOutput() *core.Port {
+func (node *regeneratorNode) coldOutput() core.Port {
 	return node.ports[coldGasOutput]
 }
 
-func (node *regeneratorNode) hotInput() *core.Port {
+func (node *regeneratorNode) hotInput() core.Port {
 	return node.ports[hotGasInput]
 }
 
-func (node *regeneratorNode) hotOutput() *core.Port {
+func (node *regeneratorNode) hotOutput() core.Port {
 	return node.ports[hotGasOutput]
 }

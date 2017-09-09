@@ -43,8 +43,8 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	var expectedLabour = cp * (turbine.TStagIn() - turbine.TStagOut())
 	assert.True(
 		t,
-		common.ApproxEqual(expectedLabour, turbine.TurbineLabour(), 0.01),
-		fmt.Sprintf("Expected L_t %f, got %f", expectedLabour, turbine.TurbineLabour()),
+		common.ApproxEqual(expectedLabour, turbine.LSpecific(), 0.01),
+		fmt.Sprintf("Expected L_t %f, got %f", expectedLabour, turbine.LSpecific()),
 	)
 }
 

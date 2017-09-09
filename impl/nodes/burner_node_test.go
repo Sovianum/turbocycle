@@ -1,12 +1,20 @@
 package nodes
 
 import (
-	"fmt"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"testing"
+)
+
+const (
+	tgStag      = 1800
+	tFuel       = 300
+	sigmaBurner = 0.99
+	etaBurn     = 0.99
+	tInBurn     = 500
+	pInBurn     = 6
 )
 
 func TestBurnerNode_Smoke(t *testing.T) { // smoke testing
@@ -17,5 +25,8 @@ func TestBurnerNode_Smoke(t *testing.T) { // smoke testing
 	bn.Process()
 
 	assert.NotNil(t, bn)
-	fmt.Println(bn.GasOutput().GetState(), bn.alpha)
+}
+
+func getTestBurner() {
+
 }

@@ -12,7 +12,7 @@ import (
 
 type FreeTurbineNode interface {
 	TurbineNode
-	TurbineLabour() float64
+	LSpecific() float64
 }
 
 type freeTurbineNode struct {
@@ -44,7 +44,7 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 	return result
 }
 
-func (node *freeTurbineNode) GetPortByTag(tag string) (*core.Port, error) {
+func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
 		return node.gasInput(), nil
@@ -53,7 +53,7 @@ func (node *freeTurbineNode) GetPortByTag(tag string) (*core.Port, error) {
 	case powerOutput:
 		return node.PowerOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
 	}
 }
 
@@ -69,15 +69,15 @@ func (node *freeTurbineNode) GetPortTags() []string {
 	return []string{gasInput, gasOutput, powerOutput}
 }
 
-func (node *freeTurbineNode) GasInput() *core.Port {
+func (node *freeTurbineNode) GasInput() core.Port {
 	return node.gasInput()
 }
 
-func (node *freeTurbineNode) GasOutput() *core.Port {
+func (node *freeTurbineNode) GasOutput() core.Port {
 	return node.gasOutput()
 }
 
-func (node *freeTurbineNode) PowerOutput() *core.Port {
+func (node *freeTurbineNode) PowerOutput() core.Port {
 	return node.powerOutput()
 }
 
@@ -113,8 +113,8 @@ func (node *freeTurbineNode) PiTStag() float64 {
 	return node.piTStag()
 }
 
-func (node *freeTurbineNode) TurbineLabour() float64 {
-	return node.turbineLabour()
+func (node *freeTurbineNode) LSpecific() float64 {
+	return node.lSpecific()
 }
 
 func (node *freeTurbineNode) Process() error {
@@ -126,13 +126,13 @@ func (node *freeTurbineNode) Process() error {
 	node.gasOutput().SetState(gasState)
 
 	node.powerOutput().SetState(
-		states.NewPowerPortState(node.turbineLabour()),
+		states.NewPowerPortState(node.lSpecific()),
 	)
 
 	return nil
 }
 
-func (node *freeTurbineNode) turbineLabour() float64 {
+func (node *freeTurbineNode) lSpecific() float64 {
 	return gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), defaultN) * (node.tStagIn() - node.tStagOut())
 }
 
@@ -186,14 +186,14 @@ func (node *freeTurbineNode) pStagOut() float64 {
 	return node.gasOutput().GetState().(states.GasPortState).PStag
 }
 
-func (node *freeTurbineNode) gasInput() *core.Port {
+func (node *freeTurbineNode) gasInput() core.Port {
 	return node.ports[gasInput]
 }
 
-func (node *freeTurbineNode) gasOutput() *core.Port {
+func (node *freeTurbineNode) gasOutput() core.Port {
 	return node.ports[gasOutput]
 }
 
-func (node *freeTurbineNode) powerOutput() *core.Port {
+func (node *freeTurbineNode) powerOutput() core.Port {
 	return node.ports[powerOutput]
 }

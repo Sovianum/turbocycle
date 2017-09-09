@@ -136,7 +136,7 @@ func (network *Network) getState() (networkStateType, error) {
 func (network *Network) checkFreePorts() error {
 	for nodeId, node := range network.nodes {
 		for portTag, port := range node.GetPorts() {
-			if port.linkPort == nil {
+			if port.GetLinkPort() == nil {
 				return errors.New(fmt.Sprintf("Found free port \"%s\" of node %d", portTag, nodeId))
 			}
 		}

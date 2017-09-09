@@ -12,13 +12,8 @@ import (
 
 type CompressorNode interface {
 	core.Node
-	GasInput() *core.Port
-	GasOutput() *core.Port
-	PowerOutput() *core.Port
-	TStagIn() float64
-	TStagOut() float64
-	PStagIn() float64
-	PStagOut() float64
+	GasChannel
+	PowerSource
 	LSpecific() float64
 }
 
@@ -50,7 +45,7 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	return result
 }
 
-func (node *compressorNode) GetPortByTag(tag string) (*core.Port, error) {
+func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
 		return node.gasInput(), nil
@@ -59,7 +54,7 @@ func (node *compressorNode) GetPortByTag(tag string) (*core.Port, error) {
 	case powerOutput:
 		return node.PowerOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port with tag \"%s\" not found", tag))
+		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
 	}
 }
 
@@ -99,15 +94,15 @@ func (node *compressorNode) Process() error {
 	return nil
 }
 
-func (node *compressorNode) GasInput() *core.Port {
+func (node *compressorNode) GasInput() core.Port {
 	return node.gasInput()
 }
 
-func (node *compressorNode) GasOutput() *core.Port {
+func (node *compressorNode) GasOutput() core.Port {
 	return node.gasOutput()
 }
 
-func (node *compressorNode) PowerOutput() *core.Port {
+func (node *compressorNode) PowerOutput() core.Port {
 	return node.powerOutput()
 }
 
@@ -181,14 +176,14 @@ func (node *compressorNode) gas() gases.Gas {
 	return node.ports[gasInput].GetState().(states.GasPortState).Gas
 }
 
-func (node *compressorNode) gasInput() *core.Port {
+func (node *compressorNode) gasInput() core.Port {
 	return node.ports[gasInput]
 }
 
-func (node *compressorNode) gasOutput() *core.Port {
+func (node *compressorNode) gasOutput() core.Port {
 	return node.ports[gasOutput]
 }
 
-func (node *compressorNode) powerOutput() *core.Port {
+func (node *compressorNode) powerOutput() core.Port {
 	return node.ports[powerOutput]
 }

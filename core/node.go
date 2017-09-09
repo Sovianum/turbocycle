@@ -1,6 +1,6 @@
 package core
 
-type PortsType map[string]*Port
+type PortsType map[string]Port
 
 type Node interface {
 	GetPorts() PortsType
@@ -8,5 +8,5 @@ type Node interface {
 	GetRequirePortTags() []string
 	GetUpdatePortTags() []string
 	GetPortTags() []string
-	GetPortByTag(tag string) (*Port, error)
+	GetPortByTag(tag string) (Port, error)
 }
