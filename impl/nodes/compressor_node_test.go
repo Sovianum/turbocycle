@@ -6,29 +6,45 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"math"
+	"github.com/Sovianum/turbocycle/common"
 )
 
-func TestCompressorNode_PStagIn(t *testing.T) {
-	var compressor = NewCompressorNode(0.89, 6, 0.95)
-	assert.NotNil(t, compressor)
-
-	var inputState = states.NewGasPortState(gases.GetAir(), 500, 100, 1)
-	compressor.GasInput().SetState(inputState)
-
-	assert.Equal(t, compressor.PStagIn(), float64(100))
-}
+const (
+	piC  = 6
+	etaC = 0.86
+	pA   = 1e5
+	tA   = 288
+	kAir = 1.4
+)
 
 func TestCompressorNode_Process(t *testing.T) {
-	var compressor = NewCompressorNode(0.89, 6, 0.95)
+	var compressor = getTestCompressor()
 	assert.NotNil(t, compressor)
-
-	var inputState = states.NewGasPortState(gases.GetAir(), 288, 100, 1)
-	compressor.GasInput().SetState(inputState)
-
 	compressor.Process()
 
-	assert.Equal(t, compressor.PStagOut(), float64(600))
+	var expectedPressure = float64(piC * pA)
+	assert.Equal(t, compressor.PStagOut(), expectedPressure)
 
-	fmt.Println(compressor.GasOutput().GetState())
-	fmt.Println(compressor.PowerOutput().GetState())
+	var expectedTemperature = tA * (1 + 1 /etaC * (math.Pow(piC, (kAir - 1) / kAir) - 1))
+	assert.True(
+		t,
+		common.ApproxEqual(expectedTemperature, compressor.TStagOut(), 0.01),
+		fmt.Sprintf("Expected %f, got %f", expectedTemperature, compressor.TStagOut()),
+	)
+
+	var cp = gases.CpMean(gases.GetAir(), compressor.TStagIn(), compressor.TStagOut(), defaultN)
+	var expectedLabour = cp * (compressor.TStagOut() - compressor.TStagIn())
+	assert.True(
+		t,
+		common.ApproxEqual(expectedLabour, compressor.LSpecific(), 0.01),
+		fmt.Sprintf("Expected %f, got %f", expectedLabour, compressor.LSpecific()),
+	)
+}
+
+func getTestCompressor() CompressorNode {
+	var compressor = NewCompressorNode(etaC, piC, 0.05)
+	var gasState = states.NewGasPortState(gases.GetAir(), tA, pA, 1)
+	compressor.GasInput().SetState(gasState)
+	return compressor
 }

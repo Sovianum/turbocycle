@@ -10,6 +10,18 @@ import (
 	"math"
 )
 
+type CompressorNode interface {
+	core.Node
+	GasInput() *core.Port
+	GasOutput() *core.Port
+	PowerOutput() *core.Port
+	TStagIn() float64
+	TStagOut() float64
+	PStagIn() float64
+	PStagOut() float64
+	LSpecific() float64
+}
+
 // TODO add collector port
 type compressorNode struct {
 	ports     core.PortsType
@@ -18,7 +30,7 @@ type compressorNode struct {
 	PiStag    float64
 }
 
-func NewCompressorNode(etaAd, piStag, precision float64) *compressorNode {
+func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	var result = &compressorNode{
 		ports:     make(core.PortsType),
 		EtaAd:     etaAd,
@@ -67,6 +79,26 @@ func (node *compressorNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
+func (node *compressorNode) Process() error {
+	if node.PiStag <= 1 {
+		return errors.New(fmt.Sprintf("Invalid piStag = %f", node.PiStag))
+	}
+
+	var pStagOut = node.pStagIn() * node.PiStag
+	var tStagOut = node.getTStagOut(node.PiStag, node.tStagIn(), node.tStagIn())
+
+	var gasState = node.GasInput().GetState().(states.GasPortState)
+	gasState.TStag = tStagOut
+	gasState.PStag = pStagOut
+
+	node.gasOutput().SetState(gasState)
+
+	node.powerOutput().SetState(states.NewPowerPortState(-node.lSpecific()))
+	// TODO add and set collector port
+
+	return nil
+}
+
 func (node *compressorNode) GasInput() *core.Port {
 	return node.gasInput()
 }
@@ -97,26 +129,6 @@ func (node *compressorNode) PStagOut() float64 {
 
 func (node *compressorNode) LSpecific() float64 {
 	return node.lSpecific()
-}
-
-func (node *compressorNode) Process() error {
-	if node.PiStag <= 1 {
-		return errors.New(fmt.Sprintf("Invalid piStag = %f", node.PiStag))
-	}
-
-	var pStagOut = node.pStagIn() * node.PiStag
-	var tStagOut = node.getTStagOut(node.PiStag, node.tStagIn(), node.tStagIn())
-
-	var gasState = node.GasInput().GetState().(states.GasPortState)
-	gasState.TStag = tStagOut
-	gasState.PStag = pStagOut
-
-	node.gasOutput().SetState(gasState)
-
-	node.powerOutput().SetState(states.NewPowerPortState(-node.lSpecific()))
-	// TODO add and set collector port
-
-	return nil
 }
 
 func (node *compressorNode) lSpecific() float64 {
