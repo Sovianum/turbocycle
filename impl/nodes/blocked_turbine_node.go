@@ -11,6 +11,11 @@ import (
 	"math"
 )
 
+type BlockedTurbineNode interface {
+	TurbineNode
+	PowerInput() *core.Port
+}
+
 type blockedTurbineNode struct {
 	ports           core.PortsType
 	etaT            float64
@@ -19,7 +24,7 @@ type blockedTurbineNode struct {
 	massRateRelFunc func(TurbineNode) float64
 }
 
-func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) *blockedTurbineNode {
+func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) BlockedTurbineNode {
 	var result = &blockedTurbineNode{
 		ports:           make(core.PortsType),
 		etaT:            etaT,
@@ -43,7 +48,7 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 	return result
 }
 
-func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) *blockedTurbineNode {
+func NewBlockedTurbineNodeShort(etaT float64, massRateRel func(TurbineNode) float64) BlockedTurbineNode {
 	return NewBlockedTurbineNode(etaT, 0.3, 0.05, massRateRel) // TODO remove hardcoded constants
 }
 
@@ -76,6 +81,21 @@ func (node *blockedTurbineNode) GetPortTags() []string {
 
 func (node *blockedTurbineNode) GetPorts() core.PortsType {
 	return node.ports
+}
+
+func (node *blockedTurbineNode) Process() error {
+	var gasState = node.GasInput().GetState().(states.GasPortState)
+	gasState.TStag = node.getTStagOut(node.turbineLabour())
+
+	var pit = node.pit(gasState.TStag)
+	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), gasState.TStag, defaultN))
+	gasState.PStag = node.pStagIn() / (pit * pi)
+	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
+
+	node.gasOutput().SetState(gasState)
+	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
+
+	return nil
 }
 
 func (node *blockedTurbineNode) LambdaOut() float64 {
@@ -122,21 +142,6 @@ func (node *blockedTurbineNode) PowerOutput() *core.Port {
 	return node.powerOutput()
 }
 
-func (node *blockedTurbineNode) Process() error {
-	var gasState = node.GasInput().GetState().(states.GasPortState)
-	gasState.TStag = node.getTStagOut(node.turbineLabour())
-
-	var pit = node.pit(gasState.TStag)
-	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), gasState.TStag, defaultN))
-	gasState.PStag = node.pStagIn() / (pit * pi)
-	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
-
-	node.gasOutput().SetState(gasState)
-	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
-
-	return nil
-}
-
 func (node *blockedTurbineNode) getTStagOut(turbineLabour float64) float64 {
 	var tTStagCurr = node.getInitTtStag(node.turbineLabour())
 	var tTStagNew = node.getNewTtStag(tTStagCurr, node.turbineLabour())
@@ -162,13 +167,6 @@ func (node *blockedTurbineNode) getNewTtStag(currTtStag, turbineLabour float64) 
 	return node.tStagIn() * (1 - (1-math.Pow(pit, (1-k)/k))*node.etaT)
 }
 
-func (node *blockedTurbineNode) getPit(k, cp, turbineLabour float64) float64 {
-	return math.Pow(
-		1-turbineLabour/(cp*node.tStagIn()*node.etaT),
-		k/(1-k),
-	)
-}
-
 func (node *blockedTurbineNode) inputGas() gases.Gas {
 	return node.gasInput().GetState().(states.GasPortState).Gas
 }
@@ -177,8 +175,12 @@ func (node *blockedTurbineNode) pit(tStagOut float64) float64 {
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, defaultN)
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, defaultN)
 
+	return node.getPit(k, cp, node.turbineLabour())
+}
+
+func (node *blockedTurbineNode) getPit(k, cp, turbineLabour float64) float64 {
 	return math.Pow(
-		1-node.turbineLabour()/(cp*node.tStagIn()*node.etaT),
+		1-turbineLabour/(cp*node.tStagIn()*node.etaT),
 		k/(1-k),
 	)
 }
