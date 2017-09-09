@@ -13,6 +13,8 @@ import (
 type BurnerNode interface {
 	core.Node
 	GasChannel
+	Alpha() float64
+	GetFuelRateRel() float64
 }
 
 type burnerNode struct {
@@ -31,7 +33,7 @@ type burnerNode struct {
 
 func NewBurnerNode(
 	fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn, initAlpha, t0, precision float64,
-) *burnerNode {
+) BurnerNode {
 	var result = &burnerNode{
 		ports:     make(core.PortsType),
 		fuel:      fuel,
@@ -51,12 +53,6 @@ func NewBurnerNode(
 	result.ports[gasOutput].SetInnerNode(result)
 
 	return result
-}
-
-func NewBurnerNodeShort(fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn float64) *burnerNode {
-	return NewBurnerNode(
-		fuel, tgStag, tFuel, sigma, etaBurn, 3, 290, 0.01,
-	)
 }
 
 func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
@@ -94,6 +90,10 @@ func (node *burnerNode) GasOutput() core.Port {
 	return node.gasOutput()
 }
 
+func (node *burnerNode) Alpha() float64 {
+	return node.alpha
+}
+
 func (node *burnerNode) TStagIn() float64 {
 	return node.tStagIn()
 }
@@ -108,6 +108,10 @@ func (node *burnerNode) PStagIn() float64 {
 
 func (node *burnerNode) PStagOut() float64 {
 	return node.pStagOut()
+}
+
+func (node *burnerNode) GetFuelRateRel() float64 {
+	return node.getFuelMassRateRel(node.alpha)
 }
 
 func (node *burnerNode) Process() error {
