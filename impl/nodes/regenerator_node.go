@@ -29,10 +29,6 @@ type regeneratorNode struct {
 	mode      string
 }
 
-func (node *regeneratorNode) GetPorts() core.PortsType {
-	return node.ports
-}
-
 func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 	var result = &regeneratorNode{
 		ports:     make(core.PortsType),
@@ -54,6 +50,14 @@ func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 	result.ports[coldGasOutput].SetInnerNode(result)
 
 	return result
+}
+
+func (node *regeneratorNode) ContextDefined() bool {
+	return true
+}
+
+func (node *regeneratorNode) GetPorts() core.PortsType {
+	return node.ports
 }
 
 func (node *regeneratorNode) ColdInput() core.Port {
@@ -93,12 +97,12 @@ func (node *regeneratorNode) Process() error {
 	return nil
 }
 
-func (node *regeneratorNode) GetRequirePortTags() []string {
-	return []string{coldGasInput, hotGasInput}
+func (node *regeneratorNode) GetRequirePortTags() ([]string, error) {
+	return []string{coldGasInput, hotGasInput}, nil
 }
 
-func (node *regeneratorNode) GetUpdatePortTags() []string {
-	return []string{coldGasOutput, hotGasOutput}
+func (node *regeneratorNode) GetUpdatePortTags() ([]string, error) {
+	return []string{coldGasOutput, hotGasOutput}, nil
 }
 
 func (node *regeneratorNode) GetPortTags() []string {

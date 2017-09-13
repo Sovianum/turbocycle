@@ -29,6 +29,10 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 	return result
 }
 
+func (node *pressureLossNode) ContextDefined() bool {
+	return false	// TODO add real tests
+}
+
 func (node *pressureLossNode) GetPorts() core.PortsType {
 	return node.ports
 }
@@ -71,12 +75,12 @@ func (node *pressureLossNode) Process() error {
 	return nil
 }
 
-func (node *pressureLossNode) GetRequirePortTags() []string {
-	return []string{} // TODO maybe need to make two modes
+func (node *pressureLossNode) GetRequirePortTags() ([]string, error) {
+	return []string{}, nil // TODO maybe need to make two modes; add context check
 }
 
-func (node *pressureLossNode) GetUpdatePortTags() []string {
-	return []string{gasInput, gasOutput}
+func (node *pressureLossNode) GetUpdatePortTags() ([]string, error) {
+	return []string{gasInput, gasOutput}, nil	// TODO add context check
 }
 
 func (node *pressureLossNode) GetPortTags() []string {

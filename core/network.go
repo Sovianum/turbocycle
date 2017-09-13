@@ -22,7 +22,17 @@ func (network *Network) Solve(relaxCoef float64, maxIterNum int, precision float
 		return false, freePortErr
 	}
 
-	var callOrder, callErr = getCallOrder(network.getRequireLinkTable(), network.getUpdateLinkTable())
+	var requireLinkTable, requireTableErr = network.getRequireLinkTable()
+	if requireTableErr != nil {
+		return false, requireTableErr
+	}
+
+	var updateLinkTable, updateTableErr = network.getUpdateLinkTable()
+	if updateTableErr != nil {
+		return false, updateTableErr
+	}
+
+	var callOrder, callErr = getCallOrder(requireLinkTable, updateLinkTable)
 	if callErr != nil {
 		return false, callErr
 	}
@@ -144,40 +154,66 @@ func (network *Network) checkFreePorts() error {
 	return nil
 }
 
-func (network *Network) getUpdateLinkTable() linkTableType {
-	return network.getLinkTable(func(node Node) []Node {
+func (network *Network) getUpdateLinkTable() (linkTableType, error) {
+	return network.getLinkTable(func(node Node) ([]Node, error) {
 		var result = make([]Node, 0)
-		for _, portTag := range node.GetUpdatePortTags() {
+
+		var updatePorts, err = node.GetUpdatePortTags()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, portTag := range updatePorts {
 			result = append(result, node.GetPorts()[portTag].GetOuterNode())
 		}
-		return result
+		return result, nil
 	})
 }
 
-func (network *Network) getRequireLinkTable() linkTableType {
-	return network.getLinkTable(func(node Node) []Node {
+func (network *Network) getRequireLinkTable() (linkTableType, error) {
+	return network.getLinkTable(func(node Node) ([]Node, error) {
 		var result = make([]Node, 0)
-		for _, portTag := range node.GetRequirePortTags() {
+
+		var requirePorts, err = node.GetRequirePortTags()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, portTag := range requirePorts {
 			result = append(result, node.GetPorts()[portTag].GetOuterNode())
 		}
-		return result
+		return result, nil
 	})
 }
 
-func (network *Network) getLinkTable(leafExtractor func(Node) []Node) linkTableType {
+func (network *Network) getLinkTable(leafExtractor func(Node) ([]Node, error)) (linkTableType, error) {
 	var idMap = make(map[Node]int)
 	for i, node := range network.nodes {
 		idMap[node] = i
 	}
 
 	var result = make(linkTableType)
+	var nodes []Node
+	var err error
+
 	for _, root := range network.nodes {
 		result[idMap[root]] = make(rowType)
-		for _, leaf := range leafExtractor(root) {
+
+		nodes, err = leafExtractor(root)
+		if err != nil {
+			break
+		}
+
+		for _, leaf := range nodes {
 			result[idMap[root]][idMap[leaf]] = true
 		}
 	}
-	return result
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func getResidual(state1, state2 networkStateType) (float64, error) {

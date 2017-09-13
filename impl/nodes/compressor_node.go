@@ -45,6 +45,10 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	return result
 }
 
+func (node *compressorNode) ContextDefined() bool {
+	return true
+}
+
 func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
@@ -58,12 +62,12 @@ func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 	}
 }
 
-func (node *compressorNode) GetRequirePortTags() []string {
-	return []string{gasInput}
+func (node *compressorNode) GetRequirePortTags() ([]string, error) {
+	return []string{gasInput}, nil
 }
 
-func (node *compressorNode) GetUpdatePortTags() []string {
-	return []string{gasOutput, powerOutput}
+func (node *compressorNode) GetUpdatePortTags() ([]string, error) {
+	return []string{gasOutput, powerOutput}, nil
 }
 
 func (node *compressorNode) GetPortTags() []string {

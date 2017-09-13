@@ -44,6 +44,10 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 	return result
 }
 
+func (node *freeTurbineNode) ContextDefined() bool {
+	return true
+}
+
 func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
@@ -57,12 +61,12 @@ func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	}
 }
 
-func (node *freeTurbineNode) GetRequirePortTags() []string {
-	return []string{gasInput, gasOutput}
+func (node *freeTurbineNode) GetRequirePortTags() ([]string, error) {
+	return []string{gasInput, gasOutput}, nil
 }
 
-func (node *freeTurbineNode) GetUpdatePortTags() []string {
-	return []string{gasOutput, powerOutput}
+func (node *freeTurbineNode) GetUpdatePortTags() ([]string, error) {
+	return []string{gasOutput, powerOutput}, nil
 }
 
 func (node *freeTurbineNode) GetPortTags() []string {

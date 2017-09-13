@@ -35,6 +35,10 @@ func NewTransmissionNode(etaM float64) TransmissionNode {
 	return transmissionNode
 }
 
+func (node *transmissionNode) ContextDefined() bool {
+	return true
+}
+
 func (node *transmissionNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case powerInput:
@@ -46,12 +50,12 @@ func (node *transmissionNode) GetPortByTag(tag string) (core.Port, error) {
 	}
 }
 
-func (node *transmissionNode) GetRequirePortTags() []string {
-	return []string{powerInput}
+func (node *transmissionNode) GetRequirePortTags() ([]string, error) {
+	return []string{powerInput}, nil
 }
 
-func (node *transmissionNode) GetUpdatePortTags() []string {
-	return []string{powerOutput}
+func (node *transmissionNode) GetUpdatePortTags() ([]string, error) {
+	return []string{powerOutput}, nil
 }
 
 func (node *transmissionNode) GetPortTags() []string {

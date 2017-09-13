@@ -48,6 +48,10 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 	return result
 }
 
+func (node *blockedTurbineNode) ContextDefined() bool {
+	return true
+}
+
 func (node *blockedTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
@@ -63,12 +67,12 @@ func (node *blockedTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	}
 }
 
-func (node *blockedTurbineNode) GetRequirePortTags() []string {
-	return []string{gasInput, powerInput}
+func (node *blockedTurbineNode) GetRequirePortTags() ([]string, error) {
+	return []string{gasInput, powerInput}, nil
 }
 
-func (node *blockedTurbineNode) GetUpdatePortTags() []string {
-	return []string{gasOutput, powerOutput}
+func (node *blockedTurbineNode) GetUpdatePortTags() ([]string, error) {
+	return []string{gasOutput, powerOutput}, nil
 }
 
 func (node *blockedTurbineNode) GetPortTags() []string {

@@ -55,6 +55,10 @@ func NewBurnerNode(
 	return result
 }
 
+func (node *burnerNode) ContextDefined() bool {
+	return true
+}
+
 func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case gasInput:
@@ -66,12 +70,12 @@ func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 	}
 }
 
-func (node *burnerNode) GetRequirePortTags() []string {
-	return []string{gasInput}
+func (node *burnerNode) GetRequirePortTags() ([]string, error) {
+	return []string{gasInput}, nil
 }
 
-func (node *burnerNode) GetUpdatePortTags() []string {
-	return []string{gasOutput}
+func (node *burnerNode) GetUpdatePortTags() ([]string, error) {
+	return []string{gasOutput}, nil
 }
 
 func (node *burnerNode) GetPortTags() []string {
