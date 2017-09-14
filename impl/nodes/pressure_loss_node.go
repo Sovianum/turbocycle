@@ -7,6 +7,14 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
+const (
+	pressureNodeNotContextDefined = "Pressure node not context defined"
+
+	pressureLossInflow = iota
+	pressureLossOutflow
+	pressureLossBiFlow
+)
+
 type PressureLossNode interface {
 	core.Node
 	GasChannel
@@ -24,13 +32,17 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 	}
 
 	result.ports[gasInput] = core.NewPort()
+	result.ports[gasInput].SetInnerNode(result)
+
 	result.ports[gasOutput] = core.NewPort()
+	result.ports[gasOutput].SetInnerNode(result)
 
 	return result
 }
 
 func (node *pressureLossNode) ContextDefined() bool {
-	return false	// TODO add real tests
+	var _, err = node.getMode()
+	return err != nil
 }
 
 func (node *pressureLossNode) GetPorts() core.PortsType {
@@ -38,49 +50,100 @@ func (node *pressureLossNode) GetPorts() core.PortsType {
 }
 
 func (node *pressureLossNode) Process() error {
-	var inputState = node.gasInput().GetState()
-	var outputState = node.gasOutput().GetState()
-
-	if inputState == nil && outputState == nil {
-		return errors.New("PressureLossNode failed to update any port (both states are nil)")
+	var mode, contextErr = node.getMode()
+	if contextErr != nil {
+		return contextErr
 	}
 
-	if inputState != nil && outputState == nil {
-		var newOutputState = inputState.(states.GasPortState)
-		var pStagOut = newOutputState.PStag * node.sigma
-		newOutputState.PStag = pStagOut
-		node.gasOutput().SetState(newOutputState)
+	switch mode {
+	case pressureLossInflow:
+		var inputState = node.gasInput().GetState()
+		if inputState == nil {
+			return errors.New("Input state is nil")
+		}
+
+		var gasState = inputState.(states.GasPortState)
+		gasState.PStag *= node.sigma
+		node.gasOutput().SetState(gasState)
 		return nil
-	}
+	case pressureLossOutflow:
+		var outputState = node.gasOutput().GetState()
+		if outputState == nil {
+			return errors.New("Output state is nil")
+		}
 
-	if inputState == nil && outputState != nil {
-		var newInputState = outputState.(states.GasPortState)
-		var pStagIn = newInputState.PStag / node.sigma
-		newInputState.PStag = pStagIn
-		node.GasInput().SetState(outputState)
+		var gasState = outputState.(states.GasPortState)
+		gasState.PStag /= node.sigma
+		node.gasInput().SetState(gasState)
 		return nil
+	case pressureLossBiFlow:
+		var inputState = node.gasInput().GetState()
+		var outputState = node.gasOutput().GetState()
+		if inputState == nil && outputState == nil {
+			return errors.New("Both input and output states are nil")
+		}
+
+		if inputState != nil && outputState == nil {
+			var gasState = inputState.(states.GasPortState)
+			gasState.PStag *= node.sigma
+			node.gasOutput().SetState(gasState)
+			return nil
+		}
+
+		if inputState == nil && outputState != nil {
+			var gasState = outputState.(states.GasPortState)
+			gasState.PStag /= node.sigma
+			node.gasInput().SetState(gasState)
+			return nil
+		}
+
+		if inputState != nil && outputState != nil {
+			var inputGasState = inputState.(states.GasPortState)
+			var outputGasState = outputState.(states.GasPortState)
+
+			inputGasState.PStag, outputGasState.PStag = outputGasState.PStag / node.sigma, inputGasState.PStag * node.sigma
+
+			node.gasInput().SetState(inputGasState)
+			node.gasOutput().SetState(outputGasState)
+		}
+		return nil
+	default:
+		return errors.New(pressureNodeNotContextDefined)
 	}
-
-	var newInputState, newOutputState = inputState.(states.GasPortState), outputState.(states.GasPortState)
-
-	var pStagIn = newOutputState.PStag / node.sigma
-	var pStagOut = newInputState.PStag * node.sigma
-
-	newInputState.PStag = pStagIn
-	newOutputState.PStag = pStagOut
-
-	node.gasInput().SetState(newInputState)
-	node.gasOutput().SetState(newOutputState)
-
-	return nil
 }
 
 func (node *pressureLossNode) GetRequirePortTags() ([]string, error) {
-	return []string{}, nil // TODO maybe need to make two modes; add context check
+	var mode, err = node.getMode()
+	if err != nil {
+		return nil, err
+	}
+	switch mode {
+	case pressureLossInflow:
+		return []string{gasInput}, nil
+	case pressureLossOutflow:
+		return []string{gasOutput}, nil
+	case pressureLossBiFlow:
+		return []string{}, nil
+	default:
+		return nil, errors.New(pressureNodeNotContextDefined)
+	}
 }
 
 func (node *pressureLossNode) GetUpdatePortTags() ([]string, error) {
-	return []string{gasInput, gasOutput}, nil	// TODO add context check
+	var mode, err = node.getMode()
+	if err != nil {
+		return nil, err
+	}
+	switch mode {
+	case pressureLossInflow:
+		return []string{gasOutput}, nil
+	case pressureLossOutflow:
+		return []string{gasInput}, nil
+	case pressureLossBiFlow:
+		return []string{gasInput, gasOutput}, nil
+	default:
+		return nil, errors.New(pressureNodeNotContextDefined)
+	}
 }
 
 func (node *pressureLossNode) GetPortTags() []string {
@@ -144,4 +207,64 @@ func (node *pressureLossNode) tStagIn() float64 {
 
 func (node *pressureLossNode) pStagIn() float64 {
 	return node.gasInput().GetState().(states.GasPortState).PStag
+}
+
+func (node *pressureLossNode) getMode() (int, error) {
+	var inputIsSource, inputErr = isDataSource(node.gasInput())
+	if inputErr != nil {
+		return 0, inputErr
+	}
+
+	var outputIsSource, outputErr = isDataSource(node.gasOutput())
+	if outputErr != nil {
+		return 0, outputErr
+	}
+
+	if inputIsSource && outputIsSource {
+		return pressureLossBiFlow, nil
+	}
+
+	if inputIsSource {
+		return pressureLossInflow, nil
+	}
+
+	if outputIsSource {
+		return pressureLossOutflow, nil
+	}
+
+	return 0, errors.New(pressureNodeNotContextDefined)
+}
+
+func isDataSource(port core.Port) (bool, error) {
+	var linkPort = port.GetLinkPort()
+	if linkPort == nil {
+		return false, nil
+	}
+
+	var outerNode = port.GetOuterNode()
+	if outerNode == nil {
+		return false, nil
+	}
+
+	if !outerNode.ContextDefined() {
+		return false, nil
+	}
+
+	var updatePortTags, err = outerNode.GetUpdatePortTags()
+	if err != nil {
+		return false, err
+	}
+
+	for _, updatePortTag := range updatePortTags {
+		var tagPort, tagErr = outerNode.GetPortByTag(updatePortTag)
+		if tagErr != nil {
+			return false, tagErr
+		}
+
+		if tagPort == linkPort {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

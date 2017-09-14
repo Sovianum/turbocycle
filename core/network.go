@@ -105,14 +105,14 @@ func (network *Network) updateNetworkState(newState networkStateType, relaxCoef 
 			var port, tagErr = network.nodes[nodeId].GetPortByTag(tag)
 			if tagErr != nil {
 				return errors.New(fmt.Sprintf(
-					"Failed to get port by tag \"%s\" from node %d: %s", tag, nodeId, tagErr.Error(),
+					"Failed to get portType by tag \"%s\" from node %d: %s", tag, nodeId, tagErr.Error(),
 				))
 			}
 
 			var newPortState, stateErr = port.GetState().Mix(portState, relaxCoef)
 			if stateErr != nil {
 				return errors.New(fmt.Sprintf(
-					"Failed to mix state of port \"%s\" from node %d: %s", tag, nodeId, stateErr.Error(),
+					"Failed to mix state of portType \"%s\" from node %d: %s", tag, nodeId, stateErr.Error(),
 				))
 			}
 
@@ -147,7 +147,7 @@ func (network *Network) checkFreePorts() error {
 	for nodeId, node := range network.nodes {
 		for portTag, port := range node.GetPorts() {
 			if port.GetLinkPort() == nil {
-				return errors.New(fmt.Sprintf("Found free port \"%s\" of node %d", portTag, nodeId))
+				return errors.New(fmt.Sprintf("Found free portType \"%s\" of node %d", portTag, nodeId))
 			}
 		}
 	}
@@ -235,7 +235,7 @@ func getResidual(state1, state2 networkStateType) (float64, error) {
 			var residual, err = nodeState1[portKey].MaxResidual(nodeState2[portKey])
 			if err != nil {
 				return 0, errors.New(fmt.Sprintf(
-					"Failed to get residual of node %d at port %d: %s", nodeKey, portKey, err.Error(),
+					"Failed to get residual of node %d at portType %d: %s", nodeKey, portKey, err.Error(),
 				))
 			}
 			if residual > result {
