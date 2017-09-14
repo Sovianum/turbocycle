@@ -24,13 +24,13 @@ type PowerChannel interface {
 	PowerSource
 }
 
-type GasSink interface {
+type GasSource interface {
 	GasOutput() core.Port
 	TStagOut() float64
 	PStagOut() float64
 }
 
-type GasSource interface {
+type GasSink interface {
 	GasInput() core.Port
 	TStagIn() float64
 	PStagIn() float64

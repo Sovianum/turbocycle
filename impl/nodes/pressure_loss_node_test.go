@@ -86,6 +86,34 @@ func TestPressureLossNode_Process_BiFlow(t *testing.T) {
 	)
 }
 
+func TestPressureLossNode_ContextDefined_True(t *testing.T) {
+	var compressorNode = getTestCompressor()
+	var pln1 = getTestPressureLossNode()
+	var pln2 = getTestPressureLossNode()
+	var pln3 = getTestPressureLossNode()
+
+	core.Link(compressorNode.GasOutput(), pln1.GasInput())
+	core.Link(pln1.GasOutput(), pln2.GasInput())
+	core.Link(pln2.GasOutput(), pln3.GasInput())
+
+	assert.True(t, pln1.ContextDefined())
+	assert.True(t, pln2.ContextDefined())
+	assert.True(t, pln3.ContextDefined())
+}
+
+func TestPressureLossNode_ContextDefined_False(t *testing.T) {
+	var pln1 = getTestPressureLossNode()
+	var pln2 = getTestPressureLossNode()
+	var pln3 = getTestPressureLossNode()
+
+	core.Link(pln1.GasOutput(), pln2.GasInput())
+	core.Link(pln2.GasOutput(), pln3.GasInput())
+
+	assert.False(t, pln1.ContextDefined())
+	assert.False(t, pln2.ContextDefined())
+	assert.False(t, pln3.ContextDefined())
+}
+
 func getTestPressureLossNode() PressureLossNode {
 	return NewPressureLossNode(pressureLossSigma)
 }

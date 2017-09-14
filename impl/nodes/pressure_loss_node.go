@@ -10,9 +10,10 @@ import (
 const (
 	pressureNodeNotContextDefined = "Pressure node not context defined"
 
-	pressureLossInflow = iota
-	pressureLossOutflow
-	pressureLossBiFlow
+	pressureLossInflow  = "pressureLossInflow"
+	pressureLossOutflow = "pressureLossOutflow"
+	pressureLossBiFlow  = "pressureLossBiFlow"
+	pressureLossInitial = "pressureLossInitial"
 )
 
 type PressureLossNode interface {
@@ -21,14 +22,20 @@ type PressureLossNode interface {
 }
 
 type pressureLossNode struct {
-	ports core.PortsType
-	sigma float64
+	ports          core.PortsType
+	sigma          float64
+	mode           string
+	contextCalled  bool
+	contextDefined bool
 }
 
 func NewPressureLossNode(sigma float64) PressureLossNode {
 	var result = &pressureLossNode{
-		ports: make(core.PortsType),
-		sigma: sigma,
+		ports:          make(core.PortsType),
+		sigma:          sigma,
+		mode:           pressureLossInitial,
+		contextCalled:  false,
+		contextDefined: false,
 	}
 
 	result.ports[gasInput] = core.NewPort()
@@ -41,8 +48,32 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 }
 
 func (node *pressureLossNode) ContextDefined() bool {
-	var _, err = node.getMode()
-	return err != nil
+	if node.contextCalled {
+		return node.contextDefined
+	}
+	node.contextCalled = true
+
+	var node1 = node.gasInput().GetOuterNode()
+	var node2 = node.gasOutput().GetOuterNode()
+
+	if node1 != nil {
+		var node1Defined = node1.ContextDefined()
+		if node1Defined {
+			node.contextDefined = true
+			return node.contextDefined
+		}
+	}
+
+	if node2 != nil {
+		var node2Defined = node2.ContextDefined()
+		if node2Defined {
+			node.contextDefined = true
+			return node.contextDefined
+		}
+	}
+
+	node.contextDefined = false
+	return node.contextDefined
 }
 
 func (node *pressureLossNode) GetPorts() core.PortsType {
@@ -101,7 +132,7 @@ func (node *pressureLossNode) Process() error {
 			var inputGasState = inputState.(states.GasPortState)
 			var outputGasState = outputState.(states.GasPortState)
 
-			inputGasState.PStag, outputGasState.PStag = outputGasState.PStag / node.sigma, inputGasState.PStag * node.sigma
+			inputGasState.PStag, outputGasState.PStag = outputGasState.PStag/node.sigma, inputGasState.PStag*node.sigma
 
 			node.gasInput().SetState(inputGasState)
 			node.gasOutput().SetState(outputGasState)
@@ -209,30 +240,29 @@ func (node *pressureLossNode) pStagIn() float64 {
 	return node.gasInput().GetState().(states.GasPortState).PStag
 }
 
-func (node *pressureLossNode) getMode() (int, error) {
+func (node *pressureLossNode) getMode() (string, error) {
+	if node.mode != pressureLossInitial {
+		return node.mode, nil
+	}
+
 	var inputIsSource, inputErr = isDataSource(node.gasInput())
 	if inputErr != nil {
-		return 0, inputErr
+		return "", inputErr
 	}
-
 	var outputIsSource, outputErr = isDataSource(node.gasOutput())
 	if outputErr != nil {
-		return 0, outputErr
+		return "", outputErr
 	}
-
 	if inputIsSource && outputIsSource {
 		return pressureLossBiFlow, nil
 	}
-
 	if inputIsSource {
 		return pressureLossInflow, nil
 	}
-
 	if outputIsSource {
 		return pressureLossOutflow, nil
 	}
-
-	return 0, errors.New(pressureNodeNotContextDefined)
+	return pressureLossInitial, nil
 }
 
 func isDataSource(port core.Port) (bool, error) {
