@@ -34,12 +34,15 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
+	result.ports[gasInput].SetState(states.StandartAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
+	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
 
 	result.ports[powerOutput] = core.NewPort()
 	result.ports[powerOutput].SetInnerNode(result)
+	result.ports[powerOutput].SetState(states.StandartPowerState())
 
 	return result
 }

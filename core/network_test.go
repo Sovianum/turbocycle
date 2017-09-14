@@ -3,8 +3,6 @@ package core
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/Sovianum/turbocycle/impl/nodes"
-	"github.com/Sovianum/turbocycle/gases"
 )
 
 func TestGetEmptyRoots(t *testing.T) {
@@ -75,10 +73,4 @@ func TestGetCallOrder_OK(t *testing.T) {
 
 	var _, err = getCallOrder(requireTree, updateTree)
 	assert.Nil(t, err)
-}
-
-func TestNetwork_Solve_Smoke(t *testing.T) {
-	var compressor = nodes.NewCompressorNode(0.86, 6, 0.05)
-	var gasSource = nodes.NewGasSource(gases.GetAir(), 300, 1e5)
-	var gasSink = nodes.NewGasSinkNode()
 }

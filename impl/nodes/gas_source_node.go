@@ -1,10 +1,10 @@
 package nodes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/gases"
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
@@ -13,24 +13,26 @@ type GasSourceNode interface {
 	GasSource
 }
 
-func NewGasSource(gas gases.Gas, tStag, pStag float64) GasSourceNode {
-	var result = &gasSourceNode{
-		ports:make(core.PortsType),
-		pStag:pStag,
-		tStag:tStag,
-		gas:gas,
-	}
-
-	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetInnerNode(result)
-	return result
-}
-
 type gasSourceNode struct {
 	ports core.PortsType
 	pStag float64
 	tStag float64
 	gas   gases.Gas
+}
+
+func NewGasSource(gas gases.Gas, tStag, pStag float64) GasSourceNode {
+	var result = &gasSourceNode{
+		ports: make(core.PortsType),
+		pStag: pStag,
+		tStag: tStag,
+		gas:   gas,
+	}
+
+	result.ports[gasOutput] = core.NewPort()
+	result.ports[gasOutput].SetInnerNode(result)
+	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
+
+	return result
 }
 
 func (node *gasSourceNode) GetPorts() core.PortsType {
@@ -51,7 +53,7 @@ func (node *gasSourceNode) GetUpdatePortTags() ([]string, error) {
 }
 
 func (node *gasSourceNode) GetPortTags() []string {
-	return []string{gasInput}
+	return []string{gasOutput}
 }
 
 func (node *gasSourceNode) GetPortByTag(tag string) (core.Port, error) {

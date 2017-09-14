@@ -12,6 +12,10 @@ type Network struct {
 	nodes []Node
 }
 
+func NewNetwork(nodes []Node) *Network {
+	return &Network{nodes: nodes}
+}
+
 func (network *Network) Solve(relaxCoef float64, maxIterNum int, precision float64) (bool, error) {
 	var freePortErr = network.checkFreePorts()
 	if freePortErr != nil {

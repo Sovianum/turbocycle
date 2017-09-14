@@ -1,9 +1,9 @@
 package nodes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
@@ -18,11 +18,13 @@ type gasSinkNode struct {
 
 func NewGasSinkNode() GasSinkNode {
 	var result = &gasSinkNode{
-		ports:make(core.PortsType),
+		ports: make(core.PortsType),
 	}
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
+	result.ports[gasInput].SetState(states.StandartAtmosphereState())
+
 	return result
 }
 
@@ -35,7 +37,7 @@ func (node *gasSinkNode) Process() error {
 }
 
 func (node *gasSinkNode) GetRequirePortTags() ([]string, error) {
-	return []string{}, nil
+	return []string{gasInput}, nil
 }
 
 func (node *gasSinkNode) GetUpdatePortTags() ([]string, error) {
@@ -70,5 +72,3 @@ func (node *gasSinkNode) TStagIn() float64 {
 func (node *gasSinkNode) PStagIn() float64 {
 	return node.ports[gasInput].GetState().(states.GasPortState).PStag
 }
-
-

@@ -35,15 +35,19 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 
 	result.ports[powerInput] = core.NewPort()
 	result.ports[powerInput].SetInnerNode(result)
+	result.ports[powerInput].SetState(states.StandartPowerState())
 
 	result.ports[powerOutput] = core.NewPort()
 	result.ports[powerOutput].SetInnerNode(result)
+	result.ports[powerOutput].SetState(states.StandartPowerState())
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
+	result.ports[gasInput].SetState(states.StandartAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
+	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
 
 	return result
 }

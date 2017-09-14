@@ -27,10 +27,12 @@ func NewTransmissionNode(etaM float64) TransmissionNode {
 	var inputPort = core.NewPort()
 	inputPort.SetInnerNode(transmissionNode)
 	transmissionNode.ports[powerInput] = inputPort
+	transmissionNode.ports[powerInput].SetState(states.StandartPowerState())
 
 	var outputPort = core.NewPort()
 	outputPort.SetInnerNode(transmissionNode)
 	transmissionNode.ports[powerOutput] = outputPort
+	transmissionNode.ports[powerOutput].SetState(states.StandartPowerState())
 
 	return transmissionNode
 }

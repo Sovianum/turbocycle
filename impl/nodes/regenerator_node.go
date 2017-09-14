@@ -39,15 +39,19 @@ func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 
 	result.ports[hotGasInput] = core.NewPort()
 	result.ports[hotGasInput].SetInnerNode(result)
+	result.ports[hotGasInput].SetState(states.StandartAtmosphereState())
 
 	result.ports[coldGasInput] = core.NewPort()
 	result.ports[coldGasInput].SetInnerNode(result)
+	result.ports[coldGasInput].SetState(states.StandartAtmosphereState())
 
 	result.ports[hotGasOutput] = core.NewPort()
 	result.ports[hotGasOutput].SetInnerNode(result)
+	result.ports[hotGasOutput].SetState(states.StandartAtmosphereState())
 
 	result.ports[coldGasOutput] = core.NewPort()
 	result.ports[coldGasOutput].SetInnerNode(result)
+	result.ports[coldGasOutput].SetState(states.StandartAtmosphereState())
 
 	return result
 }

@@ -40,9 +40,11 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
+	result.ports[gasInput].SetState(states.StandartAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
+	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
 
 	return result
 }

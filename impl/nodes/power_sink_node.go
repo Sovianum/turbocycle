@@ -1,9 +1,10 @@
 package nodes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 type PowerSinkNode interface {
@@ -17,11 +18,13 @@ type powerSinkNode struct {
 
 func NewPortSinkNode() PowerSinkNode {
 	var result = &powerSinkNode{
-		ports:make(core.PortsType),
+		ports: make(core.PortsType),
 	}
 
 	result.ports[powerInput] = core.NewPort()
 	result.ports[powerInput].SetInnerNode(result)
+	result.ports[powerInput].SetState(states.StandartPowerState())
+
 	return result
 }
 
@@ -34,7 +37,7 @@ func (node *powerSinkNode) Process() error {
 }
 
 func (node *powerSinkNode) GetRequirePortTags() ([]string, error) {
-	return []string{}, nil
+	return []string{powerInput}, nil
 }
 
 func (node *powerSinkNode) GetUpdatePortTags() ([]string, error) {
@@ -48,7 +51,7 @@ func (node *powerSinkNode) GetPortTags() []string {
 func (node *powerSinkNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case powerInput:
-		return node.ports[gasInput], nil
+		return node.ports[powerInput], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s of powerSinkNode can not be found", tag))
 	}
@@ -61,6 +64,3 @@ func (node *powerSinkNode) ContextDefined() bool {
 func (node *powerSinkNode) PowerInput() core.Port {
 	return node.ports[powerInput]
 }
-
-
-

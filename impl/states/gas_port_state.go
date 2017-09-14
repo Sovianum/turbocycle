@@ -23,6 +23,10 @@ func NewGasPortState(gas gases.Gas, tStag float64, pStag float64, massRateRel fl
 	}
 }
 
+func StandartAtmosphereState() GasPortState {
+	return NewGasPortState(gases.GetAir(), 288, 1e5, 1) // TODO remove hardcoded constants
+}
+
 func (state GasPortState) Mix(another core.IPortState, relaxCoef float64) (core.IPortState, error) {
 	switch v := another.(type) {
 	case GasPortState:

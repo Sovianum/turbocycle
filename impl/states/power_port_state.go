@@ -13,6 +13,10 @@ func NewPowerPortState(lSpecific float64) PowerPortState {
 	return PowerPortState{LSpecific: lSpecific}
 }
 
+func StandartPowerState() PowerPortState {
+	return NewPowerPortState(0)
+}
+
 func (state PowerPortState) Mix(another core.IPortState, relaxCoef float64) (core.IPortState, error) {
 	switch v := another.(type) {
 	case GasPortState:

@@ -1,10 +1,10 @@
 package nodes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/impl/states"
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 type PowerSourceNode interface {
@@ -25,6 +25,7 @@ func NewPowerSourceNode(lRel float64) PowerSourceNode {
 
 	result.ports[powerOutput] = core.NewPort()
 	result.ports[powerOutput].SetInnerNode(result)
+	result.ports[powerOutput].SetState(states.StandartPowerState())
 
 	return result
 }

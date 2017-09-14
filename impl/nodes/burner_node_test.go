@@ -38,8 +38,8 @@ func TestBurnerNode_Process(t *testing.T) {
 	var cpGas = gases.CpMean(bn.GasOutput().GetState().(states.GasPortState).Gas, t0, tgStag, defaultN)
 	var cpAir = gases.CpMean(inputState.Gas, t0, tInBurn, defaultN)
 	var cpFuel = fuel.CpMean(fuel.GetCH4(), t0, tFuel, defaultN)
-	var enom = cpGas * (tgStag - t0) - cpAir * (tInBurn - t0)
-	var denom = fuel.GetCH4().QLower() * etaBurn + cpFuel * (tFuel - t0) - cpGas * (tgStag - t0)
+	var enom = cpGas*(tgStag-t0) - cpAir*(tInBurn-t0)
+	var denom = fuel.GetCH4().QLower()*etaBurn + cpFuel*(tFuel-t0) - cpGas*(tgStag-t0)
 	var expectedFuelRate = enom / denom
 	assert.True(
 		t,
