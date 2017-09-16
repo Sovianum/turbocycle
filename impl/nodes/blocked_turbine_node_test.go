@@ -21,7 +21,7 @@ const (
 	lBlockedT = 2.2e5
 )
 
-func TestBlockedTurbineNode_Process(t *testing.T) { // smoke testing
+func TestBlockedTurbineNode_Process(t *testing.T) {
 	var turbine = getTestBlockedTurbine()
 	assert.NotNil(t, turbine)
 

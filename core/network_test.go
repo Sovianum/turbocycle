@@ -3,20 +3,21 @@ package core
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"fmt"
 )
 
 func TestGetEmptyRoots(t *testing.T) {
 	var hasEmptyRoots = linkTableType{
-		1: rowType{2: true},
-		2: rowType{},
+		"1": rowType{"2": true},
+		"2": rowType{},
 	}
 
 	var emptyRoots = getEmptyRootIds(hasEmptyRoots)
 	assert.Equal(t, 1, len(emptyRoots))
-	assert.Equal(t, 2, emptyRoots[0])
+	assert.Equal(t, "2", emptyRoots[0])
 
 	var noEmptyRoots = linkTableType{
-		1: rowType{2: true},
+		"1": {"2": true},
 	}
 	emptyRoots = getEmptyRootIds(noEmptyRoots)
 
@@ -25,23 +26,27 @@ func TestGetEmptyRoots(t *testing.T) {
 
 func TestGetCallOrder_CyclicDependency(t *testing.T) {
 	var requireTree = linkTableType{
-		0: {},
-		1: {0: true},
-		2: {1: true, 5: true, 6: true},
-		3: {2: true},
-		4: {1: true, 3: true},
-		5: {2: true, 4: true},
-		6: {},
+		"inlet_source": {},
+		"outlet_source": {},
+		"compressor": {"inlet_source": true},
+		"regenerator": {"compressor": true, "free_turbine": true},
+		"burner": {"regenerator": true},
+		"turbine": {"compressor": true, "burner": true},
+		"pressure_loss": {"turbine": true},
+		"free_turbine": {"pressure_loss": true, "outflow": true},
+		"outflow": {"outlet_source": true},
 	}
 
 	var updateTree = linkTableType{
-		0: {1: true},
-		1: {2: true, 4: true},
-		2: {3: true, 5: true},
-		3: {4: true},
-		4: {5: true},
-		5: {2: true},
-		6: {2: true},
+		"inlet_source": {"compressor": true},
+		"outlet_source": {"outflow": true},
+		"compressor": {"regenerator": true, "turbine": true},
+		"regenerator": {"burner": true, "outflow": true},
+		"burner": {"turbine": true},
+		"turbine": {"pressure_loss": true},
+		"pressure_loss": {"free_turbine": true},
+		"free_turbine": {},
+		"outflow": {"free_turbine": true},
 	}
 
 	var _, err = getCallOrder(requireTree, updateTree)
@@ -50,27 +55,48 @@ func TestGetCallOrder_CyclicDependency(t *testing.T) {
 
 func TestGetCallOrder_OK(t *testing.T) {
 	var requireTree = linkTableType{
-		0: {},
-		1: {0: true},
-		2: {1: true, 6: true, 7: true},
-		3: {2: true},
-		4: {1: true, 3: true},
-		5: {6: true, 4: true},
-		6: {},
-		7: {},
+		"inlet_source": {},
+		"outlet_source": {},
+		"compressor": {"inlet_source": true},
+		"regenerator": {"compressor": true, "cycle_breaker": true},
+		"burner": {"regenerator": true},
+		"turbine": {"compressor": true, "burner": true},
+		"pressure_loss": {"turbine": true},
+		"free_turbine": {"pressure_loss": true, "cycle_breaker": true},
+		"outflow": {"outlet_source": true},
+		"cycle_breaker": {},
 	}
 
 	var updateTree = linkTableType{
-		0: {1: true},
-		1: {2: true, 4: true},
-		2: {3: true, 6: true},
-		3: {4: true},
-		4: {5: true},
-		5: {6: true},
-		6: {2: true, 5: true},
-		7: {2: true},
+		"inlet_source": {"compressor": true},
+		"outlet_source": {"outflow": true},
+		"compressor": {"regenerator": true, "turbine": true},
+		"regenerator": {"burner": true, "outflow": true},
+		"burner": {"turbine": true},
+		"turbine": {"pressure_loss": true},
+		"pressure_loss": {"free_turbine": true},
+		"free_turbine": {},
+		"outflow": {"free_turbine": true},
+		"cycle_breaker": {"free_turbine": true, "regenerator": true},
 	}
 
-	var _, err = getCallOrder(requireTree, updateTree)
+	var items = map[string]bool{
+		"inlet_source": true,
+		"outlet_source": true,
+		"compressor": true,
+		"regenerator": true,
+		"burner": true,
+		"pressure_loss": true,
+		"free_turbine": true,
+		"outflow": true,
+	}
+
+	var callOrder, err = getCallOrder(requireTree, updateTree)
 	assert.Nil(t, err)
+
+	for _, item := range callOrder {
+		delete(items, item)
+	}
+
+	assert.Equal(t, 0, len(items), fmt.Sprintf("Nodes %v has not been called", items))
 }

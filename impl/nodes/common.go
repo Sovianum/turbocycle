@@ -11,6 +11,8 @@ const (
 	coldGasOutput = "coldGasOutput"
 	hotGasInput   = "hotGasInput"
 	hotGasOutput  = "hotGasOutput"
+	portA         = "portA"
+	portB         = "portB"
 	defaultN      = 50
 )
 

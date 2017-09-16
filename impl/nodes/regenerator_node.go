@@ -115,15 +115,40 @@ func (node *regeneratorNode) Process() error {
 	node.hotOutput().SetState(hotGasState)
 	node.coldOutput().SetState(coldGasState)
 
+	switch node.mode {
+	case SigmaByColdSide:
+		var hotInputState = node.hotInput().GetState().(states.GasPortState)
+		hotInputState.PStag = node.hotOutput().GetState().(states.GasPortState).PStag
+		node.hotInput().SetState(hotInputState)
+	case SigmaByHotSide:
+		var coldInputState = node.coldInput().GetState().(states.GasPortState)
+		coldInputState.PStag = node.coldOutput().GetState().(states.GasPortState).PStag
+		node.coldInput().SetState(coldInputState)
+	}
+
 	return nil
 }
 
 func (node *regeneratorNode) GetRequirePortTags() ([]string, error) {
-	return []string{coldGasInput, hotGasInput}, nil
+	switch node.mode {
+	case SigmaByColdSide:
+		return []string{coldGasInput, hotGasInput, hotGasOutput}, nil
+	case SigmaByHotSide:
+		return []string{coldGasInput, hotGasInput, coldGasOutput}, nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
+	}
 }
 
 func (node *regeneratorNode) GetUpdatePortTags() ([]string, error) {
-	return []string{coldGasOutput, hotGasOutput}, nil
+	switch node.mode {
+	case SigmaByColdSide:
+		return []string{coldGasOutput, hotGasOutput, hotGasInput}, nil
+	case SigmaByHotSide:
+		return []string{coldGasOutput, hotGasOutput, coldGasInput}, nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
+	}
 }
 
 func (node *regeneratorNode) GetPortTags() []string {

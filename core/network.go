@@ -24,6 +24,7 @@ func (networkState networkStateType) String() string {
 type Network interface {
 	json.Marshaler
 	Solve(relaxCoef float64, maxIterNum int, precision float64) (bool, error)
+	GetCallOrder() ([]string, error)
 	GetState() (networkStateType, error)
 }
 
@@ -40,27 +41,7 @@ func (network *network) MarshalJSON() ([]byte, error) {
 }
 
 func (network *network) Solve(relaxCoef float64, maxIterNum int, precision float64) (bool, error) {
-	var freePortErr = network.checkFreePorts()
-	if freePortErr != nil {
-		return false, freePortErr
-	}
-
-	var contextDefinitionErr = network.checkContextDefinition()
-	if contextDefinitionErr != nil {
-		return false, contextDefinitionErr
-	}
-
-	var requireLinkTable, requireTableErr = network.getRequireLinkTable()
-	if requireTableErr != nil {
-		return false, requireTableErr
-	}
-
-	var updateLinkTable, updateTableErr = network.getUpdateLinkTable()
-	if updateTableErr != nil {
-		return false, updateTableErr
-	}
-
-	var callOrder, callErr = getCallOrder(requireLinkTable, updateLinkTable)
+	var callOrder, callErr = network.getCallOrder()
 	if callErr != nil {
 		return false, callErr
 	}
@@ -86,8 +67,37 @@ func (network *network) Solve(relaxCoef float64, maxIterNum int, precision float
 	return converged, err
 }
 
+func (network *network) GetCallOrder() ([]string, error) {
+	return network.getCallOrder()
+}
+
 func (network *network) GetState() (networkStateType, error) {
 	return network.getState()
+}
+
+func (network *network) getCallOrder() ([]string, error) {
+	var freePortErr = network.checkFreePorts()
+	if freePortErr != nil {
+		return nil, freePortErr
+	}
+
+	var contextDefinitionErr = network.checkContextDefinition()
+	if contextDefinitionErr != nil {
+		return nil, contextDefinitionErr
+	}
+
+	var requireLinkTable, requireTableErr = network.getRequireLinkTable()
+	if requireTableErr != nil {
+		return nil, requireTableErr
+	}
+
+	var updateLinkTable, updateTableErr = network.getUpdateLinkTable()
+	if updateTableErr != nil {
+		return nil, updateTableErr
+	}
+
+	var callOrder, callErr = getCallOrder(requireLinkTable, updateLinkTable)
+	return callOrder, callErr
 }
 
 func (network *network) makeIteration(callOrder []string, precision float64) (bool, error) {

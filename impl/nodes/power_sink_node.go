@@ -46,7 +46,7 @@ func (node *powerSinkNode) Process() error {
 }
 
 func (node *powerSinkNode) GetRequirePortTags() ([]string, error) {
-	return []string{powerInput}, nil
+	return []string{}, nil
 }
 
 func (node *powerSinkNode) GetUpdatePortTags() ([]string, error) {

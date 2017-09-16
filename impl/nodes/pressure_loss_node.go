@@ -169,7 +169,7 @@ func (node *pressureLossNode) GetRequirePortTags() ([]string, error) {
 	case pressureLossOutflow:
 		return []string{gasOutput}, nil
 	case pressureLossBiFlow:
-		return []string{}, nil
+		return []string{gasInput, gasOutput}, nil
 	default:
 		return nil, errors.New(pressureNodeNotContextDefined)
 	}
