@@ -1,10 +1,10 @@
 package helper
 
 import (
-	"github.com/Sovianum/turbocycle/core"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
@@ -19,7 +19,7 @@ type initializerNode struct {
 }
 
 func NewCycleBreakerNode(initialState core.PortState) CycleBreakNode {
-	var result = &initializerNode{ports:make(core.PortsType)}
+	var result = &initializerNode{ports: make(core.PortsType)}
 
 	result.ports[nodes.PortA] = core.NewPort()
 	result.ports[nodes.PortA].SetInnerNode(result)
@@ -37,8 +37,8 @@ func (node *initializerNode) MarshalJSON() ([]byte, error) {
 		PortAState core.PortState
 		PortBState core.PortState
 	}{
-		PortAState:node.PortA().GetState(),
-		PortBState:node.PortB().GetState(),
+		PortAState: node.PortA().GetState(),
+		PortBState: node.PortB().GetState(),
 	})
 }
 

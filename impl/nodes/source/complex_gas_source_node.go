@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
-	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/Sovianum/turbocycle/impl/nodes"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 type ComplexGasSourceNode interface {
@@ -22,7 +22,7 @@ type complexGasSourceNode struct {
 	gas   gases.Gas
 }
 
-func NewComplexGasSource(gas gases.Gas, tStag, pStag float64) ComplexGasSourceNode {
+func NewComplexGasSourceNode(gas gases.Gas, tStag, pStag float64) ComplexGasSourceNode {
 	var result = &complexGasSourceNode{
 		ports: make(core.PortsType),
 		pStag: pStag,
@@ -32,7 +32,7 @@ func NewComplexGasSource(gas gases.Gas, tStag, pStag float64) ComplexGasSourceNo
 
 	result.ports[nodes.ComplexGasOutput] = core.NewPort()
 	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasOutput].SetState(states.NewComplexGasPortState(gas, tStag, pStag, 1))
 
 	return result
 }

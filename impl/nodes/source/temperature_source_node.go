@@ -16,16 +16,18 @@ type TemperatureSourceNode interface {
 
 type temperatureSourceNode struct {
 	ports core.PortsType
+	tStag float64
 }
 
-func NewTemperatureSourceNode() TemperatureSourceNode {
+func NewTemperatureSourceNode(tStag float64) TemperatureSourceNode {
 	var result = &temperatureSourceNode{
 		ports: make(core.PortsType),
+		tStag: tStag,
 	}
 
 	result.ports[nodes.TemperatureOutput] = core.NewPort()
 	result.ports[nodes.TemperatureOutput].SetInnerNode(result)
-	result.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(288))
+	result.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(tStag))
 
 	return result
 }
@@ -43,15 +45,16 @@ func (node *temperatureSourceNode) GetPorts() core.PortsType {
 }
 
 func (node *temperatureSourceNode) Process() error {
+	node.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(node.tStag))
 	return nil
 }
 
 func (node *temperatureSourceNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.TemperatureOutput}, nil
+	return []string{}, nil
 }
 
 func (node *temperatureSourceNode) GetUpdatePortTags() ([]string, error) {
-	return []string{}, nil
+	return []string{nodes.TemperatureOutput}, nil
 }
 
 func (node *temperatureSourceNode) GetPortTags() []string {

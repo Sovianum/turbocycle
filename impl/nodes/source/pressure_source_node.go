@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/Sovianum/turbocycle/impl/nodes"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 type PressureSourceNode interface {
@@ -16,16 +16,18 @@ type PressureSourceNode interface {
 
 type pressureSourceNode struct {
 	ports core.PortsType
+	pStag float64
 }
 
-func NewPressureSinkNode() PressureSourceNode {
+func NewPressureSourceNode(pStag float64) PressureSourceNode {
 	var result = &pressureSourceNode{
 		ports: make(core.PortsType),
+		pStag: pStag,
 	}
 
 	result.ports[nodes.PressureOutput] = core.NewPort()
 	result.ports[nodes.PressureOutput].SetInnerNode(result)
-	result.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(1e5))
+	result.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(pStag))
 
 	return result
 }
@@ -43,15 +45,16 @@ func (node *pressureSourceNode) GetPorts() core.PortsType {
 }
 
 func (node *pressureSourceNode) Process() error {
+	node.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(node.pStag))
 	return nil
 }
 
 func (node *pressureSourceNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.PressureOutput}, nil
+	return []string{}, nil
 }
 
 func (node *pressureSourceNode) GetUpdatePortTags() ([]string, error) {
-	return []string{}, nil
+	return []string{nodes.PressureOutput}, nil
 }
 
 func (node *pressureSourceNode) GetPortTags() []string {

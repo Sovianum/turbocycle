@@ -6,11 +6,11 @@ import (
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/gdf"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
-	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (

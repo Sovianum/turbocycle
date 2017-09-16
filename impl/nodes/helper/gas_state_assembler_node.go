@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/nodes"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 type GasStateAssemblerNode interface {
@@ -37,18 +38,23 @@ func NewGasStateAssemblerNode() GasStateAssemblerNode {
 
 	result.ports[nodes.PressurePort] = core.NewPort()
 	result.ports[nodes.PressurePort].SetInnerNode(result)
+	result.ports[nodes.PressurePort].SetState(states.NewPressurePortState(1e5)) // TODO remove hardcode
 
 	result.ports[nodes.TemperaturePort] = core.NewPort()
 	result.ports[nodes.TemperaturePort].SetInnerNode(result)
+	result.ports[nodes.TemperaturePort].SetState(states.NewTemperaturePortState(288)) // TODO remove hardcode
 
 	result.ports[nodes.GasPort] = core.NewPort()
 	result.ports[nodes.GasPort].SetInnerNode(result)
+	result.ports[nodes.GasPort].SetState(states.NewGasPortState(gases.GetAir())) // TODO remove hardcode
 
 	result.ports[nodes.ComplexGasPort] = core.NewPort()
 	result.ports[nodes.ComplexGasPort].SetInnerNode(result)
+	result.ports[nodes.ComplexGasPort].SetState(states.StandardAtmosphereState()) // TODO remove hardcode
 
 	result.ports[nodes.MassRateRelPort] = core.NewPort()
 	result.ports[nodes.MassRateRelPort].SetInnerNode(result)
+	result.ports[nodes.MassRateRelPort].SetState(states.NewMassRateRelPortState(1)) // TODO remove hardcode
 
 	return result
 }
@@ -78,6 +84,13 @@ func (node *gasStateAssemblerNode) Process() error {
 	}
 
 	if !complexIsSource {
+		node.ComplexGasPort().SetState(states.NewComplexGasPortState(
+			node.GasPort().GetState().(states.GasPortState).Gas,
+			node.TemperaturePort().GetState().(states.TemperaturePortState).TStag,
+			node.PressurePort().GetState().(states.PressurePortState).PStag,
+			node.MassRateRelPort().GetState().(states.MassRateRelPortState).MassRateRel,
+		))
+	} else {
 		var complexGasState = node.ComplexGasPort().GetState().(states.ComplexGasPortState)
 
 		var gasIsSource, gasErr = nodes.IsDataSource(node.GasPort())
@@ -97,25 +110,18 @@ func (node *gasStateAssemblerNode) Process() error {
 			return massRateErr
 		}
 
-		if gasIsSource {
+		if !gasIsSource {
 			node.GasPort().SetState(states.NewGasPortState(complexGasState.Gas))
 		}
-		if pressureIsSource {
+		if !pressureIsSource {
 			node.PressurePort().SetState(states.NewPressurePortState(complexGasState.PStag))
 		}
-		if temperatureIsSource {
+		if !temperatureIsSource {
 			node.TemperaturePort().SetState(states.NewTemperaturePortState(complexGasState.TStag))
 		}
-		if massRateIsSource {
+		if !massRateIsSource {
 			node.MassRateRelPort().SetState(states.NewMassRateRelPortState(complexGasState.MassRateRel))
 		}
-	} else {
-		node.ComplexGasPort().SetState(states.NewComplexGasPortState(
-			node.GasPort().GetState().(states.GasPortState).Gas,
-			node.TemperaturePort().GetState().(states.TemperaturePortState).TStag,
-			node.PressurePort().GetState().(states.PressurePortState).PStag,
-			node.MassRateRelPort().GetState().(states.MassRateRelPortState).MassRateRel,
-		))
 	}
 
 	return nil
@@ -178,15 +184,16 @@ func (node *gasStateAssemblerNode) getRequirePortTags() ([]string, error) {
 		return nil, err
 	}
 
-	return requirePortTags, nil
+	node.requirePortTags = requirePortTags
+	return node.requirePortTags, nil
 }
 
 func (node *gasStateAssemblerNode) getUpdatePortTags() ([]string, error) {
-	if node.requirePortTags != nil {
-		return node.requirePortTags, nil
+	if node.updatePortTags != nil {
+		return node.updatePortTags, nil
 	}
 
-	var requirePortTags, err = node.getPortTagsTemplate(func(isSource bool) bool {
+	var updatePortTags, err = node.getPortTagsTemplate(func(isSource bool) bool {
 		return !isSource
 	})
 
@@ -194,10 +201,11 @@ func (node *gasStateAssemblerNode) getUpdatePortTags() ([]string, error) {
 		return nil, err
 	}
 
-	return requirePortTags, nil
+	node.updatePortTags = updatePortTags
+	return node.updatePortTags, nil
 }
 
-func (node *gasStateAssemblerNode) getPortTagsTemplate(condition func(isSource bool)bool) ([]string, error) {
+func (node *gasStateAssemblerNode) getPortTagsTemplate(condition func(isSource bool) bool) ([]string, error) {
 	var portTags = make([]string, 0)
 
 	for _, tag := range node.getPortTags() {
@@ -233,7 +241,13 @@ func (node *gasStateAssemblerNode) contextDefined() (bool, error) {
 }
 
 func (node *gasStateAssemblerNode) getPortTags() []string {
-	return []string{nodes.ComplexGasPort, nodes.GasPort, nodes.TemperaturePort, nodes.PressurePort}
+	return []string{
+		nodes.ComplexGasPort,
+		nodes.GasPort,
+		nodes.TemperaturePort,
+		nodes.PressurePort,
+		nodes.MassRateRelPort,
+	}
 }
 
 func (node *gasStateAssemblerNode) getPortByTag(tag string) (core.Port, error) {
@@ -246,6 +260,8 @@ func (node *gasStateAssemblerNode) getPortByTag(tag string) (core.Port, error) {
 		return node.ports[nodes.TemperaturePort], nil
 	case nodes.PressurePort:
 		return node.ports[nodes.PressurePort], nil
+	case nodes.MassRateRelPort:
+		return node.ports[nodes.MassRateRelPort], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s was not found in gasAssemblerNode", tag))
 	}

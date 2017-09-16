@@ -15,17 +15,19 @@ type MassRateRelSourceNode interface {
 }
 
 type massRateRelSourceNode struct {
-	ports core.PortsType
+	ports       core.PortsType
+	massRateRel float64
 }
 
-func NewMassRateRelSinkNode() MassRateRelSourceNode {
+func NewMassRateRelSourceNode(massRateRel float64) MassRateRelSourceNode {
 	var result = &massRateRelSourceNode{
-		ports: make(core.PortsType),
+		ports:       make(core.PortsType),
+		massRateRel: massRateRel,
 	}
 
 	result.ports[nodes.MassRateRelOutput] = core.NewPort()
 	result.ports[nodes.MassRateRelOutput].SetInnerNode(result)
-	result.ports[nodes.MassRateRelOutput].SetState(states.NewMassRateRelPortState(1))
+	result.ports[nodes.MassRateRelOutput].SetState(states.NewMassRateRelPortState(massRateRel))
 
 	return result
 }
@@ -43,6 +45,7 @@ func (node *massRateRelSourceNode) GetPorts() core.PortsType {
 }
 
 func (node *massRateRelSourceNode) Process() error {
+	node.ports[nodes.MassRateRelOutput].SetState(states.NewMassRateRelPortState(node.massRateRel))
 	return nil
 }
 

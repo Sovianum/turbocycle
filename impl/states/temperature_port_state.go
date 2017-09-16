@@ -2,8 +2,8 @@ package states
 
 import (
 	"encoding/json"
-	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core"
 )
 
 type TemperaturePortState struct {
@@ -16,9 +16,9 @@ func NewTemperaturePortState(tStag float64) TemperaturePortState {
 
 func (state TemperaturePortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		TStag       float64 `json:"t_stag"`
+		TStag float64 `json:"t_stag"`
 	}{
-		TStag:       state.TStag,
+		TStag: state.TStag,
 	})
 }
 

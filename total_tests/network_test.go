@@ -2,19 +2,19 @@ package total_tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/Sovianum/turbocycle/impl/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/nodes/sink"
+	"github.com/Sovianum/turbocycle/impl/nodes/source"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
-	"fmt"
-	"github.com/Sovianum/turbocycle/impl/nodes/helper"
 )
 
 const (
@@ -41,8 +41,8 @@ const (
 )
 
 func TestNetwork_Solve_OK(t *testing.T) {
-	var gasSource1 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource1 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
 	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
@@ -84,8 +84,8 @@ func TestNetwork_Solve_OK(t *testing.T) {
 }
 
 func TestNetwork_Solve_FreePorts(t *testing.T) {
-	var gasSource1 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource1 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
 	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
@@ -126,8 +126,8 @@ func TestNetwork_Solve_FreePorts(t *testing.T) {
 }
 
 func TestNetwork_Solve_CanNotCall(t *testing.T) {
-	var gasSource1 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource1 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
 	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
@@ -168,8 +168,8 @@ func TestNetwork_Solve_CanNotCall(t *testing.T) {
 }
 
 func TestNetwork_Solve_Cycled(t *testing.T) {
-	var gasSource1 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource1 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
 	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
@@ -215,8 +215,8 @@ func TestNetwork_Solve_Cycled(t *testing.T) {
 }
 
 func TestNetwork_Solve_NoCycle(t *testing.T) {
-	var gasSource1 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = source.NewComplexGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource1 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
 	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0

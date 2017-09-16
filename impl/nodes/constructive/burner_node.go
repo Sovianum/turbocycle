@@ -8,8 +8,8 @@ import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
-	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/Sovianum/turbocycle/impl/nodes"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 type BurnerNode interface {

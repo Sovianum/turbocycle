@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/states"
-	"github.com/Sovianum/turbocycle/gases"
 )
 
 type GasSourceNode interface {
@@ -17,16 +17,18 @@ type GasSourceNode interface {
 
 type gasSourceNode struct {
 	ports core.PortsType
+	gas   gases.Gas
 }
 
-func NewGasSourceNode() GasSourceNode {
+func NewGasSourceNode(gas gases.Gas) GasSourceNode {
 	var result = &gasSourceNode{
 		ports: make(core.PortsType),
+		gas:   gas,
 	}
 
 	result.ports[nodes.GasOutput] = core.NewPort()
 	result.ports[nodes.GasOutput].SetInnerNode(result)
-	result.ports[nodes.GasOutput].SetState(states.NewGasPortState(gases.GetAir()))
+	result.ports[nodes.GasOutput].SetState(states.NewGasPortState(gas))
 
 	return result
 }
@@ -44,6 +46,7 @@ func (node *gasSourceNode) GetPorts() core.PortsType {
 }
 
 func (node *gasSourceNode) Process() error {
+	node.ports[nodes.GasOutput].SetState(states.NewGasPortState(node.gas))
 	return nil
 }
 
