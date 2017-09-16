@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
@@ -23,9 +24,17 @@ func NewPortSinkNode() PowerSinkNode {
 
 	result.ports[powerInput] = core.NewPort()
 	result.ports[powerInput].SetInnerNode(result)
-	result.ports[powerInput].SetState(states.StandartPowerState())
+	result.ports[powerInput].SetState(states.StandardPowerState())
 
 	return result
+}
+
+func (node *powerSinkNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PowerInputState core.PortState `json:"power_input_state"`
+	}{
+		PowerInputState: node.PowerInput().GetState(),
+	})
 }
 
 func (node *powerSinkNode) GetPorts() core.PortsType {

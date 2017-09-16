@@ -1,8 +1,11 @@
 package core
 
+import "encoding/json"
+
 type PortsType map[string]Port
 
 type Node interface {
+	json.Marshaler
 	GetPorts() PortsType
 	Process() error //TODO check if need to pass relax coef
 	GetRequirePortTags() ([]string, error)

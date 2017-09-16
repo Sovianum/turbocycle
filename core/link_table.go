@@ -9,7 +9,7 @@ import (
 type rowType map[int]bool
 type linkTableType map[int]rowType
 
-// if function fails requireTable may be in invalid state
+// if function fails requireTable may be in invalid networkState
 func getCallOrder(requireTable, updateTable linkTableType) ([]int, error) {
 	var front = getEmptyRootIds(requireTable)
 	if len(front) == 0 {

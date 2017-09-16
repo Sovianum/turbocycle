@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
@@ -25,6 +26,24 @@ type compressorNode struct {
 	PiStag    float64
 }
 
+func (node *compressorNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		GasInputState    core.PortState `json:"gas_input_state"`
+		GasOutputState   core.PortState `json:"gas_output_state"`
+		PowerOutputState core.PortState `json:"power_output_state"`
+		EtaAd            float64         `json:"eta_ad"`
+		PiStag           float64         `json:"pi_stag"`
+		MassRateRel      float64         `json:"mass_rate_rel"`
+	}{
+		GasInputState:    node.gasInput().GetState(),
+		GasOutputState:   node.gasOutput().GetState(),
+		PowerOutputState: node.powerOutput().GetState(),
+		EtaAd:            node.EtaAd,
+		PiStag:           node.PiStag,
+		MassRateRel:      node.gasInput().GetState().(states.GasPortState).MassRateRel,
+	})
+}
+
 func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	var result = &compressorNode{
 		ports:     make(core.PortsType),
@@ -35,15 +54,15 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandartAtmosphereState())
+	result.ports[gasInput].SetState(states.StandardAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
 
 	result.ports[powerOutput] = core.NewPort()
 	result.ports[powerOutput].SetInnerNode(result)
-	result.ports[powerOutput].SetState(states.StandartPowerState())
+	result.ports[powerOutput].SetState(states.StandardPowerState())
 
 	return result
 }

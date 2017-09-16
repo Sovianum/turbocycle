@@ -5,6 +5,7 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/gdf"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"math"
@@ -49,6 +50,13 @@ func TestBlockedTurbineNode_Process(t *testing.T) { // smoke testing
 		t,
 		common.ApproxEqual(expectedPit, turbine.PiTStag(), 0.01),
 		fmt.Sprintf("Expected pi_t %f, got %f", expectedPit, turbine.PiTStag()),
+	)
+
+	var expectedPt = turbine.PStagIn() / (turbine.PiTStag() * gdf.Pi(lambdaOut, kMean))
+	assert.True(
+		t,
+		common.ApproxEqual(expectedPt, turbine.PStagOut(), 0.01),
+		fmt.Sprintf("Expected p_t %f, got %f", expectedPt, turbine.PStagOut()),
 	)
 }
 

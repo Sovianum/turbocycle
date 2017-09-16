@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
@@ -23,9 +24,17 @@ func NewGasSinkNode() GasSinkNode {
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandartAtmosphereState())
+	result.ports[gasInput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *gasSinkNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		GasInputState core.PortState `json:"gas_input_state"`
+	}{
+		GasInputState: node.GasInput().GetState(),
+	})
 }
 
 func (node *gasSinkNode) GetPorts() core.PortsType {

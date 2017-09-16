@@ -5,11 +5,23 @@ import (
 	"fmt"
 )
 
-type nodeStateType map[string]IPortState
+type nodeStateType map[string]PortState
 type networkStateType map[int]nodeStateType
 
 type Network struct {
 	nodes []Node
+}
+
+func (networkState networkStateType) String() string {
+	var result = ""
+	for key, nodeState := range networkState {
+		result += fmt.Sprintf("%d\n", key)
+		for tag, val := range nodeState {
+			result += fmt.Sprintf("\t%s\t%v\n", tag, val)
+		}
+	}
+
+	return result
 }
 
 func NewNetwork(nodes []Node) *Network {
@@ -61,6 +73,10 @@ func (network *Network) Solve(relaxCoef float64, maxIterNum int, precision float
 	}
 
 	return converged, err
+}
+
+func (network *Network) GetState() (networkStateType, error) {
+	return network.getState()
 }
 
 func (network *Network) makeIteration(callOrder []int, precision float64) (bool, error) {
@@ -131,7 +147,7 @@ func (network *Network) updateNetworkState(newState networkStateType, relaxCoef 
 			var newPortState, stateErr = port.GetState().Mix(portState, relaxCoef)
 			if stateErr != nil {
 				return errors.New(fmt.Sprintf(
-					"Failed to mix state of portType \"%s\" from node %d: %s", tag, nodeId, stateErr.Error(),
+					"Failed to mix networkState of portType \"%s\" from node %d: %s", tag, nodeId, stateErr.Error(),
 				))
 			}
 

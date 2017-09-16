@@ -1,6 +1,7 @@
 package states
 
 import (
+	"encoding/json"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
@@ -23,11 +24,23 @@ func NewGasPortState(gas gases.Gas, tStag float64, pStag float64, massRateRel fl
 	}
 }
 
-func StandartAtmosphereState() GasPortState {
+func (state GasPortState) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PStag       float64 `json:"p_stag"`
+		TStag       float64 `json:"t_stag"`
+		MassRateRel float64 `json:"mass_rate_rel"`
+	}{
+		PStag:       state.PStag,
+		TStag:       state.TStag,
+		MassRateRel: state.MassRateRel,
+	})
+}
+
+func StandardAtmosphereState() GasPortState {
 	return NewGasPortState(gases.GetAir(), 288, 1e5, 1) // TODO remove hardcoded constants
 }
 
-func (state GasPortState) Mix(another core.IPortState, relaxCoef float64) (core.IPortState, error) {
+func (state GasPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
 	switch v := another.(type) {
 	case GasPortState:
 		var casted = another.(GasPortState)
@@ -43,7 +56,7 @@ func (state GasPortState) Mix(another core.IPortState, relaxCoef float64) (core.
 	}
 }
 
-func (state GasPortState) MaxResidual(another core.IPortState) (float64, error) {
+func (state GasPortState) MaxResidual(another core.PortState) (float64, error) {
 	switch v := another.(type) {
 	case GasPortState:
 		var casted = another.(GasPortState)

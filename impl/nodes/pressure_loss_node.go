@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
@@ -40,13 +41,25 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandartAtmosphereState())
+	result.ports[gasInput].SetState(states.StandardAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *pressureLossNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		GasInputState  core.PortState `json:"gas_input_state"`
+		GasOutputState core.PortState `json:"gas_output_state"`
+		Sigma          float64         `json:"sigma"`
+	}{
+		GasInputState:  node.gasInput().GetState(),
+		GasOutputState: node.gasOutput().GetState(),
+		Sigma:          node.sigma,
+	})
 }
 
 func (node *pressureLossNode) ContextDefined() bool {

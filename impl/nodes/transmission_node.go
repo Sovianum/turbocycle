@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
@@ -27,14 +28,26 @@ func NewTransmissionNode(etaM float64) TransmissionNode {
 	var inputPort = core.NewPort()
 	inputPort.SetInnerNode(transmissionNode)
 	transmissionNode.ports[powerInput] = inputPort
-	transmissionNode.ports[powerInput].SetState(states.StandartPowerState())
+	transmissionNode.ports[powerInput].SetState(states.StandardPowerState())
 
 	var outputPort = core.NewPort()
 	outputPort.SetInnerNode(transmissionNode)
 	transmissionNode.ports[powerOutput] = outputPort
-	transmissionNode.ports[powerOutput].SetState(states.StandartPowerState())
+	transmissionNode.ports[powerOutput].SetState(states.StandardPowerState())
 
 	return transmissionNode
+}
+
+func (node *transmissionNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PowerInputState  core.PortState `json:"power_input_state"`
+		PowerOutputState core.PortState `json:"power_output_state"`
+		EtaM             float64        `json:"eta_m"`
+	}{
+		PowerInputState:  node.powerInput().GetState(),
+		PowerOutputState: node.powerOutput().GetState(),
+		EtaM:             node.etaM,
+	})
 }
 
 func (node *transmissionNode) ContextDefined() bool {

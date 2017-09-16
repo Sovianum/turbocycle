@@ -1,8 +1,8 @@
 package core
 
 type Port interface {
-	GetState() IPortState
-	SetState(state IPortState)
+	GetState() PortState
+	SetState(state PortState)
 	GetInnerNode() Node
 	SetInnerNode(Node)
 	GetOuterNode() Node
@@ -12,7 +12,7 @@ type Port interface {
 }
 
 type portType struct {
-	state     IPortState
+	state     PortState
 	innerNode Node
 	outerNode Node
 	linkPort  Port
@@ -35,11 +35,11 @@ func Link(port1 Port, port2 Port) {
 	port2.SetOuterNode(port1.GetInnerNode())
 }
 
-func (port *portType) GetState() IPortState {
+func (port *portType) GetState() PortState {
 	return port.state
 }
 
-func (port *portType) SetState(state IPortState) {
+func (port *portType) SetState(state PortState) {
 	port.state = state
 	if port.linkPort != nil {
 		port.linkPort.(*portType).state = state

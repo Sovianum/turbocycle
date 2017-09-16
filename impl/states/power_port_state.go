@@ -1,6 +1,7 @@
 package states
 
 import (
+	"encoding/json"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 )
@@ -13,11 +14,19 @@ func NewPowerPortState(lSpecific float64) PowerPortState {
 	return PowerPortState{LSpecific: lSpecific}
 }
 
-func StandartPowerState() PowerPortState {
+func StandardPowerState() PowerPortState {
 	return NewPowerPortState(0)
 }
 
-func (state PowerPortState) Mix(another core.IPortState, relaxCoef float64) (core.IPortState, error) {
+func (state PowerPortState) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		LSpecific float64
+	}{
+		LSpecific: state.LSpecific,
+	})
+}
+
+func (state PowerPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
 	switch v := another.(type) {
 	case GasPortState:
 		var casted = another.(PowerPortState)
@@ -30,7 +39,7 @@ func (state PowerPortState) Mix(another core.IPortState, relaxCoef float64) (cor
 	}
 }
 
-func (state PowerPortState) MaxResidual(another core.IPortState) (float64, error) {
+func (state PowerPortState) MaxResidual(another core.PortState) (float64, error) {
 	switch v := another.(type) {
 	case PowerPortState:
 		return common.GetRelResidual(state.LSpecific, another.(PowerPortState).LSpecific), nil

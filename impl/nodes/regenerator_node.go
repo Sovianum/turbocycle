@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
@@ -39,21 +40,37 @@ func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 
 	result.ports[hotGasInput] = core.NewPort()
 	result.ports[hotGasInput].SetInnerNode(result)
-	result.ports[hotGasInput].SetState(states.StandartAtmosphereState())
+	result.ports[hotGasInput].SetState(states.StandardAtmosphereState())
 
 	result.ports[coldGasInput] = core.NewPort()
 	result.ports[coldGasInput].SetInnerNode(result)
-	result.ports[coldGasInput].SetState(states.StandartAtmosphereState())
+	result.ports[coldGasInput].SetState(states.StandardAtmosphereState())
 
 	result.ports[hotGasOutput] = core.NewPort()
 	result.ports[hotGasOutput].SetInnerNode(result)
-	result.ports[hotGasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[hotGasOutput].SetState(states.StandardAtmosphereState())
 
 	result.ports[coldGasOutput] = core.NewPort()
 	result.ports[coldGasOutput].SetInnerNode(result)
-	result.ports[coldGasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[coldGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *regeneratorNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		HotInputState   core.PortState `json:"hot_input_state"`
+		ColdInputState  core.PortState `json:"cold_input_state"`
+		HotOutputState  core.PortState `json:"hot_output_state"`
+		ColdOutputState core.PortState `json:"cold_output_state"`
+		Sigma           float64        `json:"sigma"`
+	}{
+		HotInputState:   node.hotInput().GetState(),
+		ColdInputState:  node.coldInput().GetState(),
+		HotOutputState:  node.hotOutput().GetState(),
+		ColdOutputState: node.coldOutput().GetState(),
+		Sigma:           node.sigma,
+	})
 }
 
 func (node *regeneratorNode) ContextDefined() bool {

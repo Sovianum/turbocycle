@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
@@ -48,13 +49,31 @@ func NewBurnerNode(
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandartAtmosphereState())
+	result.ports[gasInput].SetState(states.StandardAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *burnerNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		GasInputState   core.PortState `json:"gas_input_state"`
+		GasOutputState  core.PortState `json:"gas_output_state"`
+		Alpha           float64         `json:"alpha"`
+		FuelMassRateRel float64         `json:"fuel_mass_rate_rel"`
+		EtaBurn         float64         `json:"eta_burn"`
+		Sigma           float64         `json:"sigma"`
+	}{
+		GasInputState:   node.gasInput().GetState(),
+		GasOutputState:  node.gasOutput().GetState(),
+		Alpha:           node.alpha,
+		FuelMassRateRel: node.GetFuelRateRel(),
+		EtaBurn:         node.etaBurn,
+		Sigma:           node.sigma,
+	})
 }
 
 func (node *burnerNode) ContextDefined() bool {

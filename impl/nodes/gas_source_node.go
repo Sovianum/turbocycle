@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
@@ -30,9 +31,17 @@ func NewGasSource(gas gases.Gas, tStag, pStag float64) GasSourceNode {
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *gasSourceNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		GasOutputState core.PortState `json:"gas_output_state"`
+	}{
+		GasOutputState: node.GasOutput().GetState(),
+	})
 }
 
 func (node *gasSourceNode) GetPorts() core.PortsType {

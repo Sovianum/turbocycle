@@ -1,6 +1,9 @@
 package core
 
-type IPortState interface {
-	Mix(another IPortState, relaxCoef float64) (IPortState, error)
-	MaxResidual(another IPortState) (float64, error)
+import "encoding/json"
+
+type PortState interface {
+	json.Marshaler
+	Mix(another PortState, relaxCoef float64) (PortState, error)
+	MaxResidual(another PortState) (float64, error)
 }

@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
@@ -35,21 +36,39 @@ func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc f
 
 	result.ports[powerInput] = core.NewPort()
 	result.ports[powerInput].SetInnerNode(result)
-	result.ports[powerInput].SetState(states.StandartPowerState())
+	result.ports[powerInput].SetState(states.StandardPowerState())
 
 	result.ports[powerOutput] = core.NewPort()
 	result.ports[powerOutput].SetInnerNode(result)
-	result.ports[powerOutput].SetState(states.StandartPowerState())
+	result.ports[powerOutput].SetState(states.StandardPowerState())
 
 	result.ports[gasInput] = core.NewPort()
 	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandartAtmosphereState())
+	result.ports[gasInput].SetState(states.StandardAtmosphereState())
 
 	result.ports[gasOutput] = core.NewPort()
 	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandartAtmosphereState())
+	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *blockedTurbineNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		GasInputState    core.PortState `json:"gas_input_state"`
+		GasOutputState   core.PortState `json:"gas_output_state"`
+		PowerInputState  core.PortState `json:"power_input_state"`
+		PowerOutputState core.PortState `json:"power_output_state"`
+		LSpecific        float64         `json:"l_specific"`
+		Eta              float64         `json:"eta"`
+	}{
+		GasInputState:    node.gasInput().GetState(),
+		GasOutputState:   node.gasOutput().GetState(),
+		PowerInputState:  node.powerInput().GetState(),
+		PowerOutputState: node.powerOutput().GetState(),
+		LSpecific:        node.turbineLabour(),
+		Eta:              node.etaT,
+	})
 }
 
 func (node *blockedTurbineNode) ContextDefined() bool {
