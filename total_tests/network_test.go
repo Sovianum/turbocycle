@@ -2,12 +2,12 @@ package total_tests
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -37,17 +37,26 @@ func TestNetwork_Solve_Smoke(t *testing.T) {
 	core.Link(turbine.PowerOutput(), powerSink1.PowerInput())
 	core.Link(freeTurbine.PowerOutput(), powerSink2.PowerInput())
 
-	var network = core.NewNetwork([]core.Node{
-		gasSource1, gasSource2, compressor, burner, turbine, pressureLossNode, freeTurbine, powerSink1, powerSink2,
+	var network = core.NewNetwork(map[string]core.Node{
+		"gasSource1":   gasSource1,
+		"gasSource2":   gasSource2,
+		"compressor":   compressor,
+		"burner":       burner,
+		"turbine":      turbine,
+		"pressureLoss": pressureLossNode,
+		"freeTurbine":  freeTurbine,
+		"powerSink1":   powerSink1,
+		"powerSink2":   powerSink2,
 	})
 	var converged, err = network.Solve(1, 100, 0.05)
 
 	assert.Nil(t, err)
 	assert.True(t, converged)
 
-	var s, _ = json.Marshal(compressor)
-	fmt.Println(string(s))
-
-	fmt.Println(freeTurbine.PiTStag())
-	fmt.Println(network.GetState())
+	var b, _ = json.MarshalIndent(network, "", "    ")
+	os.Stdout.Write(b)
+	//fmt.Println(string(s))
+	//
+	//fmt.Println(freeTurbine.PiTStag())
+	//fmt.Println(network.GetState())
 }

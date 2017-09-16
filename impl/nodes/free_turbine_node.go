@@ -53,9 +53,9 @@ func (node *freeTurbineNode) MarshalJSON() ([]byte, error) {
 		GasInputState    core.PortState `json:"gas_input_state"`
 		GasOutputState   core.PortState `json:"gas_output_state"`
 		PowerOutputState core.PortState `json:"power_output_state"`
-		PiStag           float64         `json:"pi_stag"`
-		LSpecific        float64         `json:"l_specific"`
-		Eta              float64         `json:"eta"`
+		PiStag           float64        `json:"pi_stag"`
+		LSpecific        float64        `json:"l_specific"`
+		Eta              float64        `json:"eta"`
 	}{
 		GasInputState:    node.gasInput().GetState(),
 		GasOutputState:   node.gasOutput().GetState(),

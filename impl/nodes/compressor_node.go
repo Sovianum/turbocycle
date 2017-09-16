@@ -31,9 +31,9 @@ func (node *compressorNode) MarshalJSON() ([]byte, error) {
 		GasInputState    core.PortState `json:"gas_input_state"`
 		GasOutputState   core.PortState `json:"gas_output_state"`
 		PowerOutputState core.PortState `json:"power_output_state"`
-		EtaAd            float64         `json:"eta_ad"`
-		PiStag           float64         `json:"pi_stag"`
-		MassRateRel      float64         `json:"mass_rate_rel"`
+		EtaAd            float64        `json:"eta_ad"`
+		PiStag           float64        `json:"pi_stag"`
+		MassRateRel      float64        `json:"mass_rate_rel"`
 	}{
 		GasInputState:    node.gasInput().GetState(),
 		GasOutputState:   node.gasOutput().GetState(),

@@ -1,16 +1,13 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
 
 type nodeStateType map[string]PortState
-type networkStateType map[int]nodeStateType
-
-type Network struct {
-	nodes []Node
-}
+type networkStateType map[string]nodeStateType
 
 func (networkState networkStateType) String() string {
 	var result = ""
@@ -24,11 +21,25 @@ func (networkState networkStateType) String() string {
 	return result
 }
 
-func NewNetwork(nodes []Node) *Network {
-	return &Network{nodes: nodes}
+type Network interface {
+	json.Marshaler
+	Solve(relaxCoef float64, maxIterNum int, precision float64) (bool, error)
+	GetState() (networkStateType, error)
 }
 
-func (network *Network) Solve(relaxCoef float64, maxIterNum int, precision float64) (bool, error) {
+type network struct {
+	nodes map[string]Node
+}
+
+func NewNetwork(nodes map[string]Node) Network {
+	return &network{nodes: nodes}
+}
+
+func (network *network) MarshalJSON() ([]byte, error) {
+	return json.Marshal(network.nodes)
+}
+
+func (network *network) Solve(relaxCoef float64, maxIterNum int, precision float64) (bool, error) {
 	var freePortErr = network.checkFreePorts()
 	if freePortErr != nil {
 		return false, freePortErr
@@ -75,11 +86,11 @@ func (network *Network) Solve(relaxCoef float64, maxIterNum int, precision float
 	return converged, err
 }
 
-func (network *Network) GetState() (networkStateType, error) {
+func (network *network) GetState() (networkStateType, error) {
 	return network.getState()
 }
 
-func (network *Network) makeIteration(callOrder []int, precision float64) (bool, error) {
+func (network *network) makeIteration(callOrder []string, precision float64) (bool, error) {
 	var currState, newState networkStateType
 	var err error
 
@@ -104,50 +115,46 @@ func (network *Network) makeIteration(callOrder []int, precision float64) (bool,
 	return false, nil
 }
 
-func (network *Network) checkContextDefinition() error {
-	var nodeIds = make([]int, 0)
-	for id, node := range network.nodes {
+func (network *network) checkContextDefinition() error {
+	var nodeKeys = make([]string, 0)
+	for key, node := range network.nodes {
 		if !node.ContextDefined() {
-			nodeIds = append(nodeIds, id)
+			nodeKeys = append(nodeKeys, key)
 		}
 	}
 
-	if len(nodeIds) > 0 {
-		return errors.New(fmt.Sprintf("Nodes %v are not context defined", nodeIds))
+	if len(nodeKeys) > 0 {
+		return errors.New(fmt.Sprintf("Nodes %v are not context defined", nodeKeys))
 	}
 	return nil
 }
 
-func (network *Network) getNewState(callOrder []int) (networkStateType, error) {
-	for _, nodeId := range callOrder {
-		var err = network.nodes[nodeId].Process()
+func (network *network) getNewState(callOrder []string) (networkStateType, error) {
+	for _, nodeKey := range callOrder {
+		var err = network.nodes[nodeKey].Process()
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf(
-				"Failed on node %d: %s", nodeId, err.Error(),
+				"Failed on node %d: %s", nodeKey, err.Error(),
 			))
 		}
 	}
 	return network.getState()
 }
 
-func (network *Network) updateNetworkState(newState networkStateType, relaxCoef float64) error {
-	for nodeId, nodeState := range newState {
-		if nodeId > len(network.nodes) {
-			return errors.New(fmt.Sprintf("NodeId == %d > len(network.nodes) == %d", nodeId, len(network.nodes)))
-		}
-
+func (network *network) updateNetworkState(newState networkStateType, relaxCoef float64) error {
+	for nodeKey, nodeState := range newState {
 		for tag, portState := range nodeState {
-			var port, tagErr = network.nodes[nodeId].GetPortByTag(tag)
+			var port, tagErr = network.nodes[nodeKey].GetPortByTag(tag)
 			if tagErr != nil {
 				return errors.New(fmt.Sprintf(
-					"Failed to get portType by tag \"%s\" from node %d: %s", tag, nodeId, tagErr.Error(),
+					"Failed to get portType by tag \"%s\" from node %d: %s", tag, nodeKey, tagErr.Error(),
 				))
 			}
 
 			var newPortState, stateErr = port.GetState().Mix(portState, relaxCoef)
 			if stateErr != nil {
 				return errors.New(fmt.Sprintf(
-					"Failed to mix networkState of portType \"%s\" from node %d: %s", tag, nodeId, stateErr.Error(),
+					"Failed to mix networkState of portType \"%s\" from node %d: %s", tag, nodeKey, stateErr.Error(),
 				))
 			}
 
@@ -158,7 +165,7 @@ func (network *Network) updateNetworkState(newState networkStateType, relaxCoef 
 	return nil
 }
 
-func (network *Network) getState() (networkStateType, error) {
+func (network *network) getState() (networkStateType, error) {
 	var result = make(networkStateType)
 
 	for nodeId, node := range network.nodes {
@@ -178,7 +185,7 @@ func (network *Network) getState() (networkStateType, error) {
 	return result, nil
 }
 
-func (network *Network) checkFreePorts() error {
+func (network *network) checkFreePorts() error {
 	for nodeId, node := range network.nodes {
 		for portTag, port := range node.GetPorts() {
 			if port.GetLinkPort() == nil {
@@ -189,7 +196,7 @@ func (network *Network) checkFreePorts() error {
 	return nil
 }
 
-func (network *Network) getUpdateLinkTable() (linkTableType, error) {
+func (network *network) getUpdateLinkTable() (linkTableType, error) {
 	return network.getLinkTable(func(node Node) ([]Node, error) {
 		var result = make([]Node, 0)
 
@@ -205,7 +212,7 @@ func (network *Network) getUpdateLinkTable() (linkTableType, error) {
 	})
 }
 
-func (network *Network) getRequireLinkTable() (linkTableType, error) {
+func (network *network) getRequireLinkTable() (linkTableType, error) {
 	return network.getLinkTable(func(node Node) ([]Node, error) {
 		var result = make([]Node, 0)
 
@@ -221,10 +228,10 @@ func (network *Network) getRequireLinkTable() (linkTableType, error) {
 	})
 }
 
-func (network *Network) getLinkTable(leafExtractor func(Node) ([]Node, error)) (linkTableType, error) {
-	var idMap = make(map[Node]int)
-	for i, node := range network.nodes {
-		idMap[node] = i
+func (network *network) getLinkTable(leafExtractor func(Node) ([]Node, error)) (linkTableType, error) {
+	var idMap = make(map[Node]string)
+	for key, node := range network.nodes {
+		idMap[node] = key
 	}
 
 	var result = make(linkTableType)

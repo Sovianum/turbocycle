@@ -6,18 +6,18 @@ import (
 )
 
 // TODO use matrix instead of maps
-type rowType map[int]bool
-type linkTableType map[int]rowType
+type rowType map[string]bool
+type linkTableType map[string]rowType
 
 // if function fails requireTable may be in invalid networkState
-func getCallOrder(requireTable, updateTable linkTableType) ([]int, error) {
+func getCallOrder(requireTable, updateTable linkTableType) ([]string, error) {
 	var front = getEmptyRootIds(requireTable)
 	if len(front) == 0 {
-		return nil, errors.New("Network has no start nodes")
+		return nil, errors.New("network has no start nodes")
 	}
 	deleteEmptyRoots(requireTable)
 
-	var result = make([]int, 0)
+	var result = make([]string, 0)
 	result = append(result, front...)
 
 	var err error
@@ -35,9 +35,9 @@ func getCallOrder(requireTable, updateTable linkTableType) ([]int, error) {
 	}
 
 	if len(requireTable) != 0 {
-		var inaccessibleRoots = make([]int, 0)
-		for rootId := range requireTable {
-			inaccessibleRoots = append(inaccessibleRoots, rootId)
+		var inaccessibleRoots = make([]string, 0)
+		for rootKey := range requireTable {
+			inaccessibleRoots = append(inaccessibleRoots, rootKey)
 		}
 
 		return nil, errors.New(fmt.Sprintf("Roots %v can not be called", inaccessibleRoots))
@@ -46,8 +46,8 @@ func getCallOrder(requireTable, updateTable linkTableType) ([]int, error) {
 	return result, nil
 }
 
-func getNewFront(requireTable, updateTable linkTableType, frontIds []int) ([]int, error) {
-	for _, id := range frontIds {
+func getNewFront(requireTable, updateTable linkTableType, frontKeys []string) ([]string, error) {
+	for _, id := range frontKeys {
 		var subTable = getSubTable(updateTable, id)
 		var invertedSubTable = invertTable(subTable)
 
@@ -72,12 +72,12 @@ func subtractSubTable(linkTable, deleteSubTable linkTableType) error {
 	return nil
 }
 
-func getSubTable(linkTable linkTableType, rowId int) linkTableType {
+func getSubTable(linkTable linkTableType, rowKey string) linkTableType {
 	var updateTable = make(linkTableType)
-	updateTable[rowId] = make(rowType)
+	updateTable[rowKey] = make(rowType)
 
-	for linkNodeId := range linkTable[rowId] {
-		updateTable[rowId][linkNodeId] = true
+	for linkNodeId := range linkTable[rowKey] {
+		updateTable[rowKey][linkNodeId] = true
 	}
 
 	return updateTable
@@ -91,8 +91,8 @@ func deleteEmptyRoots(table linkTableType) {
 	}
 }
 
-func getEmptyRootIds(table linkTableType) []int {
-	var result = make([]int, 0)
+func getEmptyRootIds(table linkTableType) []string {
+	var result = make([]string, 0)
 	for rootId, linkMap := range table {
 		if len(linkMap) == 0 {
 			result = append(result, rootId)

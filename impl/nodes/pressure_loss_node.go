@@ -54,7 +54,7 @@ func (node *pressureLossNode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		GasInputState  core.PortState `json:"gas_input_state"`
 		GasOutputState core.PortState `json:"gas_output_state"`
-		Sigma          float64         `json:"sigma"`
+		Sigma          float64        `json:"sigma"`
 	}{
 		GasInputState:  node.gasInput().GetState(),
 		GasOutputState: node.gasOutput().GetState(),

@@ -59,8 +59,8 @@ func (node *blockedTurbineNode) MarshalJSON() ([]byte, error) {
 		GasOutputState   core.PortState `json:"gas_output_state"`
 		PowerInputState  core.PortState `json:"power_input_state"`
 		PowerOutputState core.PortState `json:"power_output_state"`
-		LSpecific        float64         `json:"l_specific"`
-		Eta              float64         `json:"eta"`
+		LSpecific        float64        `json:"l_specific"`
+		Eta              float64        `json:"eta"`
 	}{
 		GasInputState:    node.gasInput().GetState(),
 		GasOutputState:   node.gasOutput().GetState(),

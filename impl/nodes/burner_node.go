@@ -62,10 +62,10 @@ func (node *burnerNode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		GasInputState   core.PortState `json:"gas_input_state"`
 		GasOutputState  core.PortState `json:"gas_output_state"`
-		Alpha           float64         `json:"alpha"`
-		FuelMassRateRel float64         `json:"fuel_mass_rate_rel"`
-		EtaBurn         float64         `json:"eta_burn"`
-		Sigma           float64         `json:"sigma"`
+		Alpha           float64        `json:"alpha"`
+		FuelMassRateRel float64        `json:"fuel_mass_rate_rel"`
+		EtaBurn         float64        `json:"eta_burn"`
+		Sigma           float64        `json:"sigma"`
 	}{
 		GasInputState:   node.gasInput().GetState(),
 		GasOutputState:  node.gasOutput().GetState(),
