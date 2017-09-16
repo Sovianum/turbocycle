@@ -21,10 +21,10 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	var turbine = getTestFreeTurbineNode()
 	assert.NotNil(t, turbine)
 
-	var inputGasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), tInFreeT, pInFreeT, 1)
-	turbine.GasInput().SetState(inputGasState)
-	var outputGasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), 300, pOutFreeT, 1)
-	turbine.GasOutput().SetState(outputGasState)
+	var inputGasState = states.NewComplexGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), tInFreeT, pInFreeT, 1)
+	turbine.ComplexGasInput().SetState(inputGasState)
+	var outputGasState = states.NewComplexGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), 300, pOutFreeT, 1)
+	turbine.ComplexGasOutput().SetState(outputGasState)
 
 	turbine.Process()
 

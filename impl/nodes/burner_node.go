@@ -13,7 +13,7 @@ import (
 
 type BurnerNode interface {
 	core.Node
-	GasChannel
+	ComplexGasChannel
 	Alpha() float64
 	GetFuelRateRel() float64
 }
@@ -47,13 +47,13 @@ func NewBurnerNode(
 		precision: precision,
 	}
 
-	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasInput] = core.NewPort()
+	result.ports[complexGasInput].SetInnerNode(result)
+	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasOutput] = core.NewPort()
+	result.ports[complexGasOutput].SetInnerNode(result)
+	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -82,9 +82,9 @@ func (node *burnerNode) ContextDefined() bool {
 
 func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case gasInput:
+	case complexGasInput:
 		return node.gasInput(), nil
-	case gasOutput:
+	case complexGasOutput:
 		return node.gasOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
@@ -92,26 +92,26 @@ func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 }
 
 func (node *burnerNode) GetRequirePortTags() ([]string, error) {
-	return []string{gasInput}, nil
+	return []string{complexGasInput}, nil
 }
 
 func (node *burnerNode) GetUpdatePortTags() ([]string, error) {
-	return []string{gasOutput}, nil
+	return []string{complexGasOutput}, nil
 }
 
 func (node *burnerNode) GetPortTags() []string {
-	return []string{gasInput, gasOutput}
+	return []string{complexGasInput, complexGasOutput}
 }
 
 func (node *burnerNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *burnerNode) GasInput() core.Port {
+func (node *burnerNode) ComplexGasInput() core.Port {
 	return node.gasInput()
 }
 
-func (node *burnerNode) GasOutput() core.Port {
+func (node *burnerNode) ComplexGasOutput() core.Port {
 	return node.gasOutput()
 }
 
@@ -143,7 +143,7 @@ func (node *burnerNode) Process() error {
 	var fuelMassRateRel, alpha = node.getFuelParameters(node.initAlpha)
 	node.alpha = alpha
 
-	var gasState = node.GasInput().GetState().(states.GasPortState)
+	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
 	gasState.Gas = node.outletGas
 	gasState.TStag = node.tgStag
 	gasState.PStag = node.pStagIn() * node.sigma
@@ -185,29 +185,29 @@ func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 }
 
 func (node *burnerNode) inletGas() gases.Gas {
-	return node.gasInput().GetState().(states.GasPortState).Gas
+	return node.gasInput().GetState().(states.ComplexGasPortState).Gas
 }
 
 func (node *burnerNode) tStagIn() float64 {
-	return node.gasInput().GetState().(states.GasPortState).TStag
+	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *burnerNode) tStagOut() float64 {
-	return node.gasOutput().GetState().(states.GasPortState).TStag
+	return node.gasOutput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *burnerNode) pStagIn() float64 {
-	return node.gasInput().GetState().(states.GasPortState).PStag
+	return node.gasInput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *burnerNode) pStagOut() float64 {
-	return node.gasOutput().GetState().(states.GasPortState).PStag
+	return node.gasOutput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *burnerNode) gasInput() core.Port {
-	return node.ports[gasInput]
+	return node.ports[complexGasInput]
 }
 
 func (node *burnerNode) gasOutput() core.Port {
-	return node.ports[gasOutput]
+	return node.ports[complexGasOutput]
 }

@@ -44,7 +44,7 @@ func TestCompressorNode_Process(t *testing.T) {
 
 func getTestCompressor() CompressorNode {
 	var compressor = NewCompressorNode(etaC, piC, 0.05)
-	var gasState = states.NewGasPortState(gases.GetAir(), tA, pA, 1)
-	compressor.GasInput().SetState(gasState)
+	var gasState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
+	compressor.ComplexGasInput().SetState(gasState)
 	return compressor
 }

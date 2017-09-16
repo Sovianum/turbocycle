@@ -1,0 +1,41 @@
+package states
+
+import (
+	"encoding/json"
+	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core"
+)
+
+type PressurePortState struct {
+	PStag float64 `json:"p_stag"`
+}
+
+func NewPressurePortState(pStag float64) PressurePortState {
+	return PressurePortState{PStag: pStag}
+}
+
+func (state PressurePortState) MarshalJSON() ([]byte, error) {
+	return json.Marshal(state)
+}
+
+func (state PressurePortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
+	switch v := another.(type) {
+	case PressurePortState:
+		var casted = another.(PressurePortState)
+
+		return NewPowerPortState(
+			common.Lerp(state.PStag, casted.PStag, relaxCoef),
+		), nil
+	default:
+		return nil, common.GetTypeError("PressurePortState", v)
+	}
+}
+
+func (state PressurePortState) MaxResidual(another core.PortState) (float64, error) {
+	switch v := another.(type) {
+	case PressurePortState:
+		return common.GetRelResidual(state.PStag, another.(PressurePortState).PStag), nil
+	default:
+		return 0, common.GetTypeError("PressurePortState", v)
+	}
+}

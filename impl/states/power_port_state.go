@@ -7,7 +7,7 @@ import (
 )
 
 type PowerPortState struct {
-	LSpecific float64
+	LSpecific float64 `json:"l_specific"`
 }
 
 func NewPowerPortState(lSpecific float64) PowerPortState {
@@ -19,16 +19,12 @@ func StandardPowerState() PowerPortState {
 }
 
 func (state PowerPortState) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		LSpecific float64
-	}{
-		LSpecific: state.LSpecific,
-	})
+	return json.Marshal(state)
 }
 
 func (state PowerPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
 	switch v := another.(type) {
-	case GasPortState:
+	case PowerPortState:
 		var casted = another.(PowerPortState)
 
 		return NewPowerPortState(
@@ -43,7 +39,6 @@ func (state PowerPortState) MaxResidual(another core.PortState) (float64, error)
 	switch v := another.(type) {
 	case PowerPortState:
 		return common.GetRelResidual(state.LSpecific, another.(PowerPortState).LSpecific), nil
-
 	default:
 		return 0, common.GetTypeError("PowerPortState", v)
 	}

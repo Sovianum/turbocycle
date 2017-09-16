@@ -13,7 +13,7 @@ import (
 
 type CompressorNode interface {
 	core.Node
-	GasChannel
+	ComplexGasChannel
 	PowerSource
 	LSpecific() float64
 }
@@ -40,7 +40,7 @@ func (node *compressorNode) MarshalJSON() ([]byte, error) {
 		PowerOutputState: node.powerOutput().GetState(),
 		EtaAd:            node.EtaAd,
 		PiStag:           node.PiStag,
-		MassRateRel:      node.gasInput().GetState().(states.GasPortState).MassRateRel,
+		MassRateRel:      node.gasInput().GetState().(states.ComplexGasPortState).MassRateRel,
 	})
 }
 
@@ -52,13 +52,13 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 		PiStag:    piStag,
 	}
 
-	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasInput] = core.NewPort()
+	result.ports[complexGasInput].SetInnerNode(result)
+	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasOutput] = core.NewPort()
+	result.ports[complexGasOutput].SetInnerNode(result)
+	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
 
 	result.ports[powerOutput] = core.NewPort()
 	result.ports[powerOutput].SetInnerNode(result)
@@ -73,9 +73,9 @@ func (node *compressorNode) ContextDefined() bool {
 
 func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case gasInput:
+	case complexGasInput:
 		return node.gasInput(), nil
-	case gasOutput:
+	case complexGasOutput:
 		return node.gasOutput(), nil
 	case powerOutput:
 		return node.PowerOutput(), nil
@@ -85,15 +85,15 @@ func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 }
 
 func (node *compressorNode) GetRequirePortTags() ([]string, error) {
-	return []string{gasInput}, nil
+	return []string{complexGasInput}, nil
 }
 
 func (node *compressorNode) GetUpdatePortTags() ([]string, error) {
-	return []string{gasOutput, powerOutput}, nil
+	return []string{complexGasOutput, powerOutput}, nil
 }
 
 func (node *compressorNode) GetPortTags() []string {
-	return []string{gasInput, gasOutput, powerOutput}
+	return []string{complexGasInput, complexGasOutput, powerOutput}
 }
 
 func (node *compressorNode) GetPorts() core.PortsType {
@@ -108,7 +108,7 @@ func (node *compressorNode) Process() error {
 	var pStagOut = node.pStagIn() * node.PiStag
 	var tStagOut = node.getTStagOut(node.PiStag, node.tStagIn(), node.tStagIn())
 
-	var gasState = node.GasInput().GetState().(states.GasPortState)
+	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
 	gasState.TStag = tStagOut
 	gasState.PStag = pStagOut
 
@@ -120,11 +120,11 @@ func (node *compressorNode) Process() error {
 	return nil
 }
 
-func (node *compressorNode) GasInput() core.Port {
+func (node *compressorNode) ComplexGasInput() core.Port {
 	return node.gasInput()
 }
 
-func (node *compressorNode) GasOutput() core.Port {
+func (node *compressorNode) ComplexGasOutput() core.Port {
 	return node.gasOutput()
 }
 
@@ -183,31 +183,31 @@ func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
 }
 
 func (node *compressorNode) tStagIn() float64 {
-	return node.gasInput().GetState().(states.GasPortState).TStag
+	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *compressorNode) tStagOut() float64 {
-	return node.gasOutput().GetState().(states.GasPortState).TStag
+	return node.gasOutput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *compressorNode) pStagIn() float64 {
-	return node.gasInput().GetState().(states.GasPortState).PStag
+	return node.gasInput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *compressorNode) pStagOut() float64 {
-	return node.gasOutput().GetState().(states.GasPortState).PStag
+	return node.gasOutput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *compressorNode) gas() gases.Gas {
-	return node.ports[gasInput].GetState().(states.GasPortState).Gas
+	return node.ports[complexGasInput].GetState().(states.ComplexGasPortState).Gas
 }
 
 func (node *compressorNode) gasInput() core.Port {
-	return node.ports[gasInput]
+	return node.ports[complexGasInput]
 }
 
 func (node *compressorNode) gasOutput() core.Port {
-	return node.ports[gasOutput]
+	return node.ports[complexGasOutput]
 }
 
 func (node *compressorNode) powerOutput() core.Port {

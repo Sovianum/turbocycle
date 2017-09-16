@@ -19,7 +19,7 @@ const (
 
 type PressureLossNode interface {
 	core.Node
-	GasChannel
+	ComplexGasChannel
 }
 
 type pressureLossNode struct {
@@ -39,13 +39,13 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 		contextDefined: false,
 	}
 
-	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasInput] = core.NewPort()
+	result.ports[complexGasInput].SetInnerNode(result)
+	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[gasOutput] = core.NewPort()
-	result.ports[gasOutput].SetInnerNode(result)
-	result.ports[gasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasOutput] = core.NewPort()
+	result.ports[complexGasOutput].SetInnerNode(result)
+	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -108,7 +108,7 @@ func (node *pressureLossNode) Process() error {
 			return errors.New("Input state is nil")
 		}
 
-		var gasState = inputState.(states.GasPortState)
+		var gasState = inputState.(states.ComplexGasPortState)
 		gasState.PStag *= node.sigma
 		node.gasOutput().SetState(gasState)
 		return nil
@@ -118,7 +118,7 @@ func (node *pressureLossNode) Process() error {
 			return errors.New("Output state is nil")
 		}
 
-		var gasState = outputState.(states.GasPortState)
+		var gasState = outputState.(states.ComplexGasPortState)
 		gasState.PStag /= node.sigma
 		node.gasInput().SetState(gasState)
 		return nil
@@ -130,22 +130,22 @@ func (node *pressureLossNode) Process() error {
 		}
 
 		if inputState != nil && outputState == nil {
-			var gasState = inputState.(states.GasPortState)
+			var gasState = inputState.(states.ComplexGasPortState)
 			gasState.PStag *= node.sigma
 			node.gasOutput().SetState(gasState)
 			return nil
 		}
 
 		if inputState == nil && outputState != nil {
-			var gasState = outputState.(states.GasPortState)
+			var gasState = outputState.(states.ComplexGasPortState)
 			gasState.PStag /= node.sigma
 			node.gasInput().SetState(gasState)
 			return nil
 		}
 
 		if inputState != nil && outputState != nil {
-			var inputGasState = inputState.(states.GasPortState)
-			var outputGasState = outputState.(states.GasPortState)
+			var inputGasState = inputState.(states.ComplexGasPortState)
+			var outputGasState = outputState.(states.ComplexGasPortState)
 
 			inputGasState.PStag, outputGasState.PStag = outputGasState.PStag/node.sigma, inputGasState.PStag*node.sigma
 
@@ -165,11 +165,11 @@ func (node *pressureLossNode) GetRequirePortTags() ([]string, error) {
 	}
 	switch mode {
 	case pressureLossInflow:
-		return []string{gasInput}, nil
+		return []string{complexGasInput}, nil
 	case pressureLossOutflow:
-		return []string{gasOutput}, nil
+		return []string{complexGasOutput}, nil
 	case pressureLossBiFlow:
-		return []string{gasInput, gasOutput}, nil
+		return []string{complexGasInput, complexGasOutput}, nil
 	default:
 		return nil, errors.New(pressureNodeNotContextDefined)
 	}
@@ -182,32 +182,32 @@ func (node *pressureLossNode) GetUpdatePortTags() ([]string, error) {
 	}
 	switch mode {
 	case pressureLossInflow:
-		return []string{gasOutput}, nil
+		return []string{complexGasOutput}, nil
 	case pressureLossOutflow:
-		return []string{gasInput}, nil
+		return []string{complexGasInput}, nil
 	case pressureLossBiFlow:
-		return []string{gasInput, gasOutput}, nil
+		return []string{complexGasInput, complexGasOutput}, nil
 	default:
 		return nil, errors.New(pressureNodeNotContextDefined)
 	}
 }
 
 func (node *pressureLossNode) GetPortTags() []string {
-	return []string{gasInput, gasOutput}
+	return []string{complexGasInput, complexGasOutput}
 }
 
 func (node *pressureLossNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case gasInput:
+	case complexGasInput:
 		return node.gasInput(), nil
-	case gasOutput:
+	case complexGasOutput:
 		return node.gasOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Failed to find port with tag \"%s\" in pressureLossNode", tag))
 	}
 }
 
-func (node *pressureLossNode) GasOutput() core.Port {
+func (node *pressureLossNode) ComplexGasOutput() core.Port {
 	return node.gasOutput()
 }
 
@@ -219,7 +219,7 @@ func (node *pressureLossNode) PStagOut() float64 {
 	return node.pStagOut()
 }
 
-func (node *pressureLossNode) GasInput() core.Port {
+func (node *pressureLossNode) ComplexGasInput() core.Port {
 	return node.gasInput()
 }
 
@@ -232,27 +232,27 @@ func (node *pressureLossNode) PStagIn() float64 {
 }
 
 func (node *pressureLossNode) gasInput() core.Port {
-	return node.ports[gasInput]
+	return node.ports[complexGasInput]
 }
 
 func (node *pressureLossNode) gasOutput() core.Port {
-	return node.ports[gasOutput]
+	return node.ports[complexGasOutput]
 }
 
 func (node *pressureLossNode) tStagOut() float64 {
-	return node.gasOutput().GetState().(states.GasPortState).TStag
+	return node.gasOutput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *pressureLossNode) pStagOut() float64 {
-	return node.gasOutput().GetState().(states.GasPortState).PStag
+	return node.gasOutput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *pressureLossNode) tStagIn() float64 {
-	return node.gasInput().GetState().(states.GasPortState).TStag
+	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *pressureLossNode) pStagIn() float64 {
-	return node.gasInput().GetState().(states.GasPortState).PStag
+	return node.gasInput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *pressureLossNode) getMode() (string, error) {
@@ -278,38 +278,4 @@ func (node *pressureLossNode) getMode() (string, error) {
 		return pressureLossOutflow, nil
 	}
 	return pressureLossInitial, nil
-}
-
-func isDataSource(port core.Port) (bool, error) {
-	var linkPort = port.GetLinkPort()
-	if linkPort == nil {
-		return false, nil
-	}
-
-	var outerNode = port.GetOuterNode()
-	if outerNode == nil {
-		return false, nil
-	}
-
-	if !outerNode.ContextDefined() {
-		return false, nil
-	}
-
-	var updatePortTags, err = outerNode.GetUpdatePortTags()
-	if err != nil {
-		return false, err
-	}
-
-	for _, updatePortTag := range updatePortTags {
-		var tagPort, tagErr = outerNode.GetPortByTag(updatePortTag)
-		if tagErr != nil {
-			return false, tagErr
-		}
-
-		if tagPort == linkPort {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }

@@ -9,7 +9,7 @@ import (
 
 type TurbineNode interface {
 	core.Node
-	GasChannel
+	ComplexGasChannel
 	PowerSource
 	PiTStag() float64
 	InputGas() gases.Gas

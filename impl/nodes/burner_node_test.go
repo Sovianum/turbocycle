@@ -22,8 +22,8 @@ const (
 
 func TestBurnerNode_Process(t *testing.T) {
 	var bn = getTestBurner()
-	var inputState = states.NewGasPortState(gases.GetAir(), tInBurn, pInBurn, 1)
-	bn.GasInput().SetState(inputState)
+	var inputState = states.NewComplexGasPortState(gases.GetAir(), tInBurn, pInBurn, 1)
+	bn.ComplexGasInput().SetState(inputState)
 
 	bn.Process()
 	assert.NotNil(t, bn)
@@ -35,7 +35,7 @@ func TestBurnerNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected p_stag_out %f, got %f", expectedPOut, bn.PStagOut()),
 	)
 
-	var cpGas = gases.CpMean(bn.GasOutput().GetState().(states.GasPortState).Gas, t0, tgStag, defaultN)
+	var cpGas = gases.CpMean(bn.ComplexGasOutput().GetState().(states.ComplexGasPortState).Gas, t0, tgStag, defaultN)
 	var cpAir = gases.CpMean(inputState.Gas, t0, tInBurn, defaultN)
 	var cpFuel = fuel.CpMean(fuel.GetCH4(), t0, tFuel, defaultN)
 	var enom = cpGas*(tgStag-t0) - cpAir*(tInBurn-t0)

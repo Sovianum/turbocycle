@@ -10,7 +10,7 @@ import (
 
 type GasSinkNode interface {
 	core.Node
-	GasSink
+	ComplexGasSink
 }
 
 type gasSinkNode struct {
@@ -22,9 +22,9 @@ func NewGasSinkNode() GasSinkNode {
 		ports: make(core.PortsType),
 	}
 
-	result.ports[gasInput] = core.NewPort()
-	result.ports[gasInput].SetInnerNode(result)
-	result.ports[gasInput].SetState(states.StandardAtmosphereState())
+	result.ports[complexGasInput] = core.NewPort()
+	result.ports[complexGasInput].SetInnerNode(result)
+	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -33,7 +33,7 @@ func (node *gasSinkNode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		GasInputState core.PortState `json:"gas_input_state"`
 	}{
-		GasInputState: node.GasInput().GetState(),
+		GasInputState: node.ComplexGasInput().GetState(),
 	})
 }
 
@@ -46,7 +46,7 @@ func (node *gasSinkNode) Process() error {
 }
 
 func (node *gasSinkNode) GetRequirePortTags() ([]string, error) {
-	return []string{gasInput}, nil
+	return []string{complexGasInput}, nil
 }
 
 func (node *gasSinkNode) GetUpdatePortTags() ([]string, error) {
@@ -54,13 +54,13 @@ func (node *gasSinkNode) GetUpdatePortTags() ([]string, error) {
 }
 
 func (node *gasSinkNode) GetPortTags() []string {
-	return []string{gasInput}
+	return []string{complexGasInput}
 }
 
 func (node *gasSinkNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case gasInput:
-		return node.ports[gasInput], nil
+	case complexGasInput:
+		return node.ports[complexGasInput], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s of gasSinkNode can not be found", tag))
 	}
@@ -70,14 +70,14 @@ func (node *gasSinkNode) ContextDefined() bool {
 	return true
 }
 
-func (node *gasSinkNode) GasInput() core.Port {
-	return node.ports[gasInput]
+func (node *gasSinkNode) ComplexGasInput() core.Port {
+	return node.ports[complexGasInput]
 }
 
 func (node *gasSinkNode) TStagIn() float64 {
-	return node.ports[gasInput].GetState().(states.GasPortState).TStag
+	return node.ports[complexGasInput].GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *gasSinkNode) PStagIn() float64 {
-	return node.ports[gasInput].GetState().(states.GasPortState).PStag
+	return node.ports[complexGasInput].GetState().(states.ComplexGasPortState).PStag
 }

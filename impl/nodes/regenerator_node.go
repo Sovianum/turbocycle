@@ -98,8 +98,8 @@ func (node *regeneratorNode) HotOutput() core.Port {
 }
 
 func (node *regeneratorNode) Process() error {
-	var hotGasState = node.HotInput().GetState().(states.GasPortState)
-	var coldGasState = node.ColdInput().GetState().(states.GasPortState)
+	var hotGasState = node.HotInput().GetState().(states.ComplexGasPortState)
+	var coldGasState = node.ColdInput().GetState().(states.ComplexGasPortState)
 
 	var iterFunc func(float64, float64) (float64, float64)
 	switch node.mode {
@@ -117,12 +117,12 @@ func (node *regeneratorNode) Process() error {
 
 	switch node.mode {
 	case SigmaByColdSide:
-		var hotInputState = node.hotInput().GetState().(states.GasPortState)
-		hotInputState.PStag = node.hotOutput().GetState().(states.GasPortState).PStag
+		var hotInputState = node.hotInput().GetState().(states.ComplexGasPortState)
+		hotInputState.PStag = node.hotOutput().GetState().(states.ComplexGasPortState).PStag
 		node.hotInput().SetState(hotInputState)
 	case SigmaByHotSide:
-		var coldInputState = node.coldInput().GetState().(states.GasPortState)
-		coldInputState.PStag = node.coldOutput().GetState().(states.GasPortState).PStag
+		var coldInputState = node.coldInput().GetState().(states.ComplexGasPortState)
+		coldInputState.PStag = node.coldOutput().GetState().(states.ComplexGasPortState).PStag
 		node.coldInput().SetState(coldInputState)
 	}
 
@@ -186,8 +186,8 @@ func (node *regeneratorNode) getNewTOut(
 }
 
 func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
-	var coldGasState = node.coldInput().GetState().(states.GasPortState)
-	var hotGasState = node.HotInput().GetState().(states.GasPortState)
+	var coldGasState = node.coldInput().GetState().(states.ComplexGasPortState)
+	var hotGasState = node.HotInput().GetState().(states.ComplexGasPortState)
 
 	var hotHeatRate = hotGasState.MassRateRel * gases.CpMean(hotGasState.Gas, hotGasState.TStag, tStagHotOutCurr, defaultN)
 	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, defaultN)
@@ -199,8 +199,8 @@ func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHo
 }
 
 func (node *regeneratorNode) getNewTOutSigmaByHotSide(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
-	var coldGasState = node.coldInput().GetState().(states.GasPortState)
-	var hotGasState = node.HotInput().GetState().(states.GasPortState)
+	var coldGasState = node.coldInput().GetState().(states.ComplexGasPortState)
+	var hotGasState = node.HotInput().GetState().(states.ComplexGasPortState)
 
 	var hotHeatRate = hotGasState.MassRateRel * gases.CpMean(hotGasState.Gas, hotGasState.TStag, tStagHotOutCurr, defaultN)
 	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, defaultN)
@@ -212,19 +212,19 @@ func (node *regeneratorNode) getNewTOutSigmaByHotSide(tStagColdOutCurr, tStagHot
 }
 
 func (node *regeneratorNode) tStagHotIn() float64 {
-	return node.hotInput().GetState().(states.GasPortState).TStag
+	return node.hotInput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *regeneratorNode) tStagHotOut() float64 {
-	return node.hotOutput().GetState().(states.GasPortState).TStag
+	return node.hotOutput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *regeneratorNode) tStagColdIn() float64 {
-	return node.coldInput().GetState().(states.GasPortState).TStag
+	return node.coldInput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *regeneratorNode) tStagColdOut() float64 {
-	return node.coldOutput().GetState().(states.GasPortState).TStag
+	return node.coldOutput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *regeneratorNode) coldInput() core.Port {
