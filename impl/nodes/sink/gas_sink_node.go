@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/Sovianum/turbocycle/impl/nodes"
+	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/gases"
 )
 
 type GasSinkNode interface {
 	core.Node
-	nodes.ComplexGasSink
+	nodes.GasSink
 }
 
 type gasSinkNode struct {
@@ -23,9 +24,9 @@ func NewGasSinkNode() GasSinkNode {
 		ports: make(core.PortsType),
 	}
 
-	result.ports[nodes.ComplexGasInput] = core.NewPort()
-	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.GasInput] = core.NewPort()
+	result.ports[nodes.GasInput].SetInnerNode(result)
+	result.ports[nodes.GasInput].SetState(states.NewGasPortState(gases.GetAir()))
 
 	return result
 }
@@ -34,7 +35,7 @@ func (node *gasSinkNode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		GasInputState core.PortState `json:"gas_input_state"`
 	}{
-		GasInputState: node.ComplexGasInput().GetState(),
+		GasInputState: node.GasInput().GetState(),
 	})
 }
 
@@ -47,7 +48,7 @@ func (node *gasSinkNode) Process() error {
 }
 
 func (node *gasSinkNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasInput}, nil
+	return []string{nodes.GasInput}, nil
 }
 
 func (node *gasSinkNode) GetUpdatePortTags() ([]string, error) {
@@ -55,13 +56,13 @@ func (node *gasSinkNode) GetUpdatePortTags() ([]string, error) {
 }
 
 func (node *gasSinkNode) GetPortTags() []string {
-	return []string{nodes.ComplexGasInput}
+	return []string{nodes.GasInput}
 }
 
 func (node *gasSinkNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case nodes.ComplexGasInput:
-		return node.ports[nodes.ComplexGasInput], nil
+	case nodes.GasInput:
+		return node.ports[nodes.GasInput], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s of gasSinkNode can not be found", tag))
 	}
@@ -71,14 +72,6 @@ func (node *gasSinkNode) ContextDefined() bool {
 	return true
 }
 
-func (node *gasSinkNode) ComplexGasInput() core.Port {
-	return node.ports[nodes.ComplexGasInput]
-}
-
-func (node *gasSinkNode) TStagIn() float64 {
-	return node.ports[nodes.ComplexGasInput].GetState().(states.ComplexGasPortState).TStag
-}
-
-func (node *gasSinkNode) PStagIn() float64 {
-	return node.ports[nodes.ComplexGasInput].GetState().(states.ComplexGasPortState).PStag
+func (node *gasSinkNode) GasInput() core.Port {
+	return node.ports[nodes.GasInput]
 }

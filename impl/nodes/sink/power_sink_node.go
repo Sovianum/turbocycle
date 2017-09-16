@@ -18,7 +18,7 @@ type powerSinkNode struct {
 	ports core.PortsType
 }
 
-func NewPortSinkNode() PowerSinkNode {
+func NewPowerSinkNode() PowerSinkNode {
 	var result = &powerSinkNode{
 		ports: make(core.PortsType),
 	}
@@ -47,7 +47,7 @@ func (node *powerSinkNode) Process() error {
 }
 
 func (node *powerSinkNode) GetRequirePortTags() ([]string, error) {
-	return []string{}, nil
+	return []string{nodes.PowerInput}, nil
 }
 
 func (node *powerSinkNode) GetUpdatePortTags() ([]string, error) {

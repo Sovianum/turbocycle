@@ -13,6 +13,8 @@ const (
 	PressurePort      = "pressurePort"
 	TemperaturePort   = "temperaturePort"
 	MassRateRelPort   = "massRateRelPort"
+	MassRateRelInput  = "massRateRelInput"
+	MassRateRelOutput = "massRateRelOutput"
 	GasPort           = "gasPort"
 	PowerInput        = "powerInput"
 	PowerOutput       = "powerOutput"
@@ -57,6 +59,21 @@ type PowerSink interface {
 	PowerInput() core.Port
 }
 
+type MassRateRelChannel interface {
+	MassRateRelSource
+	MassRateRelSink
+}
+
+type MassRateRelSource interface {
+	MassRateRelOutput() core.Port
+	MassRateRelOut() float64
+}
+
+type MassRateRelSink interface {
+	MassRateRelInput() core.Port
+	MassRateRelIn() float64
+}
+
 type GasChannel interface {
 	GasSource
 	GasSink
@@ -77,7 +94,7 @@ type TemperatureChannel interface {
 
 type TemperatureSource interface {
 	TemperatureOutput() core.Port
-	TStag() float64
+	TStagOut() float64
 }
 
 type TemperatureSink interface {
