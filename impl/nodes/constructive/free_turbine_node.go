@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"math"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type FreeTurbineNode interface {
@@ -33,17 +34,17 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 		massRateRelFunc: massRateRelFunc,
 	}
 
-	result.ports[complexGasInput] = core.NewPort()
-	result.ports[complexGasInput].SetInnerNode(result)
-	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[complexGasOutput] = core.NewPort()
-	result.ports[complexGasOutput].SetInnerNode(result)
-	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
-	result.ports[powerOutput] = core.NewPort()
-	result.ports[powerOutput].SetInnerNode(result)
-	result.ports[powerOutput].SetState(states.StandardPowerState())
+	result.ports[nodes.PowerOutput] = core.NewPort()
+	result.ports[nodes.PowerOutput].SetInnerNode(result)
+	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
 
 	return result
 }
@@ -72,11 +73,11 @@ func (node *freeTurbineNode) ContextDefined() bool {
 
 func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case complexGasInput:
+	case nodes.ComplexGasInput:
 		return node.gasInput(), nil
-	case complexGasOutput:
+	case nodes.ComplexGasOutput:
 		return node.gasOutput(), nil
-	case powerOutput:
+	case nodes.PowerOutput:
 		return node.PowerOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
@@ -84,15 +85,15 @@ func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 }
 
 func (node *freeTurbineNode) GetRequirePortTags() ([]string, error) {
-	return []string{complexGasInput, complexGasOutput}, nil
+	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}, nil
 }
 
 func (node *freeTurbineNode) GetUpdatePortTags() ([]string, error) {
-	return []string{complexGasOutput, powerOutput}, nil
+	return []string{nodes.ComplexGasOutput, nodes.PowerOutput}, nil
 }
 
 func (node *freeTurbineNode) GetPortTags() []string {
-	return []string{complexGasInput, complexGasOutput, powerOutput}
+	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
 }
 
 func (node *freeTurbineNode) ComplexGasInput() core.Port {
@@ -159,7 +160,7 @@ func (node *freeTurbineNode) Process() error {
 }
 
 func (node *freeTurbineNode) lSpecific() float64 {
-	return gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), defaultN) * (node.tStagIn() - node.tStagOut())
+	return gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN) * (node.tStagIn() - node.tStagOut())
 }
 
 func (node *freeTurbineNode) getTStagOut() float64 {
@@ -181,7 +182,7 @@ func (node *freeTurbineNode) getTStagOut() float64 {
 }
 
 func (node *freeTurbineNode) tStagOutNext(pStagIn, pStagOut, tStagIn, tStagOutCurr float64) float64 {
-	var k = gases.KMean(node.inputGas(), tStagIn, tStagOutCurr, defaultN)
+	var k = gases.KMean(node.inputGas(), tStagIn, tStagOutCurr, nodes.DefaultN)
 	var piT = pStagIn / pStagOut
 	var x = math.Pow(piT, (1-k)/k)
 
@@ -213,13 +214,13 @@ func (node *freeTurbineNode) pStagOut() float64 {
 }
 
 func (node *freeTurbineNode) gasInput() core.Port {
-	return node.ports[complexGasInput]
+	return node.ports[nodes.ComplexGasInput]
 }
 
 func (node *freeTurbineNode) gasOutput() core.Port {
-	return node.ports[complexGasOutput]
+	return node.ports[nodes.ComplexGasOutput]
 }
 
 func (node *freeTurbineNode) powerOutput() core.Port {
-	return node.ports[powerOutput]
+	return node.ports[nodes.PowerOutput]
 }

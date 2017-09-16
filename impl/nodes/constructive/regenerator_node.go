@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (
@@ -38,21 +39,21 @@ func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 		mode:      mode,
 	}
 
-	result.ports[hotGasInput] = core.NewPort()
-	result.ports[hotGasInput].SetInnerNode(result)
-	result.ports[hotGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.HotGasInput] = core.NewPort()
+	result.ports[nodes.HotGasInput].SetInnerNode(result)
+	result.ports[nodes.HotGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[coldGasInput] = core.NewPort()
-	result.ports[coldGasInput].SetInnerNode(result)
-	result.ports[coldGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ColdGasInput] = core.NewPort()
+	result.ports[nodes.ColdGasInput].SetInnerNode(result)
+	result.ports[nodes.ColdGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[hotGasOutput] = core.NewPort()
-	result.ports[hotGasOutput].SetInnerNode(result)
-	result.ports[hotGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.HotGasOutput] = core.NewPort()
+	result.ports[nodes.HotGasOutput].SetInnerNode(result)
+	result.ports[nodes.HotGasOutput].SetState(states.StandardAtmosphereState())
 
-	result.ports[coldGasOutput] = core.NewPort()
-	result.ports[coldGasOutput].SetInnerNode(result)
-	result.ports[coldGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ColdGasOutput] = core.NewPort()
+	result.ports[nodes.ColdGasOutput].SetInnerNode(result)
+	result.ports[nodes.ColdGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -132,9 +133,9 @@ func (node *regeneratorNode) Process() error {
 func (node *regeneratorNode) GetRequirePortTags() ([]string, error) {
 	switch node.mode {
 	case SigmaByColdSide:
-		return []string{coldGasInput, hotGasInput, hotGasOutput}, nil
+		return []string{nodes.ColdGasInput, nodes.HotGasInput, nodes.HotGasOutput}, nil
 	case SigmaByHotSide:
-		return []string{coldGasInput, hotGasInput, coldGasOutput}, nil
+		return []string{nodes.ColdGasInput, nodes.HotGasInput, nodes.ColdGasOutput}, nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
 	}
@@ -143,27 +144,27 @@ func (node *regeneratorNode) GetRequirePortTags() ([]string, error) {
 func (node *regeneratorNode) GetUpdatePortTags() ([]string, error) {
 	switch node.mode {
 	case SigmaByColdSide:
-		return []string{coldGasOutput, hotGasOutput, hotGasInput}, nil
+		return []string{nodes.ColdGasOutput, nodes.HotGasOutput, nodes.HotGasInput}, nil
 	case SigmaByHotSide:
-		return []string{coldGasOutput, hotGasOutput, coldGasInput}, nil
+		return []string{nodes.ColdGasOutput, nodes.HotGasOutput, nodes.ColdGasInput}, nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
 	}
 }
 
 func (node *regeneratorNode) GetPortTags() []string {
-	return []string{coldGasInput, coldGasOutput, hotGasInput, hotGasOutput}
+	return []string{nodes.ColdGasInput, nodes.ColdGasOutput, nodes.HotGasInput, nodes.HotGasOutput}
 }
 
 func (node *regeneratorNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case coldGasInput:
+	case nodes.ColdGasInput:
 		return node.coldInput(), nil
-	case coldGasOutput:
+	case nodes.ColdGasOutput:
 		return node.coldOutput(), nil
-	case hotGasInput:
+	case nodes.HotGasInput:
 		return node.hotInput(), nil
-	case hotGasOutput:
+	case nodes.HotGasOutput:
 		return node.hotOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf(
@@ -189,8 +190,8 @@ func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHo
 	var coldGasState = node.coldInput().GetState().(states.ComplexGasPortState)
 	var hotGasState = node.HotInput().GetState().(states.ComplexGasPortState)
 
-	var hotHeatRate = hotGasState.MassRateRel * gases.CpMean(hotGasState.Gas, hotGasState.TStag, tStagHotOutCurr, defaultN)
-	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, defaultN)
+	var hotHeatRate = hotGasState.MassRateRel * gases.CpMean(hotGasState.Gas, hotGasState.TStag, tStagHotOutCurr, nodes.DefaultN)
+	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, nodes.DefaultN)
 	var heatRateFactor = hotHeatRate / coldHeatRate
 
 	tStagColdOut = coldGasState.TStag + node.sigma*(hotGasState.TStag-coldGasState.TStag)
@@ -202,8 +203,8 @@ func (node *regeneratorNode) getNewTOutSigmaByHotSide(tStagColdOutCurr, tStagHot
 	var coldGasState = node.coldInput().GetState().(states.ComplexGasPortState)
 	var hotGasState = node.HotInput().GetState().(states.ComplexGasPortState)
 
-	var hotHeatRate = hotGasState.MassRateRel * gases.CpMean(hotGasState.Gas, hotGasState.TStag, tStagHotOutCurr, defaultN)
-	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, defaultN)
+	var hotHeatRate = hotGasState.MassRateRel * gases.CpMean(hotGasState.Gas, hotGasState.TStag, tStagHotOutCurr, nodes.DefaultN)
+	var coldHeatRate = coldGasState.MassRateRel * gases.CpMean(coldGasState.Gas, coldGasState.TStag, tStagColdOutCurr, nodes.DefaultN)
 	var heatRateFactor = hotHeatRate / coldHeatRate
 
 	tStagHotOut = coldGasState.TStag + node.sigma*(hotGasState.TStag-coldGasState.TStag)
@@ -228,17 +229,17 @@ func (node *regeneratorNode) tStagColdOut() float64 {
 }
 
 func (node *regeneratorNode) coldInput() core.Port {
-	return node.ports[coldGasInput]
+	return node.ports[nodes.ColdGasInput]
 }
 
 func (node *regeneratorNode) coldOutput() core.Port {
-	return node.ports[coldGasOutput]
+	return node.ports[nodes.ColdGasOutput]
 }
 
 func (node *regeneratorNode) hotInput() core.Port {
-	return node.ports[hotGasInput]
+	return node.ports[nodes.HotGasInput]
 }
 
 func (node *regeneratorNode) hotOutput() core.Port {
-	return node.ports[hotGasOutput]
+	return node.ports[nodes.HotGasOutput]
 }

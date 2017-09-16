@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (
@@ -31,7 +32,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	var expectedPit = turbine.PStagIn() / turbine.PStagOut()
 	assert.Equal(t, expectedPit, turbine.PiTStag())
 
-	var k = gases.KMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), defaultN)
+	var k = gases.KMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
 	var expectedTtStag = turbine.TStagIn() * (1 - (1-math.Pow(turbine.PiTStag(), (1-k)/k))*etaT)
 	assert.True(
 		t,
@@ -39,7 +40,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected T_t %f, got %f", expectedTtStag, turbine.TStagOut()),
 	)
 
-	var cp = gases.CpMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), defaultN)
+	var cp = gases.CpMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
 	var expectedLabour = cp * (turbine.TStagIn() - turbine.TStagOut())
 	assert.True(
 		t,

@@ -7,7 +7,7 @@ import (
 )
 
 type TemperaturePortState struct {
-	TStag float64 `json:"t_stag"`
+	TStag float64
 }
 
 func NewTemperaturePortState(tStag float64) TemperaturePortState {
@@ -15,7 +15,11 @@ func NewTemperaturePortState(tStag float64) TemperaturePortState {
 }
 
 func (state TemperaturePortState) MarshalJSON() ([]byte, error) {
-	return json.Marshal(state)
+	return json.Marshal(struct {
+		TStag       float64 `json:"t_stag"`
+	}{
+		TStag:       state.TStag,
+	})
 }
 
 func (state TemperaturePortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {

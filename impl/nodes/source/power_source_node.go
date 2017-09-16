@@ -1,4 +1,4 @@
-package nodes
+package source
 
 import (
 	"encoding/json"
@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type PowerSourceNode interface {
 	core.Node
-	PowerSource
+	nodes.PowerSource
 }
 
 type powerSourceNode struct {
@@ -24,9 +25,9 @@ func NewPowerSourceNode(lRel float64) PowerSourceNode {
 		lSpecific: lRel,
 	}
 
-	result.ports[powerOutput] = core.NewPort()
-	result.ports[powerOutput].SetInnerNode(result)
-	result.ports[powerOutput].SetState(states.StandardPowerState())
+	result.ports[nodes.PowerOutput] = core.NewPort()
+	result.ports[nodes.PowerOutput].SetInnerNode(result)
+	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
 
 	return result
 }
@@ -44,7 +45,7 @@ func (node *powerSourceNode) GetPorts() core.PortsType {
 }
 
 func (node *powerSourceNode) Process() error {
-	node.ports[powerOutput].SetState(states.NewPowerPortState(node.lSpecific))
+	node.ports[nodes.PowerOutput].SetState(states.NewPowerPortState(node.lSpecific))
 	return nil
 }
 
@@ -53,17 +54,17 @@ func (node *powerSourceNode) GetRequirePortTags() ([]string, error) {
 }
 
 func (node *powerSourceNode) GetUpdatePortTags() ([]string, error) {
-	return []string{powerOutput}, nil
+	return []string{nodes.PowerOutput}, nil
 }
 
 func (node *powerSourceNode) GetPortTags() []string {
-	return []string{powerOutput}
+	return []string{nodes.PowerOutput}
 }
 
 func (node *powerSourceNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case powerOutput:
-		return node.ports[powerOutput], nil
+	case nodes.PowerOutput:
+		return node.ports[nodes.PowerOutput], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s of powerSourceNode can not be found", tag))
 	}
@@ -74,5 +75,5 @@ func (node *powerSourceNode) ContextDefined() bool {
 }
 
 func (node *powerSourceNode) PowerOutput() core.Port {
-	return node.ports[powerOutput]
+	return node.ports[nodes.PowerOutput]
 }

@@ -5,13 +5,16 @@ import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
-	"github.com/Sovianum/turbocycle/impl/nodes"
+	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/Sovianum/turbocycle/impl/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
 	"fmt"
+	"github.com/Sovianum/turbocycle/impl/nodes/helper"
 )
 
 const (
@@ -38,19 +41,19 @@ const (
 )
 
 func TestNetwork_Solve_OK(t *testing.T) {
-	var gasSource1 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var compressor = nodes.NewCompressorNode(etaCompressor, piStag, precision)
-	var turbine = nodes.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var gasSource1 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
+	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var burner = nodes.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
-	var freeTurbine = nodes.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
+	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var powerSink1 = nodes.NewPortSinkNode()
-	var powerSink2 = nodes.NewPortSinkNode()
-	var pressureLossNode = nodes.NewPressureLossNode(pressureLossSigma)
+	var powerSink1 = sink.NewPortSinkNode()
+	var powerSink2 = sink.NewPortSinkNode()
+	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 
 	core.Link(compressor.ComplexGasInput(), gasSource1.ComplexGasOutput())
 	core.Link(compressor.ComplexGasOutput(), burner.ComplexGasInput())
@@ -81,19 +84,19 @@ func TestNetwork_Solve_OK(t *testing.T) {
 }
 
 func TestNetwork_Solve_FreePorts(t *testing.T) {
-	var gasSource1 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var compressor = nodes.NewCompressorNode(etaCompressor, piStag, precision)
-	var turbine = nodes.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var gasSource1 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
+	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var burner = nodes.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
-	var freeTurbine = nodes.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
+	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var powerSink1 = nodes.NewPortSinkNode()
-	var powerSink2 = nodes.NewPortSinkNode()
-	var pressureLossNode = nodes.NewPressureLossNode(pressureLossSigma)
+	var powerSink1 = sink.NewPortSinkNode()
+	var powerSink2 = sink.NewPortSinkNode()
+	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 
 	core.Link(compressor.ComplexGasOutput(), burner.ComplexGasInput())
 	core.Link(burner.ComplexGasOutput(), turbine.ComplexGasInput())
@@ -123,19 +126,19 @@ func TestNetwork_Solve_FreePorts(t *testing.T) {
 }
 
 func TestNetwork_Solve_CanNotCall(t *testing.T) {
-	var gasSource1 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var compressor = nodes.NewCompressorNode(etaCompressor, piStag, precision)
-	var turbine = nodes.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var gasSource1 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
+	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var burner = nodes.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
-	var freeTurbine = nodes.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
+	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var powerSink1 = nodes.NewPortSinkNode()
-	var powerSink2 = nodes.NewPortSinkNode()
-	var pressureLossNode = nodes.NewPressureLossNode(pressureLossSigma)
+	var powerSink1 = sink.NewPortSinkNode()
+	var powerSink2 = sink.NewPortSinkNode()
+	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 
 	core.Link(compressor.ComplexGasInput(), gasSource1.ComplexGasOutput())
 	core.Link(compressor.ComplexGasOutput(), burner.ComplexGasInput())
@@ -165,20 +168,20 @@ func TestNetwork_Solve_CanNotCall(t *testing.T) {
 }
 
 func TestNetwork_Solve_Cycled(t *testing.T) {
-	var gasSource1 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var compressor = nodes.NewCompressorNode(etaCompressor, piStag, precision)
-	var turbine = nodes.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var gasSource1 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
+	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var burner = nodes.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
-	var freeTurbine = nodes.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
+	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var powerSink1 = nodes.NewPortSinkNode()
-	var powerSink2 = nodes.NewPortSinkNode()
-	var pressureLossNode = nodes.NewPressureLossNode(pressureLossSigma)
-	var regenerator = nodes.NewRegeneratorNode(0.9, 0.05, nodes.SigmaByColdSide)
+	var powerSink1 = sink.NewPortSinkNode()
+	var powerSink2 = sink.NewPortSinkNode()
+	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
+	var regenerator = constructive.NewRegeneratorNode(0.9, 0.05, constructive.SigmaByColdSide)
 
 	core.Link(gasSource1.ComplexGasOutput(), compressor.ComplexGasInput())
 	core.Link(compressor.ComplexGasOutput(), regenerator.ColdInput())
@@ -212,22 +215,22 @@ func TestNetwork_Solve_Cycled(t *testing.T) {
 }
 
 func TestNetwork_Solve_NoCycle(t *testing.T) {
-	var gasSource1 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var gasSource2 = nodes.NewGasSource(gases.GetAir(), tAtm, pAtm)
-	var compressor = nodes.NewCompressorNode(etaCompressor, piStag, precision)
-	var turbine = nodes.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var gasSource1 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var gasSource2 = source.NewGasSource(gases.GetAir(), tAtm, pAtm)
+	var compressor = constructive.NewCompressorNode(etaCompressor, piStag, precision)
+	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var burner = nodes.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
-	var freeTurbine = nodes.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(nodes.TurbineNode) float64 {
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
+	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
 	})
-	var powerSink1 = nodes.NewPortSinkNode()
-	var powerSink2 = nodes.NewPortSinkNode()
-	var pressureLossNode = nodes.NewPressureLossNode(pressureLossSigma)
-	var regenerator = nodes.NewRegeneratorNode(0.9, 0.05, nodes.SigmaByColdSide)
-	var cycleBreaker = nodes.NewCycleBreakerNode(states.StandardAtmosphereState())
-	var outflow = nodes.NewPressureLossNode(0.8)
+	var powerSink1 = sink.NewPortSinkNode()
+	var powerSink2 = sink.NewPortSinkNode()
+	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
+	var regenerator = constructive.NewRegeneratorNode(0.9, 0.05, constructive.SigmaByColdSide)
+	var cycleBreaker = helper.NewCycleBreakerNode(states.StandardAtmosphereState())
+	var outflow = constructive.NewPressureLossNode(0.8)
 
 	core.Link(gasSource1.ComplexGasOutput(), compressor.ComplexGasInput())
 	core.Link(compressor.ComplexGasOutput(), regenerator.ColdInput())

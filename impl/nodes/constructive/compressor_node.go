@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"encoding/json"
@@ -9,12 +9,13 @@ import (
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"math"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type CompressorNode interface {
 	core.Node
-	ComplexGasChannel
-	PowerSource
+	nodes.ComplexGasChannel
+	nodes.PowerSource
 	LSpecific() float64
 }
 
@@ -52,17 +53,17 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 		PiStag:    piStag,
 	}
 
-	result.ports[complexGasInput] = core.NewPort()
-	result.ports[complexGasInput].SetInnerNode(result)
-	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[complexGasOutput] = core.NewPort()
-	result.ports[complexGasOutput].SetInnerNode(result)
-	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
-	result.ports[powerOutput] = core.NewPort()
-	result.ports[powerOutput].SetInnerNode(result)
-	result.ports[powerOutput].SetState(states.StandardPowerState())
+	result.ports[nodes.PowerOutput] = core.NewPort()
+	result.ports[nodes.PowerOutput].SetInnerNode(result)
+	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
 
 	return result
 }
@@ -73,11 +74,11 @@ func (node *compressorNode) ContextDefined() bool {
 
 func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case complexGasInput:
+	case nodes.ComplexGasInput:
 		return node.gasInput(), nil
-	case complexGasOutput:
+	case nodes.ComplexGasOutput:
 		return node.gasOutput(), nil
-	case powerOutput:
+	case nodes.PowerOutput:
 		return node.PowerOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
@@ -85,15 +86,15 @@ func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 }
 
 func (node *compressorNode) GetRequirePortTags() ([]string, error) {
-	return []string{complexGasInput}, nil
+	return []string{nodes.ComplexGasInput}, nil
 }
 
 func (node *compressorNode) GetUpdatePortTags() ([]string, error) {
-	return []string{complexGasOutput, powerOutput}, nil
+	return []string{nodes.ComplexGasOutput, nodes.PowerOutput}, nil
 }
 
 func (node *compressorNode) GetPortTags() []string {
-	return []string{complexGasInput, complexGasOutput, powerOutput}
+	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
 }
 
 func (node *compressorNode) GetPorts() core.PortsType {
@@ -153,7 +154,7 @@ func (node *compressorNode) LSpecific() float64 {
 }
 
 func (node *compressorNode) lSpecific() float64 {
-	var cpMean = gases.CpMean(node.gas(), node.tStagIn(), node.tStagOut(), defaultN)
+	var cpMean = gases.CpMean(node.gas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN)
 	return cpMean * (node.tStagOut() - node.tStagIn())
 }
 
@@ -178,7 +179,7 @@ func (node *compressorNode) tStagOutNewFunc(piCStag, tStagIn, tStagOutCurr float
 }
 
 func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
-	var k = gases.KMean(node.gas(), tStagIn, tStagOut, defaultN)
+	var k = gases.KMean(node.gas(), tStagIn, tStagOut, nodes.DefaultN)
 	return math.Pow(piCStag, (k-1)/k)
 }
 
@@ -199,17 +200,17 @@ func (node *compressorNode) pStagOut() float64 {
 }
 
 func (node *compressorNode) gas() gases.Gas {
-	return node.ports[complexGasInput].GetState().(states.ComplexGasPortState).Gas
+	return node.ports[nodes.ComplexGasInput].GetState().(states.ComplexGasPortState).Gas
 }
 
 func (node *compressorNode) gasInput() core.Port {
-	return node.ports[complexGasInput]
+	return node.ports[nodes.ComplexGasInput]
 }
 
 func (node *compressorNode) gasOutput() core.Port {
-	return node.ports[complexGasOutput]
+	return node.ports[nodes.ComplexGasOutput]
 }
 
 func (node *compressorNode) powerOutput() core.Port {
-	return node.ports[powerOutput]
+	return node.ports[nodes.PowerOutput]
 }

@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"github.com/Sovianum/turbocycle/impl/states"

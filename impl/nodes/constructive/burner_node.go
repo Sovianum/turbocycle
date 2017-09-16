@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"encoding/json"
@@ -9,11 +9,12 @@ import (
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type BurnerNode interface {
 	core.Node
-	ComplexGasChannel
+	nodes.ComplexGasChannel
 	Alpha() float64
 	GetFuelRateRel() float64
 }
@@ -47,13 +48,13 @@ func NewBurnerNode(
 		precision: precision,
 	}
 
-	result.ports[complexGasInput] = core.NewPort()
-	result.ports[complexGasInput].SetInnerNode(result)
-	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[complexGasOutput] = core.NewPort()
-	result.ports[complexGasOutput].SetInnerNode(result)
-	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -82,9 +83,9 @@ func (node *burnerNode) ContextDefined() bool {
 
 func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case complexGasInput:
+	case nodes.ComplexGasInput:
 		return node.gasInput(), nil
-	case complexGasOutput:
+	case nodes.ComplexGasOutput:
 		return node.gasOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
@@ -92,15 +93,15 @@ func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 }
 
 func (node *burnerNode) GetRequirePortTags() ([]string, error) {
-	return []string{complexGasInput}, nil
+	return []string{nodes.ComplexGasInput}, nil
 }
 
 func (node *burnerNode) GetUpdatePortTags() ([]string, error) {
-	return []string{complexGasOutput}, nil
+	return []string{nodes.ComplexGasOutput}, nil
 }
 
 func (node *burnerNode) GetPortTags() []string {
-	return []string{complexGasInput, complexGasOutput}
+	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}
 }
 
 func (node *burnerNode) GetPorts() core.PortsType {
@@ -174,12 +175,12 @@ func (node *burnerNode) getNextAlpha(currAlpha float64) float64 {
 func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 	node.outletGas = node.fuel.GetCombustionGas(currAlpha)
 
-	var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
-	var num2 = -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, defaultN) * (node.tStagIn() - node.t0)
+	var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
+	var num2 = -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, nodes.DefaultN) * (node.tStagIn() - node.t0)
 
 	var denom1 = node.fuel.QLower() * node.etaBurn
-	var denom2 = -gases.CpMean(node.outletGas, node.tgStag, node.t0, defaultN) * (node.tgStag - node.t0)
-	var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, defaultN) * (node.tFuel - node.t0)
+	var denom2 = -gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
+	var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, nodes.DefaultN) * (node.tFuel - node.t0)
 
 	return (num1 + num2) / (denom1 + denom2 + denom3)
 }
@@ -205,9 +206,9 @@ func (node *burnerNode) pStagOut() float64 {
 }
 
 func (node *burnerNode) gasInput() core.Port {
-	return node.ports[complexGasInput]
+	return node.ports[nodes.ComplexGasInput]
 }
 
 func (node *burnerNode) gasOutput() core.Port {
-	return node.ports[complexGasOutput]
+	return node.ports[nodes.ComplexGasOutput]
 }

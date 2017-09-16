@@ -1,4 +1,4 @@
-package nodes
+package source
 
 import (
 	"encoding/json"
@@ -7,11 +7,12 @@ import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type GasSourceNode interface {
 	core.Node
-	ComplexGasSource
+	nodes.ComplexGasSource
 }
 
 type gasSourceNode struct {
@@ -29,9 +30,9 @@ func NewGasSource(gas gases.Gas, tStag, pStag float64) GasSourceNode {
 		gas:   gas,
 	}
 
-	result.ports[complexGasOutput] = core.NewPort()
-	result.ports[complexGasOutput].SetInnerNode(result)
-	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -49,7 +50,7 @@ func (node *gasSourceNode) GetPorts() core.PortsType {
 }
 
 func (node *gasSourceNode) Process() error {
-	node.ports[complexGasOutput].SetState(states.NewComplexGasPortState(node.gas, node.tStag, node.pStag, 1))
+	node.ports[nodes.ComplexGasOutput].SetState(states.NewComplexGasPortState(node.gas, node.tStag, node.pStag, 1))
 	return nil
 }
 
@@ -58,17 +59,17 @@ func (node *gasSourceNode) GetRequirePortTags() ([]string, error) {
 }
 
 func (node *gasSourceNode) GetUpdatePortTags() ([]string, error) {
-	return []string{complexGasOutput}, nil
+	return []string{nodes.ComplexGasOutput}, nil
 }
 
 func (node *gasSourceNode) GetPortTags() []string {
-	return []string{complexGasOutput}
+	return []string{nodes.ComplexGasOutput}
 }
 
 func (node *gasSourceNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case complexGasOutput:
-		return node.ports[complexGasOutput], nil
+	case nodes.ComplexGasOutput:
+		return node.ports[nodes.ComplexGasOutput], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s of gasSourceNode can not be found", tag))
 	}
@@ -79,13 +80,13 @@ func (node *gasSourceNode) ContextDefined() bool {
 }
 
 func (node *gasSourceNode) ComplexGasOutput() core.Port {
-	return node.ports[complexGasOutput]
+	return node.ports[nodes.ComplexGasOutput]
 }
 
 func (node *gasSourceNode) TStagOut() float64 {
-	return node.ports[complexGasOutput].GetState().(states.ComplexGasPortState).TStag
+	return node.ports[nodes.ComplexGasOutput].GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *gasSourceNode) PStagOut() float64 {
-	return node.ports[complexGasInput].GetState().(states.ComplexGasPortState).PStag
+	return node.ports[nodes.ComplexGasOutput].GetState().(states.ComplexGasPortState).PStag
 }

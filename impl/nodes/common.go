@@ -3,28 +3,28 @@ package nodes
 import "github.com/Sovianum/turbocycle/core"
 
 const (
-	pressureInput     = "pressureInput"
-	pressureOutput    = "pressureOutput"
-	temperatureInput  = "temperatureInput"
-	temperatureOutput = "temperatureOutput"
-	gasInput          = "gasInput"
-	gasOutput         = "gasOutput"
-	complexGasPort    = "complexGasPort"
-	pressurePort      = "pressurePort"
-	temperaturePort   = "temperaturePort"
-	massRateRelPort   = "massRateRelPort"
-	gasPort           = "gasPort"
-	powerInput        = "powerInput"
-	powerOutput       = "powerOutput"
-	complexGasInput   = "complexGasInput"
-	complexGasOutput  = "complexGasOutput"
-	coldGasInput      = "coldGasInput"
-	coldGasOutput     = "coldGasOutput"
-	hotGasInput       = "hotGasInput"
-	hotGasOutput      = "hotGasOutput"
-	portA             = "portA"
-	portB             = "portB"
-	defaultN          = 50
+	PressureInput     = "pressureInput"
+	PressureOutput    = "pressureOutput"
+	TemperatureInput  = "temperatureInput"
+	TemperatureOutput = "temperatureOutput"
+	GasInput          = "gasInput"
+	GasOutput         = "gasOutput"
+	ComplexGasPort    = "complexGasPort"
+	PressurePort      = "pressurePort"
+	TemperaturePort   = "temperaturePort"
+	MassRateRelPort   = "massRateRelPort"
+	GasPort           = "gasPort"
+	PowerInput        = "powerInput"
+	PowerOutput       = "powerOutput"
+	ComplexGasInput   = "complexGasInput"
+	ComplexGasOutput  = "complexGasOutput"
+	ColdGasInput      = "coldGasInput"
+	ColdGasOutput     = "coldGasOutput"
+	HotGasInput       = "hotGasInput"
+	HotGasOutput      = "hotGasOutput"
+	PortA             = "portA"
+	PortB             = "portB"
+	DefaultN          = 50
 )
 
 type ComplexGasChannel interface {
@@ -100,7 +100,7 @@ type PressureSink interface {
 	PStagIn() float64
 }
 
-func isDataSource(port core.Port) (bool, error) {
+func IsDataSource(port core.Port) (bool, error) {
 	var linkPort = port.GetLinkPort()
 	if linkPort == nil {
 		return false, nil

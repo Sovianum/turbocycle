@@ -1,10 +1,11 @@
-package nodes
+package helper
 
 import (
 	"github.com/Sovianum/turbocycle/core"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type CycleBreakNode interface {
@@ -20,13 +21,13 @@ type initializerNode struct {
 func NewCycleBreakerNode(initialState core.PortState) CycleBreakNode {
 	var result = &initializerNode{ports:make(core.PortsType)}
 
-	result.ports[portA] = core.NewPort()
-	result.ports[portA].SetInnerNode(result)
-	result.ports[portA].SetState(initialState)
+	result.ports[nodes.PortA] = core.NewPort()
+	result.ports[nodes.PortA].SetInnerNode(result)
+	result.ports[nodes.PortA].SetState(initialState)
 
-	result.ports[portB] = core.NewPort()
-	result.ports[portB].SetInnerNode(result)
-	result.ports[portB].SetState(initialState)
+	result.ports[nodes.PortB] = core.NewPort()
+	result.ports[nodes.PortB].SetInnerNode(result)
+	result.ports[nodes.PortB].SetState(initialState)
 
 	return result
 }
@@ -60,18 +61,18 @@ func (node *initializerNode) GetRequirePortTags() ([]string, error) {
 }
 
 func (node *initializerNode) GetUpdatePortTags() ([]string, error) {
-	return []string{portA, portB}, nil
+	return []string{nodes.PortA, nodes.PortB}, nil
 }
 
 func (node *initializerNode) GetPortTags() []string {
-	return []string{portA, portB}
+	return []string{nodes.PortA, nodes.PortB}
 }
 
 func (node *initializerNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case portA:
+	case nodes.PortA:
 		return node.PortA(), nil
-	case portB:
+	case nodes.PortB:
 		return node.PortB(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found in cycle breaker", tag))
@@ -83,9 +84,9 @@ func (node *initializerNode) ContextDefined() bool {
 }
 
 func (node *initializerNode) PortA() core.Port {
-	return node.ports[portA]
+	return node.ports[nodes.PortA]
 }
 
 func (node *initializerNode) PortB() core.Port {
-	return node.ports[portB]
+	return node.ports[nodes.PortB]
 }

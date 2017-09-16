@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (
@@ -33,8 +34,8 @@ func TestBlockedTurbineNode_Process(t *testing.T) {
 
 	turbine.Process()
 
-	var cpMean = gases.CpMean(gasState.Gas, turbine.TStagOut(), turbine.TStagIn(), defaultN)
-	var kMean = gases.KMean(gasState.Gas, turbine.TStagOut(), turbine.TStagIn(), defaultN)
+	var cpMean = gases.CpMean(gasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
+	var kMean = gases.KMean(gasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
 	var expectedTt = turbine.TStagIn() - lBlockedT/cpMean
 	assert.True(
 		t,

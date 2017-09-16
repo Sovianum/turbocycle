@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"encoding/json"
@@ -7,11 +7,12 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type TransmissionNode interface {
 	core.Node
-	PowerChannel
+	nodes.PowerChannel
 }
 
 type transmissionNode struct {
@@ -27,13 +28,13 @@ func NewTransmissionNode(etaM float64) TransmissionNode {
 
 	var inputPort = core.NewPort()
 	inputPort.SetInnerNode(transmissionNode)
-	transmissionNode.ports[powerInput] = inputPort
-	transmissionNode.ports[powerInput].SetState(states.StandardPowerState())
+	transmissionNode.ports[nodes.PowerInput] = inputPort
+	transmissionNode.ports[nodes.PowerInput].SetState(states.StandardPowerState())
 
 	var outputPort = core.NewPort()
 	outputPort.SetInnerNode(transmissionNode)
-	transmissionNode.ports[powerOutput] = outputPort
-	transmissionNode.ports[powerOutput].SetState(states.StandardPowerState())
+	transmissionNode.ports[nodes.PowerOutput] = outputPort
+	transmissionNode.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
 
 	return transmissionNode
 }
@@ -56,9 +57,9 @@ func (node *transmissionNode) ContextDefined() bool {
 
 func (node *transmissionNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case powerInput:
+	case nodes.PowerInput:
 		return node.powerInput(), nil
-	case powerOutput:
+	case nodes.PowerOutput:
 		return node.PowerOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
@@ -66,15 +67,15 @@ func (node *transmissionNode) GetPortByTag(tag string) (core.Port, error) {
 }
 
 func (node *transmissionNode) GetRequirePortTags() ([]string, error) {
-	return []string{powerInput}, nil
+	return []string{nodes.PowerInput}, nil
 }
 
 func (node *transmissionNode) GetUpdatePortTags() ([]string, error) {
-	return []string{powerOutput}, nil
+	return []string{nodes.PowerOutput}, nil
 }
 
 func (node *transmissionNode) GetPortTags() []string {
-	return []string{powerInput, powerOutput}
+	return []string{nodes.PowerInput, nodes.PowerOutput}
 }
 
 func (node *transmissionNode) GetPorts() core.PortsType {
@@ -104,9 +105,9 @@ func (node *transmissionNode) Process() error {
 }
 
 func (node *transmissionNode) powerInput() core.Port {
-	return node.ports[powerInput]
+	return node.ports[nodes.PowerInput]
 }
 
 func (node *transmissionNode) powerOutput() core.Port {
-	return node.ports[powerOutput]
+	return node.ports[nodes.PowerOutput]
 }

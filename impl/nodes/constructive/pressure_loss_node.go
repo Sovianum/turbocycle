@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 
 type PressureLossNode interface {
 	core.Node
-	ComplexGasChannel
+	nodes.ComplexGasChannel
 }
 
 type pressureLossNode struct {
@@ -39,13 +40,13 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 		contextDefined: false,
 	}
 
-	result.ports[complexGasInput] = core.NewPort()
-	result.ports[complexGasInput].SetInnerNode(result)
-	result.ports[complexGasInput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[complexGasOutput] = core.NewPort()
-	result.ports[complexGasOutput].SetInnerNode(result)
-	result.ports[complexGasOutput].SetState(states.StandardAtmosphereState())
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -165,11 +166,11 @@ func (node *pressureLossNode) GetRequirePortTags() ([]string, error) {
 	}
 	switch mode {
 	case pressureLossInflow:
-		return []string{complexGasInput}, nil
+		return []string{nodes.ComplexGasInput}, nil
 	case pressureLossOutflow:
-		return []string{complexGasOutput}, nil
+		return []string{nodes.ComplexGasOutput}, nil
 	case pressureLossBiFlow:
-		return []string{complexGasInput, complexGasOutput}, nil
+		return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}, nil
 	default:
 		return nil, errors.New(pressureNodeNotContextDefined)
 	}
@@ -182,25 +183,25 @@ func (node *pressureLossNode) GetUpdatePortTags() ([]string, error) {
 	}
 	switch mode {
 	case pressureLossInflow:
-		return []string{complexGasOutput}, nil
+		return []string{nodes.ComplexGasOutput}, nil
 	case pressureLossOutflow:
-		return []string{complexGasInput}, nil
+		return []string{nodes.ComplexGasInput}, nil
 	case pressureLossBiFlow:
-		return []string{complexGasInput, complexGasOutput}, nil
+		return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}, nil
 	default:
 		return nil, errors.New(pressureNodeNotContextDefined)
 	}
 }
 
 func (node *pressureLossNode) GetPortTags() []string {
-	return []string{complexGasInput, complexGasOutput}
+	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}
 }
 
 func (node *pressureLossNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case complexGasInput:
+	case nodes.ComplexGasInput:
 		return node.gasInput(), nil
-	case complexGasOutput:
+	case nodes.ComplexGasOutput:
 		return node.gasOutput(), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Failed to find port with tag \"%s\" in pressureLossNode", tag))
@@ -232,11 +233,11 @@ func (node *pressureLossNode) PStagIn() float64 {
 }
 
 func (node *pressureLossNode) gasInput() core.Port {
-	return node.ports[complexGasInput]
+	return node.ports[nodes.ComplexGasInput]
 }
 
 func (node *pressureLossNode) gasOutput() core.Port {
-	return node.ports[complexGasOutput]
+	return node.ports[nodes.ComplexGasOutput]
 }
 
 func (node *pressureLossNode) tStagOut() float64 {
@@ -260,11 +261,11 @@ func (node *pressureLossNode) getMode() (string, error) {
 		return node.mode, nil
 	}
 
-	var inputIsSource, inputErr = isDataSource(node.gasInput())
+	var inputIsSource, inputErr = nodes.IsDataSource(node.gasInput())
 	if inputErr != nil {
 		return "", inputErr
 	}
-	var outputIsSource, outputErr = isDataSource(node.gasOutput())
+	var outputIsSource, outputErr = nodes.IsDataSource(node.gasOutput())
 	if outputErr != nil {
 		return "", outputErr
 	}

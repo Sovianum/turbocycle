@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (
@@ -35,9 +36,9 @@ func TestBurnerNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected p_stag_out %f, got %f", expectedPOut, bn.PStagOut()),
 	)
 
-	var cpGas = gases.CpMean(bn.ComplexGasOutput().GetState().(states.ComplexGasPortState).Gas, t0, tgStag, defaultN)
-	var cpAir = gases.CpMean(inputState.Gas, t0, tInBurn, defaultN)
-	var cpFuel = fuel.CpMean(fuel.GetCH4(), t0, tFuel, defaultN)
+	var cpGas = gases.CpMean(bn.ComplexGasOutput().GetState().(states.ComplexGasPortState).Gas, t0, tgStag, nodes.DefaultN)
+	var cpAir = gases.CpMean(inputState.Gas, t0, tInBurn, nodes.DefaultN)
+	var cpFuel = fuel.CpMean(fuel.GetCH4(), t0, tFuel, nodes.DefaultN)
 	var enom = cpGas*(tgStag-t0) - cpAir*(tInBurn-t0)
 	var denom = fuel.GetCH4().QLower()*etaBurn + cpFuel*(tFuel-t0) - cpGas*(tgStag-t0)
 	var expectedFuelRate = enom / denom

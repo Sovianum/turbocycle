@@ -1,16 +1,17 @@
-package nodes
+package constructive
 
 import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/gdf"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 	"math"
 )
 
 type TurbineNode interface {
 	core.Node
-	ComplexGasChannel
-	PowerSource
+	nodes.ComplexGasChannel
+	nodes.PowerSource
 	PiTStag() float64
 	InputGas() gases.Gas
 	LambdaOut() float64
@@ -46,8 +47,8 @@ func VelocityOut(node TurbineNode) float64 {
 }
 
 func Ht(node TurbineNode) float64 {
-	var cp = gases.CpMean(node.InputGas(), node.TStagIn(), node.TStagOut(), defaultN)
-	var k = gases.KMean(node.InputGas(), node.TStagIn(), node.TStagOut(), defaultN)
+	var cp = gases.CpMean(node.InputGas(), node.TStagIn(), node.TStagOut(), nodes.DefaultN)
+	var k = gases.KMean(node.InputGas(), node.TStagIn(), node.TStagOut(), nodes.DefaultN)
 	var pi = gdf.Pi(node.LambdaOut(), k)
 	var x = math.Pow(node.PiTStag()/pi, (1-k)/k)
 

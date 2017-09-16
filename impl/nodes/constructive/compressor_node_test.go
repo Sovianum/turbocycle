@@ -1,4 +1,4 @@
-package nodes
+package constructive
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 const (
@@ -33,7 +34,7 @@ func TestCompressorNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected %f, got %f", expectedTemperature, compressor.TStagOut()),
 	)
 
-	var cp = gases.CpMean(gases.GetAir(), compressor.TStagIn(), compressor.TStagOut(), defaultN)
+	var cp = gases.CpMean(gases.GetAir(), compressor.TStagIn(), compressor.TStagOut(), nodes.DefaultN)
 	var expectedLabour = cp * (compressor.TStagOut() - compressor.TStagIn())
 	assert.True(
 		t,

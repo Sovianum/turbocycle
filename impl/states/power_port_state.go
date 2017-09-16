@@ -19,7 +19,11 @@ func StandardPowerState() PowerPortState {
 }
 
 func (state PowerPortState) MarshalJSON() ([]byte, error) {
-	return json.Marshal(state)
+	return json.Marshal(struct {
+		LSpecific float64 `json:"l_specific"`
+	}{
+		LSpecific: state.LSpecific,
+	})
 }
 
 func (state PowerPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {

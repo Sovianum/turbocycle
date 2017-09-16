@@ -1,4 +1,4 @@
-package nodes
+package helper
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"github.com/Sovianum/turbocycle/impl/nodes"
 )
 
 type GasStateAssemblerNode interface {
@@ -34,20 +35,20 @@ func NewGasStateAssemblerNode() GasStateAssemblerNode {
 		updatePortTags:     nil,
 	}
 
-	result.ports[pressurePort] = core.NewPort()
-	result.ports[pressurePort].SetInnerNode(result)
+	result.ports[nodes.PressurePort] = core.NewPort()
+	result.ports[nodes.PressurePort].SetInnerNode(result)
 
-	result.ports[temperaturePort] = core.NewPort()
-	result.ports[temperaturePort].SetInnerNode(result)
+	result.ports[nodes.TemperaturePort] = core.NewPort()
+	result.ports[nodes.TemperaturePort].SetInnerNode(result)
 
-	result.ports[gasPort] = core.NewPort()
-	result.ports[gasPort].SetInnerNode(result)
+	result.ports[nodes.GasPort] = core.NewPort()
+	result.ports[nodes.GasPort].SetInnerNode(result)
 
-	result.ports[complexGasPort] = core.NewPort()
-	result.ports[complexGasPort].SetInnerNode(result)
+	result.ports[nodes.ComplexGasPort] = core.NewPort()
+	result.ports[nodes.ComplexGasPort].SetInnerNode(result)
 
-	result.ports[massRateRelPort] = core.NewPort()
-	result.ports[massRateRelPort].SetInnerNode(result)
+	result.ports[nodes.MassRateRelPort] = core.NewPort()
+	result.ports[nodes.MassRateRelPort].SetInnerNode(result)
 
 	return result
 }
@@ -71,7 +72,7 @@ func (node *gasStateAssemblerNode) GetPorts() core.PortsType {
 }
 
 func (node *gasStateAssemblerNode) Process() error {
-	var complexIsSource, complexErr = isDataSource(node.ComplexGasPort())
+	var complexIsSource, complexErr = nodes.IsDataSource(node.ComplexGasPort())
 	if complexErr != nil {
 		return complexErr
 	}
@@ -79,19 +80,19 @@ func (node *gasStateAssemblerNode) Process() error {
 	if !complexIsSource {
 		var complexGasState = node.ComplexGasPort().GetState().(states.ComplexGasPortState)
 
-		var gasIsSource, gasErr = isDataSource(node.GasPort())
+		var gasIsSource, gasErr = nodes.IsDataSource(node.GasPort())
 		if gasErr != nil {
 			return gasErr
 		}
-		var pressureIsSource, pressureErr = isDataSource(node.PressurePort())
+		var pressureIsSource, pressureErr = nodes.IsDataSource(node.PressurePort())
 		if pressureErr != nil {
 			return pressureErr
 		}
-		var temperatureIsSource, temperatureErr = isDataSource(node.TemperaturePort())
+		var temperatureIsSource, temperatureErr = nodes.IsDataSource(node.TemperaturePort())
 		if temperatureErr != nil {
 			return temperatureErr
 		}
-		var massRateIsSource, massRateErr = isDataSource(node.MassRateRelPort())
+		var massRateIsSource, massRateErr = nodes.IsDataSource(node.MassRateRelPort())
 		if massRateErr != nil {
 			return massRateErr
 		}
@@ -145,23 +146,23 @@ func (node *gasStateAssemblerNode) ContextDefined() bool {
 }
 
 func (node *gasStateAssemblerNode) ComplexGasPort() core.Port {
-	return node.ports[complexGasPort]
+	return node.ports[nodes.ComplexGasPort]
 }
 
 func (node *gasStateAssemblerNode) PressurePort() core.Port {
-	return node.ports[pressurePort]
+	return node.ports[nodes.PressurePort]
 }
 
 func (node *gasStateAssemblerNode) TemperaturePort() core.Port {
-	return node.ports[temperaturePort]
+	return node.ports[nodes.TemperaturePort]
 }
 
 func (node *gasStateAssemblerNode) MassRateRelPort() core.Port {
-	return node.ports[massRateRelPort]
+	return node.ports[nodes.MassRateRelPort]
 }
 
 func (node *gasStateAssemblerNode) GasPort() core.Port {
-	return node.ports[gasPort]
+	return node.ports[nodes.GasPort]
 }
 
 func (node *gasStateAssemblerNode) getRequirePortTags() ([]string, error) {
@@ -201,7 +202,7 @@ func (node *gasStateAssemblerNode) getPortTagsTemplate(condition func(isSource b
 
 	for _, tag := range node.getPortTags() {
 		var port, _ = node.getPortByTag(tag)
-		var isSource, err = isDataSource(port)
+		var isSource, err = nodes.IsDataSource(port)
 		if err != nil {
 			return nil, err
 		}
@@ -222,7 +223,7 @@ func (node *gasStateAssemblerNode) contextDefined() (bool, error) {
 	var defined = true
 	for _, tag := range node.getPortTags() {
 		var port, _ = node.getPortByTag(tag)
-		var isSource, err = isDataSource(port)
+		var isSource, err = nodes.IsDataSource(port)
 		if err != nil {
 			return false, err
 		}
@@ -232,19 +233,19 @@ func (node *gasStateAssemblerNode) contextDefined() (bool, error) {
 }
 
 func (node *gasStateAssemblerNode) getPortTags() []string {
-	return []string{complexGasPort, gasPort, temperaturePort, pressurePort}
+	return []string{nodes.ComplexGasPort, nodes.GasPort, nodes.TemperaturePort, nodes.PressurePort}
 }
 
 func (node *gasStateAssemblerNode) getPortByTag(tag string) (core.Port, error) {
 	switch tag {
-	case complexGasPort:
-		return node.ports[complexGasPort], nil
-	case gasPort:
-		return node.ports[gasPort], nil
-	case temperaturePort:
-		return node.ports[temperaturePort], nil
-	case pressurePort:
-		return node.ports[pressurePort], nil
+	case nodes.ComplexGasPort:
+		return node.ports[nodes.ComplexGasPort], nil
+	case nodes.GasPort:
+		return node.ports[nodes.GasPort], nil
+	case nodes.TemperaturePort:
+		return node.ports[nodes.TemperaturePort], nil
+	case nodes.PressurePort:
+		return node.ports[nodes.PressurePort], nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Port %s was not found in gasAssemblerNode", tag))
 	}

@@ -2,8 +2,8 @@ package states
 
 import (
 	"encoding/json"
-	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core"
 )
 
 type MassRateRelPortState struct {
@@ -15,7 +15,11 @@ func NewMassRateRelPortState(massRateRel float64) MassRateRelPortState {
 }
 
 func (state MassRateRelPortState) MarshalJSON() ([]byte, error) {
-	return json.Marshal(state)
+	return json.Marshal(struct {
+		MassRateRel float64 `json:"mass_rate_rel"`
+	}{
+		MassRateRel: state.MassRateRel,
+	})
 }
 
 func (state MassRateRelPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {

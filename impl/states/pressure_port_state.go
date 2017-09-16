@@ -7,7 +7,7 @@ import (
 )
 
 type PressurePortState struct {
-	PStag float64 `json:"p_stag"`
+	PStag float64
 }
 
 func NewPressurePortState(pStag float64) PressurePortState {
@@ -15,7 +15,11 @@ func NewPressurePortState(pStag float64) PressurePortState {
 }
 
 func (state PressurePortState) MarshalJSON() ([]byte, error) {
-	return json.Marshal(state)
+	return json.Marshal(struct {
+		PStag float64 `json:"p_stag"`
+	}{
+		PStag: state.PStag,
+	})
 }
 
 func (state PressurePortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
