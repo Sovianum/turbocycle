@@ -36,14 +36,10 @@ type ComplexGasChannel interface {
 
 type ComplexGasSource interface {
 	ComplexGasOutput() core.Port
-	TStagOut() float64
-	PStagOut() float64
 }
 
 type ComplexGasSink interface {
 	ComplexGasInput() core.Port
-	TStagIn() float64
-	PStagIn() float64
 }
 
 type PowerChannel interface {
@@ -94,11 +90,17 @@ type TemperatureChannel interface {
 
 type TemperatureSource interface {
 	TemperatureOutput() core.Port
+}
+
+type TemperatureOut interface {
 	TStagOut() float64
 }
 
 type TemperatureSink interface {
 	TemperatureInput() core.Port
+}
+
+type TemperatureIn interface {
 	TStagIn() float64
 }
 
@@ -109,11 +111,17 @@ type PressureChannel interface {
 
 type PressureSource interface {
 	PressureOutput() core.Port
+}
+
+type PressureOut interface {
 	PStagOut() float64
 }
 
 type PressureSink interface {
 	PressureInput() core.Port
+}
+
+type PressureIn interface {
 	PStagIn() float64
 }
 

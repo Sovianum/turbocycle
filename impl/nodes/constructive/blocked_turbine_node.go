@@ -15,6 +15,7 @@ import (
 
 type BlockedTurbineNode interface {
 	TurbineNode
+	nodes.ComplexGasSource
 	nodes.PowerSink
 }
 

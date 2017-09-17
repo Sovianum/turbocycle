@@ -14,6 +14,10 @@ import (
 
 type FreeTurbineNode interface {
 	TurbineNode
+	nodes.PressureSource
+	nodes.TemperatureSource
+	nodes.MassRateRelSource
+	nodes.GasSource
 	LSpecific() float64
 }
 
@@ -38,13 +42,25 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
 	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
 
-	result.ports[nodes.ComplexGasOutput] = core.NewPort()
-	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
-
 	result.ports[nodes.PowerOutput] = core.NewPort()
 	result.ports[nodes.PowerOutput].SetInnerNode(result)
 	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
+
+	result.ports[nodes.PressureOutput] = core.NewPort()
+	result.ports[nodes.PressureOutput].SetInnerNode(result)
+	result.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(1e5))	// todo remove hardcode
+
+	result.ports[nodes.TemperatureOutput] = core.NewPort()
+	result.ports[nodes.TemperatureOutput].SetInnerNode(result)
+	result.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(300))	// todo remove hardcode
+
+	result.ports[nodes.GasOutput] = core.NewPort()
+	result.ports[nodes.GasOutput].SetInnerNode(result)
+	result.ports[nodes.GasOutput].SetState(states.NewGasPortState(gases.GetAir()))	// todo remove hardcode
+
+	result.ports[nodes.MassRateRelOutput] = core.NewPort()
+	result.ports[nodes.MassRateRelOutput].SetInnerNode(result)
+	result.ports[nodes.MassRateRelOutput].SetState(states.NewMassRateRelPortState(1))	// todo remove hardcode
 
 	return result
 }
@@ -58,8 +74,10 @@ func (node *freeTurbineNode) MarshalJSON() ([]byte, error) {
 		LSpecific        float64        `json:"l_specific"`
 		Eta              float64        `json:"eta"`
 	}{
-		GasInputState:    node.gasInput().GetState(),
-		GasOutputState:   node.gasOutput().GetState(),
+		GasInputState:    node.complexGasInput().GetState(),
+		GasOutputState:   states.NewComplexGasPortState(
+			node.inputGas(), node.tStagOut(), node.pStagOut(), node.massRateRelOut(),
+		),
 		PowerOutputState: node.powerOutput().GetState(),
 		PiStag:           node.PiTStag(),
 		LSpecific:        node.lSpecific(),
@@ -74,22 +92,28 @@ func (node *freeTurbineNode) ContextDefined() bool {
 func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	switch tag {
 	case nodes.ComplexGasInput:
-		return node.gasInput(), nil
-	case nodes.ComplexGasOutput:
+		return node.complexGasInput(), nil
+	case nodes.GasOutput:
 		return node.gasOutput(), nil
 	case nodes.PowerOutput:
-		return node.PowerOutput(), nil
+		return node.powerOutput(), nil
+	case nodes.PressureOutput:
+		return node.pressureOutput(), nil
+	case nodes.TemperatureOutput:
+		return node.temperatureOutput(), nil
+	case nodes.MassRateRelOutput:
+		return node.massRateRelOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
+		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found in free turbine", tag))
 	}
 }
 
 func (node *freeTurbineNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}, nil
+	return []string{nodes.ComplexGasInput, nodes.PressureOutput}, nil
 }
 
 func (node *freeTurbineNode) GetUpdatePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasOutput, nodes.PowerOutput}, nil
+	return []string{nodes.TemperatureOutput, nodes.MassRateRelOutput, nodes.GasOutput, nodes.PowerOutput}, nil
 }
 
 func (node *freeTurbineNode) GetPortTags() []string {
@@ -97,11 +121,7 @@ func (node *freeTurbineNode) GetPortTags() []string {
 }
 
 func (node *freeTurbineNode) ComplexGasInput() core.Port {
-	return node.gasInput()
-}
-
-func (node *freeTurbineNode) ComplexGasOutput() core.Port {
-	return node.gasOutput()
+	return node.complexGasInput()
 }
 
 func (node *freeTurbineNode) PowerOutput() core.Port {
@@ -145,18 +165,40 @@ func (node *freeTurbineNode) LSpecific() float64 {
 }
 
 func (node *freeTurbineNode) Process() error {
-	var gasState = node.gasInput().GetState().(states.ComplexGasPortState)
-	gasState.TStag = node.getTStagOut()
-	gasState.PStag = node.pStagOut()
-	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
+	var gasState = node.complexGasInput().GetState().(states.ComplexGasPortState)
 
-	node.gasOutput().SetState(gasState)
+	node.temperatureOutput().SetState(states.NewTemperaturePortState(node.getTStagOut()))
+	node.pressureOutput().SetState(states.NewPressurePortState(node.pStagOut()))
+	node.gasOutput().SetState(states.NewGasPortState(gasState.Gas))
+	node.massRateRelOutput().SetState(
+		states.NewMassRateRelPortState(gasState.MassRateRel * (1 + node.massRateRelFunc(node))),
+	)
 
 	node.powerOutput().SetState(
 		states.NewPowerPortState(node.lSpecific()),
 	)
 
 	return nil
+}
+
+func (node *freeTurbineNode) PressureOutput() core.Port {
+	return node.pressureOutput()
+}
+
+func (node *freeTurbineNode) TemperatureOutput() core.Port {
+	return node.temperatureOutput()
+}
+
+func (node *freeTurbineNode) MassRateRelOutput() core.Port {
+	return node.massRateRelOutput()
+}
+
+func (node *freeTurbineNode) MassRateRelOut() float64 {
+	return node.massRateRelOut()
+}
+
+func (node *freeTurbineNode) GasOutput() core.Port {
+	return node.gasOutput()
 }
 
 func (node *freeTurbineNode) lSpecific() float64 {
@@ -194,31 +236,47 @@ func (node *freeTurbineNode) piTStag() float64 {
 }
 
 func (node *freeTurbineNode) inputGas() gases.Gas {
-	return node.gasInput().GetState().(states.ComplexGasPortState).Gas
+	return node.complexGasInput().GetState().(states.ComplexGasPortState).Gas
 }
 
 func (node *freeTurbineNode) tStagIn() float64 {
-	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
+	return node.complexGasInput().GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *freeTurbineNode) pStagIn() float64 {
-	return node.gasInput().GetState().(states.ComplexGasPortState).PStag
+	return node.complexGasInput().GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *freeTurbineNode) tStagOut() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureOutput().GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *freeTurbineNode) pStagOut() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).PStag
+	return node.pressureOutput().GetState().(states.PressurePortState).PStag
 }
 
-func (node *freeTurbineNode) gasInput() core.Port {
-	return node.ports[nodes.ComplexGasInput]
+func (node *freeTurbineNode) massRateRelOut() float64 {
+	return node.massRateRelOutput().GetState().(states.MassRateRelPortState).MassRateRel
+}
+
+func (node *freeTurbineNode) temperatureOutput() core.Port {
+	return node.ports[nodes.TemperatureOutput]
+}
+
+func (node *freeTurbineNode) pressureOutput() core.Port {
+	return node.ports[nodes.PressureOutput]
+}
+
+func (node *freeTurbineNode) massRateRelOutput() core.Port {
+	return node.ports[nodes.MassRateRelOutput]
 }
 
 func (node *freeTurbineNode) gasOutput() core.Port {
-	return node.ports[nodes.ComplexGasOutput]
+	return node.ports[nodes.GasOutput]
+}
+
+func (node *freeTurbineNode) complexGasInput() core.Port {
+	return node.ports[nodes.ComplexGasInput]
 }
 
 func (node *freeTurbineNode) powerOutput() core.Port {

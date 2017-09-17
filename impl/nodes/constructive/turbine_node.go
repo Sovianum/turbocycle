@@ -10,11 +10,20 @@ import (
 
 type TurbineNode interface {
 	core.Node
-	nodes.ComplexGasChannel
+	nodes.ComplexGasSink
 	nodes.PowerSource
+	nodes.PressureIn
+	nodes.PressureOut
+	nodes.TemperatureIn
+	nodes.TemperatureOut
 	PiTStag() float64
 	InputGas() gases.Gas
 	LambdaOut() float64
+}
+
+type GasBiPole interface {
+	core.Node
+
 }
 
 func TOut(node TurbineNode) float64 {

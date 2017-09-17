@@ -16,6 +16,10 @@ type CompressorNode interface {
 	core.Node
 	nodes.ComplexGasChannel
 	nodes.PowerSource
+	nodes.PressureIn
+	nodes.PressureOut
+	nodes.TemperatureIn
+	nodes.TemperatureOut
 	LSpecific() float64
 }
 

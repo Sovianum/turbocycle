@@ -15,6 +15,10 @@ import (
 type BurnerNode interface {
 	core.Node
 	nodes.ComplexGasChannel
+	nodes.PressureIn
+	nodes.PressureOut
+	nodes.TemperatureIn
+	nodes.TemperatureOut
 	Alpha() float64
 	GetFuelRateRel() float64
 }
