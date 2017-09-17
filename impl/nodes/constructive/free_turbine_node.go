@@ -117,7 +117,7 @@ func (node *freeTurbineNode) GetUpdatePortTags() ([]string, error) {
 }
 
 func (node *freeTurbineNode) GetPortTags() []string {
-	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
+	return []string{nodes.ComplexGasInput, nodes.TemperatureOutput, nodes.MassRateRelOutput, nodes.GasOutput, nodes.PowerOutput}
 }
 
 func (node *freeTurbineNode) ComplexGasInput() core.Port {

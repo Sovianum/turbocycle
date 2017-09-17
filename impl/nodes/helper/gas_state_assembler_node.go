@@ -25,15 +25,25 @@ type gasStateAssemblerNode struct {
 	contextDefinedFlag bool
 	requirePortTags    []string
 	updatePortTags     []string
+	isAssembler        bool
+}
+
+func NewGasStateDisassemblerNode() GasStateAssemblerNode {
+	return newAssemblerNode(false)
 }
 
 func NewGasStateAssemblerNode() GasStateAssemblerNode {
+	return newAssemblerNode(true)
+}
+
+func newAssemblerNode(isAssembler bool) GasStateAssemblerNode {
 	var result = &gasStateAssemblerNode{
 		ports:              make(core.PortsType),
 		contextCalledFlag:  false,
 		contextDefinedFlag: false,
 		requirePortTags:    nil,
 		updatePortTags:     nil,
+		isAssembler:        isAssembler,
 	}
 
 	result.ports[nodes.PressurePort] = core.NewPort()
@@ -78,12 +88,7 @@ func (node *gasStateAssemblerNode) GetPorts() core.PortsType {
 }
 
 func (node *gasStateAssemblerNode) Process() error {
-	var complexIsSource, complexErr = nodes.IsDataSource(node.ComplexGasPort())
-	if complexErr != nil {
-		return complexErr
-	}
-
-	if !complexIsSource {
+	if node.isAssembler {
 		node.ComplexGasPort().SetState(states.NewComplexGasPortState(
 			node.GasPort().GetState().(states.GasPortState).Gas,
 			node.TemperaturePort().GetState().(states.TemperaturePortState).TStag,
@@ -172,54 +177,33 @@ func (node *gasStateAssemblerNode) GasPort() core.Port {
 }
 
 func (node *gasStateAssemblerNode) getRequirePortTags() ([]string, error) {
-	if node.requirePortTags != nil {
-		return node.requirePortTags, nil
+	if node.isAssembler {
+		return []string{
+			nodes.GasPort,
+			nodes.TemperaturePort,
+			nodes.PressurePort,
+			nodes.MassRateRelPort,
+		}, nil
+	} else {
+		return []string{
+			nodes.ComplexGasPort,
+		}, nil
 	}
-
-	var requirePortTags, err = node.getPortTagsTemplate(func(isSource bool) bool {
-		return isSource
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	node.requirePortTags = requirePortTags
-	return node.requirePortTags, nil
 }
 
 func (node *gasStateAssemblerNode) getUpdatePortTags() ([]string, error) {
-	if node.updatePortTags != nil {
-		return node.updatePortTags, nil
+	if !node.isAssembler {
+		return []string{
+			nodes.GasPort,
+			nodes.TemperaturePort,
+			nodes.PressurePort,
+			nodes.MassRateRelPort,
+		}, nil
+	} else {
+		return []string{
+			nodes.ComplexGasPort,
+		}, nil
 	}
-
-	var updatePortTags, err = node.getPortTagsTemplate(func(isSource bool) bool {
-		return !isSource
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	node.updatePortTags = updatePortTags
-	return node.updatePortTags, nil
-}
-
-func (node *gasStateAssemblerNode) getPortTagsTemplate(condition func(isSource bool) bool) ([]string, error) {
-	var portTags = make([]string, 0)
-
-	for _, tag := range node.getPortTags() {
-		var port, _ = node.getPortByTag(tag)
-		var isSource, err = nodes.IsDataSource(port)
-		if err != nil {
-			return nil, err
-		}
-		if condition(isSource) {
-			portTags = append(portTags, tag)
-		}
-	}
-
-	return portTags, nil
 }
 
 func (node *gasStateAssemblerNode) contextDefined() (bool, error) {
@@ -231,13 +215,16 @@ func (node *gasStateAssemblerNode) contextDefined() (bool, error) {
 	var defined = true
 	for _, tag := range node.getPortTags() {
 		var port, _ = node.getPortByTag(tag)
-		var isSource, err = nodes.IsDataSource(port)
-		if err != nil {
-			return false, err
+		var outerNode = port.GetOuterNode()
+		if outerNode == nil {
+			return false, errors.New(fmt.Sprintf("Port \"%s\" of assembler is open", tag))
 		}
-		defined = defined && isSource
+		defined = defined && outerNode.ContextDefined()
 	}
-	return defined, nil
+
+	node.contextDefinedFlag = defined
+	node.contextCalledFlag = false
+	return node.contextDefinedFlag, nil
 }
 
 func (node *gasStateAssemblerNode) getPortTags() []string {

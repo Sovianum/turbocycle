@@ -131,25 +131,11 @@ func (node *regeneratorNode) Process() error {
 }
 
 func (node *regeneratorNode) GetRequirePortTags() ([]string, error) {
-	switch node.mode {
-	case SigmaByColdSide:
-		return []string{nodes.ColdGasInput, nodes.HotGasInput, nodes.HotGasOutput}, nil
-	case SigmaByHotSide:
-		return []string{nodes.ColdGasInput, nodes.HotGasInput, nodes.ColdGasOutput}, nil
-	default:
-		return nil, errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
-	}
+	return []string{nodes.ColdGasInput, nodes.HotGasInput}, nil
 }
 
 func (node *regeneratorNode) GetUpdatePortTags() ([]string, error) {
-	switch node.mode {
-	case SigmaByColdSide:
-		return []string{nodes.ColdGasOutput, nodes.HotGasOutput, nodes.HotGasInput}, nil
-	case SigmaByHotSide:
-		return []string{nodes.ColdGasOutput, nodes.HotGasOutput, nodes.ColdGasInput}, nil
-	default:
-		return nil, errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
-	}
+	return []string{nodes.ColdGasOutput, nodes.HotGasOutput}, nil
 }
 
 func (node *regeneratorNode) GetPortTags() []string {
