@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
@@ -68,7 +67,7 @@ func (node *initializerNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.DataSourcePort:
 		return node.DataSourcePort(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found in cycle breaker", tag))
+		return nil, fmt.Errorf("port with tag \"%s\" not found in cycle breaker", tag)
 	}
 }
 

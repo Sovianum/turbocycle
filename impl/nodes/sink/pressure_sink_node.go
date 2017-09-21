@@ -63,7 +63,7 @@ func (node *pressureSinkNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.PressureInput:
 		return node.ports[nodes.PressureInput], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port %s of pressureSinkNode can not be found", tag))
+		return nil, fmt.Errorf("Port %s of pressureSinkNode can not be found", tag)
 	}
 }
 

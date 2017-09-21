@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -12,7 +11,7 @@ type networkStateType map[string]nodeStateType
 func (networkState networkStateType) String() string {
 	var result = ""
 	for key, nodeState := range networkState {
-		result += fmt.Sprintf("%d\n", key)
+		result += fmt.Sprintf("%s\n", key)
 		for tag, val := range nodeState {
 			result += fmt.Sprintf("\t%s\t%v\n", tag, val)
 		}
@@ -53,9 +52,9 @@ func (network *network) Solve(relaxCoef float64, maxIterNum int, precision float
 		converged, err = network.makeIteration(callOrder, precision)
 
 		if err != nil {
-			err = errors.New(fmt.Sprintf(
+			err = fmt.Errorf(
 				"Failed on iteration %d: %s", i, err.Error(),
-			))
+			)
 			break
 		}
 
@@ -134,7 +133,7 @@ func (network *network) checkContextDefinition() error {
 	}
 
 	if len(nodeKeys) > 0 {
-		return errors.New(fmt.Sprintf("Nodes %v are not context defined", nodeKeys))
+		return fmt.Errorf("Nodes %v are not context defined", nodeKeys)
 	}
 	return nil
 }
@@ -143,9 +142,9 @@ func (network *network) getNewState(callOrder []string) (networkStateType, error
 	for _, nodeKey := range callOrder {
 		var err = network.nodes[nodeKey].Process()
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf(
-				"Failed on node %d: %s", nodeKey, err.Error(),
-			))
+			return nil, fmt.Errorf(
+				"Failed on node %s: %s", nodeKey, err.Error(),
+			)
 		}
 	}
 	return network.getState()
@@ -156,16 +155,16 @@ func (network *network) updateNetworkState(newState networkStateType, relaxCoef 
 		for tag, portState := range nodeState {
 			var port, tagErr = network.nodes[nodeKey].GetPortByTag(tag)
 			if tagErr != nil {
-				return errors.New(fmt.Sprintf(
-					"Failed to get portType by tag \"%s\" from node %d: %s", tag, nodeKey, tagErr.Error(),
-				))
+				return fmt.Errorf(
+					"Failed to get portType by tag \"%s\" from node %s: %s", tag, nodeKey, tagErr.Error(),
+				)
 			}
 
 			var newPortState, stateErr = port.GetState().Mix(portState, relaxCoef)
 			if stateErr != nil {
-				return errors.New(fmt.Sprintf(
-					"Failed to mix networkState of portType \"%s\" from node %d: %s", tag, nodeKey, stateErr.Error(),
-				))
+				return fmt.Errorf(
+					"Failed to mix networkState of portType \"%s\" from node %s: %s", tag, nodeKey, stateErr.Error(),
+				)
 			}
 
 			port.SetState(newPortState)
@@ -196,10 +195,10 @@ func (network *network) getState() (networkStateType, error) {
 }
 
 func (network *network) checkFreePorts() error {
-	for nodeId, node := range network.nodes {
+	for nodeTag, node := range network.nodes {
 		for portTag, port := range node.GetPorts() {
 			if port.GetLinkPort() == nil {
-				return errors.New(fmt.Sprintf("Found free portType \"%s\" of node %d", portTag, nodeId))
+				return fmt.Errorf("Found free portType \"%s\" of node %s", portTag, nodeTag)
 			}
 		}
 	}
@@ -272,21 +271,21 @@ func getResidual(state1, state2 networkStateType) (float64, error) {
 	for nodeKey, nodeState1 := range state1 {
 		var nodeState2, ok = state2[nodeKey]
 		if !ok {
-			return 0, errors.New(fmt.Sprintf("Node %d not found in state2", nodeKey))
+			return 0, fmt.Errorf("Node %s not found in state2", nodeKey)
 		}
 
 		if len(nodeState1) != len(nodeState2) {
-			return 0, errors.New(fmt.Sprintf(
-				"States of node %d has different lengths (%d, %d)", nodeKey, len(nodeState1), len(nodeState2)),
+			return 0, fmt.Errorf(
+				"States of node %s has different lengths (%d, %d)", nodeKey, len(nodeState1), len(nodeState2),
 			)
 		}
 
 		for portKey := range nodeState1 {
 			var residual, err = nodeState1[portKey].MaxResidual(nodeState2[portKey])
 			if err != nil {
-				return 0, errors.New(fmt.Sprintf(
-					"Failed to get residual of node %d at portType %d: %s", nodeKey, portKey, err.Error(),
-				))
+				return 0, fmt.Errorf(
+					"Failed to get residual of node %s at portType %s: %s", nodeKey, portKey, err.Error(),
+				)
 			}
 			if residual > result {
 				result = residual

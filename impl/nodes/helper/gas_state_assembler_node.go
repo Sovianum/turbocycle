@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
@@ -217,7 +216,7 @@ func (node *gasStateAssemblerNode) contextDefined() (bool, error) {
 		var port, _ = node.getPortByTag(tag)
 		var outerNode = port.GetOuterNode()
 		if outerNode == nil {
-			return false, errors.New(fmt.Sprintf("Port \"%s\" of assembler is open", tag))
+			return false, fmt.Errorf("Port \"%s\" of assembler is open", tag)
 		}
 		defined = defined && outerNode.ContextDefined()
 	}
@@ -250,6 +249,6 @@ func (node *gasStateAssemblerNode) getPortByTag(tag string) (core.Port, error) {
 	case nodes.MassRateRelPort:
 		return node.ports[nodes.MassRateRelPort], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port %s was not found in gasAssemblerNode", tag))
+		return nil, fmt.Errorf("Port %s was not found in gasAssemblerNode", tag)
 	}
 }

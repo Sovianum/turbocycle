@@ -2,7 +2,6 @@ package source
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
@@ -71,7 +70,7 @@ func (node *complexGasSourceNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.ComplexGasOutput:
 		return node.ports[nodes.ComplexGasOutput], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port %s of complexGasSourceNode can not be found", tag))
+		return nil, fmt.Errorf("Port %s of complexGasSourceNode can not be found", tag)
 	}
 }
 

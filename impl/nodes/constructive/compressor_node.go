@@ -2,7 +2,6 @@ package constructive
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
@@ -85,7 +84,7 @@ func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.PowerOutput:
 		return node.PowerOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
+		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
 	}
 }
 
@@ -107,7 +106,7 @@ func (node *compressorNode) GetPorts() core.PortsType {
 
 func (node *compressorNode) Process() error {
 	if node.PiStag <= 1 {
-		return errors.New(fmt.Sprintf("Invalid piStag = %f", node.PiStag))
+		return fmt.Errorf("Invalid piStag = %f", node.PiStag)
 	}
 
 	var pStagOut = node.pStagIn() * node.PiStag

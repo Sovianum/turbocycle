@@ -2,7 +2,6 @@ package sink
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
@@ -63,7 +62,7 @@ func (node *complexGasSinkNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.ComplexGasInput:
 		return node.ports[nodes.ComplexGasInput], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port %s of complexGasSinkNode can not be found", tag))
+		return nil, fmt.Errorf("Port %s of complexGasSinkNode can not be found", tag)
 	}
 }
 

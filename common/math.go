@@ -21,7 +21,7 @@ func Lerp(x0 float64, x1 float64, interpCoef float64) float64 {
 
 func Interp(x float64, xArr []float64, yArr []float64) (float64, error) {
 	if len(xArr) != len(yArr) {
-		return 0, errors.New(fmt.Sprintf("len(xArr) = %d, len(yArr) = %d", len(xArr), len(yArr)))
+		return 0, fmt.Errorf("len(xArr) = %d, len(yArr) = %d", len(xArr), len(yArr))
 	}
 
 	if !sort.SliceIsSorted(xArr, func(i, j int) bool {
@@ -31,10 +31,10 @@ func Interp(x float64, xArr []float64, yArr []float64) (float64, error) {
 	}
 
 	if x < xArr[0] {
-		return 0, errors.New(fmt.Sprintf("x(x == %f) < xArr[0](xArr[0] == %f)", x, xArr[0]))
+		return 0, fmt.Errorf("x(x == %f) < xArr[0](xArr[0] == %f)", x, xArr[0])
 	}
 	if x > xArr[len(xArr)-1] {
-		return 0, errors.New(fmt.Sprintf("x(x == %f) > xArr[-1](xArr[-1] == %f)", x, xArr[len(xArr)-1]))
+		return 0, fmt.Errorf("x(x == %f) > xArr[-1](xArr[-1] == %f)", x, xArr[len(xArr)-1])
 	}
 
 	for i := 0; i != len(xArr)-1; i++ {

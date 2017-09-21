@@ -2,7 +2,6 @@ package constructive
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
@@ -109,7 +108,7 @@ func (node *regeneratorNode) Process() error {
 	case SigmaByHotSide:
 		iterFunc = node.getNewTOutSigmaByHotSide
 	default:
-		return errors.New(fmt.Sprintf("Invalid Regenerator node state: %s", node.mode))
+		return fmt.Errorf("Invalid Regenerator node state: %s", node.mode)
 	}
 
 	coldGasState.TStag, hotGasState.TStag = node.getNewTOut(coldGasState.TStag, hotGasState.TStag, iterFunc)
@@ -153,9 +152,9 @@ func (node *regeneratorNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.HotGasOutput:
 		return node.hotOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf(
+		return nil, fmt.Errorf(
 			"port \"%s\" not found on regeneratorNode", tag,
-		))
+		)
 	}
 }
 

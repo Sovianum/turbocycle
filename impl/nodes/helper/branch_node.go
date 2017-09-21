@@ -83,7 +83,7 @@ func (node *hubNode) GetPortByTag(tag string) (core.Port, error) {
 	case outlet2:
 		return node.ports[outlet2], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("tag \"%s\" was not found in hubNode", tag))
+		return nil, fmt.Errorf("tag \"%s\" was not found in hubNode", tag)
 	}
 }
 

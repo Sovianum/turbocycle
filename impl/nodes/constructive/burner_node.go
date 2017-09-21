@@ -2,7 +2,6 @@ package constructive
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
@@ -92,7 +91,7 @@ func (node *burnerNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.ComplexGasOutput:
 		return node.gasOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
+		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
 	}
 }
 

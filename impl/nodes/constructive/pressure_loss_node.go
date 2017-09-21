@@ -204,7 +204,7 @@ func (node *pressureLossNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.ComplexGasOutput:
 		return node.gasOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Failed to find port with tag \"%s\" in pressureLossNode", tag))
+		return nil, fmt.Errorf("Failed to find port with tag \"%s\" in pressureLossNode", tag)
 	}
 }
 

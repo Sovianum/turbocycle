@@ -6,7 +6,7 @@ import (
 
 func NewMixture(gases []Gas, fractions []float64) Gas {
 	if len(gases) != len(fractions) {
-		panic(fmt.Sprintf("len(gases) == %f; len(fractions) == %f", len(gases), len(fractions)))
+		panic(fmt.Sprintf("len(gases) == %d; len(fractions) == %d", len(gases), len(fractions)))
 	}
 
 	var fracSum float64 = 0

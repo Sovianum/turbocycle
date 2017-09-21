@@ -2,7 +2,6 @@ package constructive
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
@@ -88,7 +87,7 @@ func (node *blockedTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.PowerOutput:
 		return node.PowerOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found", tag))
+		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
 	}
 }
 

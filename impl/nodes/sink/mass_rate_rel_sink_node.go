@@ -2,7 +2,6 @@ package sink
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
@@ -63,7 +62,7 @@ func (node *massRateRelSinkNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.MassRateRelInput:
 		return node.ports[nodes.MassRateRelInput], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port %s of massRateRelSinkNode can not be found", tag))
+		return nil, fmt.Errorf("Port %s of massRateRelSinkNode can not be found", tag)
 	}
 }
 

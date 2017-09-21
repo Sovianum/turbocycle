@@ -40,7 +40,7 @@ func getCallOrder(requireTable, updateTable linkTableType) ([]string, error) {
 			inaccessibleRoots = append(inaccessibleRoots, rootKey)
 		}
 
-		return nil, errors.New(fmt.Sprintf("Roots %v can not be called", inaccessibleRoots))
+		return nil, fmt.Errorf("Roots %v can not be called", inaccessibleRoots)
 	}
 
 	return result, nil

@@ -104,7 +104,7 @@ func (node *freeTurbineNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.MassRateRelOutput:
 		return node.massRateRelOutput(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("port with tag \"%s\" not found in free turbine", tag))
+		return nil, fmt.Errorf("port with tag \"%s\" not found in free turbine", tag)
 	}
 }
 

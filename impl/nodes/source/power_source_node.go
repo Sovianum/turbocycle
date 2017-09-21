@@ -2,7 +2,6 @@ package source
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
@@ -66,7 +65,7 @@ func (node *powerSourceNode) GetPortByTag(tag string) (core.Port, error) {
 	case nodes.PowerOutput:
 		return node.ports[nodes.PowerOutput], nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Port %s of powerSourceNode can not be found", tag))
+		return nil, fmt.Errorf("Port %s of powerSourceNode can not be found", tag)
 	}
 }
 
