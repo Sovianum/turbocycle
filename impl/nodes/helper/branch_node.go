@@ -3,7 +3,6 @@ package helper
 import (
 	"encoding/json"
 	"github.com/Sovianum/turbocycle/core"
-	"errors"
 	"fmt"
 )
 

@@ -2,7 +2,6 @@ package sink
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
