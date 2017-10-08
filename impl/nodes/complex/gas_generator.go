@@ -4,28 +4,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
-	"github.com/Sovianum/turbocycle/fuel"
 )
 
 func NewGasGenerator(
 	compressorEtaAd, piStag float64,
-	fuel fuel.GasFuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0  float64,
+	fuel fuel.GasFuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0 float64,
 	etaT, lambdaOut float64, turbineMassRateRelFunc func(constructive.TurbineNode) float64,
-
+	etaM float64,
 	precision float64,
 ) GasGenerator {
 	var result = &gasGenerator{
-		ports:     make(core.PortsType),
-		compressor: constructive.NewCompressorNode(compressorEtaAd, piStag, precision),
-		burner: constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
-		compressorTurbine:constructive.NewBlockedTurbineNode(etaT, lambdaOut, precision, turbineMassRateRelFunc),
+		ports:             make(core.PortsType),
+		turboCascade:NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
+		burner:            constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
 	}
 
 	result.linkPorts()
-	result.ports[nodes.ComplexGasInput] = result.compressor.ComplexGasInput()
-	result.ports[nodes.ComplexGasOutput] = result.compressorTurbine.ComplexGasOutput()
+	result.ports[nodes.ComplexGasInput] = result.turboCascade.CompressorComplexGasInput()
+	result.ports[nodes.ComplexGasOutput] = result.turboCascade.TurbineComplexGasOutput()
 
 	return result
 }
@@ -36,26 +35,22 @@ type GasGenerator interface {
 }
 
 type gasGenerator struct {
-	ports             core.PortsType
-	compressor        constructive.CompressorNode
-	burner            constructive.BurnerNode
-	compressorTurbine constructive.BlockedTurbineNode
-	powerSink         nodes.PowerSink
+	ports        core.PortsType
+	burner       constructive.BurnerNode
+	turboCascade TurboCascadeNode
 }
 
 func (node *gasGenerator) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		GasInputState     core.PortState                  `json:"gas_input_state"`
-		GasOutputState    core.PortState                  `json:"gas_output_state"`
-		Compressor        constructive.CompressorNode     `json:"compressor"`
-		Burner            constructive.BurnerNode         `json:"burner"`
-		CompressorTurbine constructive.BlockedTurbineNode `json:"compressor_turbine"`
+		GasInputState  core.PortState          `json:"gas_input_state"`
+		GasOutputState core.PortState          `json:"gas_output_state"`
+		Burner         constructive.BurnerNode `json:"burner"`
+		TurboCascade   TurboCascadeNode        `json:"turbo_cascade"`
 	}{
-		GasInputState:     node.complexGasInput().GetState(),
-		GasOutputState:    node.complexGasOutput().GetState(),
-		Compressor:        node.compressor,
-		Burner:            node.burner,
-		CompressorTurbine: node.compressorTurbine,
+		GasInputState:  node.complexGasInput().GetState(),
+		GasOutputState: node.complexGasOutput().GetState(),
+		Burner:         node.burner,
+		TurboCascade:   node.turboCascade,
 	})
 }
 
@@ -64,13 +59,16 @@ func (node *gasGenerator) GetPorts() core.PortsType {
 }
 
 func (node *gasGenerator) Process() error {
-	if err := node.compressor.Process(); err != nil {
+	if err := node.turboCascade.Compressor().Process(); err != nil {
+		return err
+	}
+	if err := node.turboCascade.Transmission().Process(); err != nil {
 		return err
 	}
 	if err := node.burner.Process(); err != nil {
 		return err
 	}
-	if err := node.compressorTurbine.Process(); err != nil {
+	if err := node.turboCascade.Turbine().Process(); err != nil {
 		return err
 	}
 	return nil
@@ -112,10 +110,8 @@ func (node *gasGenerator) ComplexGasOutput() core.Port {
 }
 
 func (node *gasGenerator) linkPorts() {
-	core.Link(node.compressor.ComplexGasOutput(), node.burner.ComplexGasInput())
-	core.Link(node.burner.ComplexGasOutput(), node.compressorTurbine.ComplexGasInput())
-	core.Link(node.compressor.PowerOutput(), node.compressorTurbine.PowerInput())
-	core.Link(node.compressorTurbine.PowerOutput(), node.powerSink.PowerInput())
+	core.Link(node.turboCascade.CompressorComplexGasOutput(), node.burner.ComplexGasInput())
+	core.Link(node.burner.ComplexGasOutput(), node.turboCascade.TurbineComplexGasInput())
 }
 
 func (node *gasGenerator) complexGasInput() core.Port {
