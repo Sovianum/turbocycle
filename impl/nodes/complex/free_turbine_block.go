@@ -8,7 +8,35 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/Sovianum/turbocycle/impl/nodes/sink"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
+
+func NewFreeTurbineBlock(
+	pAtm float64,
+	etaT, lambdaOut, precision float64, massRateRelFunc func(node constructive.TurbineNode) float64,
+	pressureLossSigma float64,
+) FreeTurbineBlockNode {
+	var result = &freeTurbineBlockNode{
+		ports:make(core.PortsType),
+		atmNode:source.NewComplexGasSourceNode(nil, 0, pAtm),	// first two arguments are not used cos they will be sent to sinks
+		turbine:constructive.NewFreeTurbineNode(etaT, lambdaOut, precision, massRateRelFunc),
+		pressureLoss:constructive.NewPressureLossNode(pressureLossSigma),
+		assembler:helper.NewGasStateAssemblerNode(),
+		disassembler:helper.NewGasStateDisassemblerNode(),
+		tSink:sink.NewTemperatureSinkNode(),
+		gSink:sink.NewGasSinkNode(),
+		mSink:sink.NewMassRateRelSinkNode(),
+		hub:helper.NewHubNode(states.StandardAtmosphereState()),
+	}
+	result.linkPorts()
+
+	result.ports[nodes.ComplexGasInput] = result.turbine.ComplexGasInput()
+	result.ports[nodes.ComplexGasOutput] = result.assembler.ComplexGasPort()
+	result.ports[nodes.PowerOutput] = result.turbine.GasOutput()
+
+	return result
+}
 
 type FreeTurbineBlockNode interface {
 	core.Node
