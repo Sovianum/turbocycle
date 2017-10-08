@@ -1,6 +1,8 @@
 package total_tests
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/gases"
@@ -9,12 +11,10 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
 	"github.com/Sovianum/turbocycle/impl/states"
-	"testing"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"fmt"
-	"encoding/json"
 	"os"
+	"strings"
+	"testing"
 )
 
 const (
@@ -68,7 +68,7 @@ func TestNetwork_Solve_OK(t *testing.T) {
 	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 	nodes["loss"] = pressureLossNode
 	var assembler = helper.NewGasStateAssemblerNode()
-	nodes["assembler"] =assembler
+	nodes["assembler"] = assembler
 	var disassembler = helper.NewGasStateDisassemblerNode()
 	nodes["disassembler"] = disassembler
 	var tSink = sink.NewTemperatureSinkNode()
@@ -140,7 +140,7 @@ func TestNetwork_Solve_FreePorts(t *testing.T) {
 	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 	nodes["loss"] = pressureLossNode
 	var assembler = helper.NewGasStateAssemblerNode()
-	nodes["assembler"] =assembler
+	nodes["assembler"] = assembler
 	var disassembler = helper.NewGasStateDisassemblerNode()
 	nodes["disassembler"] = disassembler
 	var tSink = sink.NewTemperatureSinkNode()
@@ -178,7 +178,8 @@ func TestNetwork_Solve_FreePorts(t *testing.T) {
 	assert.True(t, strings.HasPrefix(err.Error(), "Found free port"))
 }
 
-func TestNetwork_Solve_NotContextDefined(t *testing.T) {var nodes = make(map[string]core.Node)
+func TestNetwork_Solve_NotContextDefined(t *testing.T) {
+	var nodes = make(map[string]core.Node)
 	var pressureLoss1 = constructive.NewPressureLossNode(pressureLossSigma)
 	nodes["loss1"] = pressureLoss1
 	var pressureLoss2 = constructive.NewPressureLossNode(pressureLossSigma)
@@ -194,7 +195,8 @@ func TestNetwork_Solve_NotContextDefined(t *testing.T) {var nodes = make(map[str
 	assert.True(t, strings.HasPrefix(err.Error(), "Nodes"))
 }
 
-func TestNetwork_Solve_NoStart(t *testing.T) {var nodes = make(map[string]core.Node)
+func TestNetwork_Solve_NoStart(t *testing.T) {
+	var nodes = make(map[string]core.Node)
 	var compressor1 = constructive.NewCompressorNode(etaCompressor, piStag, precision)
 	nodes["compressor1"] = compressor1
 	var compressor2 = constructive.NewCompressorNode(etaCompressor, piStag, precision)
@@ -244,7 +246,7 @@ func TestNetwork_Solve_Cycled(t *testing.T) {
 	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 	nodes["loss"] = pressureLossNode
 	var assembler = helper.NewGasStateAssemblerNode()
-	nodes["assembler"] =assembler
+	nodes["assembler"] = assembler
 	var disassembler = helper.NewGasStateDisassemblerNode()
 	nodes["disassembler"] = disassembler
 	var tSink = sink.NewTemperatureSinkNode()
@@ -323,7 +325,7 @@ func TestNetwork_Solve_NoCycle(t *testing.T) {
 	var pressureLossNode = constructive.NewPressureLossNode(pressureLossSigma)
 	nodes["loss"] = pressureLossNode
 	var assembler = helper.NewGasStateAssemblerNode()
-	nodes["assembler"] =assembler
+	nodes["assembler"] = assembler
 	var disassembler = helper.NewGasStateDisassemblerNode()
 	nodes["disassembler"] = disassembler
 	var tSink = sink.NewTemperatureSinkNode()

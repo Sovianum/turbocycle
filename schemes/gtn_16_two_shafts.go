@@ -9,30 +9,30 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
 )
 
-func NewGtn16DoubleShaft(
+func NewGtn16TwoShafts(
 	gasSource source.ComplexGasSourceNode,
 	inletPressureDrop constructive.PressureLossNode,
 	gasGenerator compose.GasGeneratorNode,
 	compressorTurbinePipe constructive.PressureLossNode,
 	freeTurbineBlock compose.FreeTurbineBlockNode,
 
-) Gtn16DoubleShaft {
-	return &gtn16DoubleShaft{
-		gasSource:gasSource,
-		inletPressureDrop:inletPressureDrop,
-		gasGenerator:gasGenerator,
-		compressorTurbinePipe:compressorTurbinePipe,
-		freeTurbineBlock:freeTurbineBlock,
-		gasSink:sink.NewComplexGasSinkNode(),
-		powerSink:sink.NewPowerSinkNode(),
+) Gtn16TwoShafts {
+	return &gtn16TwoShafts{
+		gasSource:             gasSource,
+		inletPressureDrop:     inletPressureDrop,
+		gasGenerator:          gasGenerator,
+		compressorTurbinePipe: compressorTurbinePipe,
+		freeTurbineBlock:      freeTurbineBlock,
+		gasSink:               sink.NewComplexGasSinkNode(),
+		powerSink:             sink.NewPowerSinkNode(),
 	}
 }
 
-type Gtn16DoubleShaft interface {
+type Gtn16TwoShafts interface {
 	Scheme
 }
 
-type gtn16DoubleShaft struct {
+type gtn16TwoShafts struct {
 	gasSource             source.ComplexGasSourceNode
 	inletPressureDrop     constructive.PressureLossNode
 	gasGenerator          compose.GasGeneratorNode
@@ -42,7 +42,7 @@ type gtn16DoubleShaft struct {
 	powerSink             nodes.PowerSink
 }
 
-func (scheme *gtn16DoubleShaft) GetNetwork() core.Network {
+func (scheme *gtn16TwoShafts) GetNetwork() core.Network {
 	var nodeMap = make(map[string]core.Node)
 	nodeMap[inputGasSourceName] = scheme.gasSource
 	nodeMap[inletPressureDropName] = scheme.inletPressureDrop

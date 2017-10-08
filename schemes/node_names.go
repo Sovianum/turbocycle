@@ -10,9 +10,10 @@ const (
 	freeTurbineName                = "freeTurbine"
 	compressorTurbinePowerSinkName = "compressorTurbinePowerSink"
 	freeTurbinePowerSinkName       = "powerTurbinePowerSink"
-	gasGeneratorName = "gasGenerator"
-	freeTurbineBlockName = "freeTurbineBlock"
-	compressorTurbinePipeName = "compressorTurbinePipe"
-	inletPressureDropName = "inletPressureDrop"
-
+	gasGeneratorName               = "gasGenerator"
+	turboCascadeName               = "turboCascade"
+	freeTurbineBlockName           = "freeTurbineBlock"
+	compressorTurbinePipeName      = "compressorTurbinePipe"
+	inletPressureDropName          = "inletPressureDrop"
+	regeneratorName                = "regeneratorName"
 )

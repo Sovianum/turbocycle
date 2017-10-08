@@ -1,16 +1,16 @@
 package schemes
 
 import (
-	"testing"
-	"github.com/Sovianum/turbocycle/impl/nodes/source"
-	"github.com/Sovianum/turbocycle/gases"
-	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/nodes/compose"
-	"github.com/Sovianum/turbocycle/fuel"
-	"github.com/stretchr/testify/assert"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"github.com/Sovianum/turbocycle/fuel"
+	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/impl/nodes/compose"
+	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/stretchr/testify/assert"
 	"os"
+	"testing"
 )
 
 func TestGtn16DoubleShaft_GetNetwork_Smoke(t *testing.T) {
@@ -32,7 +32,7 @@ func TestGtn16DoubleShaft_GetNetwork_Smoke(t *testing.T) {
 		}, 0.9,
 	)
 
-	var scheme = NewGtn16DoubleShaft(gasSource, inletPressureDrop, gasGenerator, compressorTurbinePipe, freeTurbineBlock)
+	var scheme = NewGtn16TwoShafts(gasSource, inletPressureDrop, gasGenerator, compressorTurbinePipe, freeTurbineBlock)
 	var network = scheme.GetNetwork()
 	var callOrder, err1 = network.GetCallOrder()
 	assert.Nil(t, err1)

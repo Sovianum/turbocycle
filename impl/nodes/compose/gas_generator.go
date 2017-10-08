@@ -18,9 +18,9 @@ func NewGasGeneratorNode(
 	precision float64,
 ) GasGeneratorNode {
 	var result = &gasGeneratorNode{
-		ports:             make(core.PortsType),
-		turboCascade:NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
-		burner:            constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
+		ports:        make(core.PortsType),
+		turboCascade: NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
+		burner:       constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
 	}
 
 	result.linkPorts()

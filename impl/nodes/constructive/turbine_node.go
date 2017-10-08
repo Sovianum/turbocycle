@@ -23,7 +23,6 @@ type TurbineNode interface {
 
 type GasBiPole interface {
 	core.Node
-
 }
 
 func TOut(node TurbineNode) float64 {

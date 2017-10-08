@@ -47,19 +47,19 @@ func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func
 
 	result.ports[nodes.PressureOutput] = core.NewPort()
 	result.ports[nodes.PressureOutput].SetInnerNode(result)
-	result.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(1e5))	// todo remove hardcode
+	result.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(1e5)) // todo remove hardcode
 
 	result.ports[nodes.TemperatureOutput] = core.NewPort()
 	result.ports[nodes.TemperatureOutput].SetInnerNode(result)
-	result.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(300))	// todo remove hardcode
+	result.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(300)) // todo remove hardcode
 
 	result.ports[nodes.GasOutput] = core.NewPort()
 	result.ports[nodes.GasOutput].SetInnerNode(result)
-	result.ports[nodes.GasOutput].SetState(states.NewGasPortState(gases.GetAir()))	// todo remove hardcode
+	result.ports[nodes.GasOutput].SetState(states.NewGasPortState(gases.GetAir())) // todo remove hardcode
 
 	result.ports[nodes.MassRateRelOutput] = core.NewPort()
 	result.ports[nodes.MassRateRelOutput].SetInnerNode(result)
-	result.ports[nodes.MassRateRelOutput].SetState(states.NewMassRateRelPortState(1))	// todo remove hardcode
+	result.ports[nodes.MassRateRelOutput].SetState(states.NewMassRateRelPortState(1)) // todo remove hardcode
 
 	return result
 }
@@ -73,8 +73,8 @@ func (node *freeTurbineNode) MarshalJSON() ([]byte, error) {
 		LSpecific        float64        `json:"l_specific"`
 		Eta              float64        `json:"eta"`
 	}{
-		GasInputState:    node.complexGasInput().GetState(),
-		GasOutputState:   states.NewComplexGasPortState(
+		GasInputState: node.complexGasInput().GetState(),
+		GasOutputState: states.NewComplexGasPortState(
 			node.inputGas(), node.tStagOut(), node.pStagOut(), node.massRateRelOut(),
 		),
 		PowerOutputState: node.powerOutput().GetState(),

@@ -2,12 +2,12 @@ package helper
 
 import (
 	"encoding/json"
-	"github.com/Sovianum/turbocycle/core"
 	"fmt"
+	"github.com/Sovianum/turbocycle/core"
 )
 
 const (
-	inlet = "inlet"
+	inlet   = "inlet"
 	outlet1 = "outlet1"
 	outlet2 = "outlet2"
 )
@@ -25,7 +25,7 @@ type hubNode struct {
 
 func NewHubNode(initState core.PortState) HubNode {
 	var result = &hubNode{
-		ports:make(core.PortsType),
+		ports: make(core.PortsType),
 	}
 
 	result.ports[inlet] = core.NewPort()
