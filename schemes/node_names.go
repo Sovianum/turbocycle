@@ -11,5 +11,8 @@ const (
 	compressorTurbinePowerSinkName = "compressorTurbinePowerSink"
 	freeTurbinePowerSinkName       = "powerTurbinePowerSink"
 	gasGeneratorName = "gasGenerator"
-	freeTurbineBlockName = "freeT"
+	freeTurbineBlockName = "freeTurbineBlock"
+	compressorTurbinePipeName = "compressorTurbinePipe"
+	inletPressureDropName = "inletPressureDrop"
+
 )

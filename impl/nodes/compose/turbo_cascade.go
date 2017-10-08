@@ -1,4 +1,4 @@
-package complex
+package compose
 
 import (
 	"encoding/json"
