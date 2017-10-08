@@ -6,6 +6,8 @@ import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/nodes/sink"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 func NewTurboCascadeNode(
@@ -15,15 +17,30 @@ func NewTurboCascadeNode(
 	precision float64,
 ) TurboCascadeNode {
 	var result = &turboCascadeNode{
-		ports:             make(core.PortsType),
-		compressor:        constructive.NewCompressorNode(compressorEtaAd, piStag, precision),
-		compressorTurbine: constructive.NewBlockedTurbineNode(etaT, lambdaOut, precision, turbineMassRateRelFunc),
-		transmission:      constructive.NewTransmissionNode(etaM),
+		ports:        make(core.PortsType),
+		compressor:   constructive.NewCompressorNode(compressorEtaAd, piStag, precision),
+		turbine:      constructive.NewBlockedTurbineNode(etaT, lambdaOut, precision, turbineMassRateRelFunc),
+		transmission: constructive.NewTransmissionNode(etaM),
+		powerSink:    sink.NewPowerSinkNode(),
 	}
 
 	result.linkPorts()
-	result.ports[nodes.ComplexGasInput] = result.compressor.ComplexGasInput()
-	result.ports[nodes.ComplexGasOutput] = result.compressorTurbine.ComplexGasOutput()
+
+	result.ports[nodes.CompressorComplexGasInput] = core.NewPort()
+	result.ports[nodes.CompressorComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.CompressorComplexGasInput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.CompressorComplexGasOutput] = core.NewPort()
+	result.ports[nodes.CompressorComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.CompressorComplexGasOutput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.TurbineComplexGasInput] = core.NewPort()
+	result.ports[nodes.TurbineComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.TurbineComplexGasInput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.TurbineComplexGasOutput] = core.NewPort()
+	result.ports[nodes.TurbineComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.TurbineComplexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -37,14 +54,16 @@ type TurboCascadeNode interface {
 	Compressor() constructive.CompressorNode
 	Turbine() constructive.TurbineNode
 	Transmission() constructive.TransmissionNode
+	ProcessCompressor() error
+	ProcessTurbine() error
 }
 
 type turboCascadeNode struct {
-	ports             core.PortsType
-	compressor        constructive.CompressorNode
-	compressorTurbine constructive.BlockedTurbineNode
-	transmission      constructive.TransmissionNode
-	powerSink         nodes.PowerSink
+	ports        core.PortsType
+	compressor   constructive.CompressorNode
+	turbine      constructive.BlockedTurbineNode
+	transmission constructive.TransmissionNode
+	powerSink    nodes.PowerSink
 }
 
 func (node *turboCascadeNode) Compressor() constructive.CompressorNode {
@@ -52,7 +71,7 @@ func (node *turboCascadeNode) Compressor() constructive.CompressorNode {
 }
 
 func (node *turboCascadeNode) Turbine() constructive.TurbineNode {
-	return node.compressorTurbine
+	return node.turbine
 }
 
 func (node *turboCascadeNode) Transmission() constructive.TransmissionNode {
@@ -74,7 +93,7 @@ func (node *turboCascadeNode) MarshalJSON() ([]byte, error) {
 		TurbineGasInputState:     node.turbineComplexGasInput().GetState(),
 		TurbineGasOutputState:    node.turbineComplexGasOutput().GetState(),
 		Compressor:               node.compressor,
-		CompressorTurbine:        node.compressorTurbine,
+		CompressorTurbine:        node.turbine,
 		Transmission:             node.transmission,
 	})
 }
@@ -83,13 +102,40 @@ func (node *turboCascadeNode) GetPorts() core.PortsType {
 	return node.ports
 }
 
-func (node *turboCascadeNode) Process() error {
+func (node *turboCascadeNode) ProcessCompressor() error {
+	node.readInput()
 	if err := node.compressor.Process(); err != nil {
 		return err
 	}
-	if err := node.compressorTurbine.Process(); err != nil {
+	if err := node.transmission.Process(); err != nil {
 		return err
 	}
+	node.writeOutput()
+
+	return nil
+}
+
+func (node *turboCascadeNode) ProcessTurbine() error {
+	node.readInput()
+	if err := node.turbine.Process(); err != nil {
+		return err
+	}
+	node.writeOutput()
+	return nil
+}
+
+func (node *turboCascadeNode) Process() error {
+	node.readInput()
+	if err := node.compressor.Process(); err != nil {
+		return err
+	}
+	if err := node.transmission.Process(); err != nil {
+		return err
+	}
+	if err := node.turbine.Process(); err != nil {
+		return err
+	}
+	node.writeOutput()
 	return nil
 }
 
@@ -147,8 +193,18 @@ func (node *turboCascadeNode) CompressorComplexGasInput() core.Port {
 
 func (node *turboCascadeNode) linkPorts() {
 	core.Link(node.compressor.PowerOutput(), node.transmission.PowerInput())
-	core.Link(node.transmission.PowerOutput(), node.compressorTurbine.PowerInput())
-	core.Link(node.compressorTurbine.PowerOutput(), node.powerSink.PowerInput())
+	core.Link(node.transmission.PowerOutput(), node.turbine.PowerInput())
+	core.Link(node.turbine.PowerOutput(), node.powerSink.PowerInput())
+}
+
+func (node *turboCascadeNode) readInput() {
+	node.compressor.ComplexGasInput().SetState(node.compressorComplexGasInput().GetState())
+	node.turbine.ComplexGasInput().SetState(node.turbineComplexGasInput().GetState())
+}
+
+func (node *turboCascadeNode) writeOutput() {
+	node.compressorComplexGasOutput().SetState(node.compressor.ComplexGasOutput().GetState())
+	node.turbineComplexGasOutput().SetState(node.turbine.ComplexGasOutput().GetState())
 }
 
 func (node *turboCascadeNode) compressorComplexGasInput() core.Port {
@@ -164,5 +220,5 @@ func (node *turboCascadeNode) turbineComplexGasInput() core.Port {
 }
 
 func (node *turboCascadeNode) turbineComplexGasOutput() core.Port {
-	return node.ports[nodes.TurbineComplexGasInput]
+	return node.ports[nodes.TurbineComplexGasOutput]
 }

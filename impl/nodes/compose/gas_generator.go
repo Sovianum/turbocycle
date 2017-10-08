@@ -7,6 +7,7 @@ import (
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 func NewGasGeneratorNode(
@@ -23,8 +24,14 @@ func NewGasGeneratorNode(
 	}
 
 	result.linkPorts()
-	result.ports[nodes.ComplexGasInput] = result.turboCascade.CompressorComplexGasInput()
-	result.ports[nodes.ComplexGasOutput] = result.turboCascade.TurbineComplexGasOutput()
+
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
 }
@@ -59,18 +66,17 @@ func (node *gasGeneratorNode) GetPorts() core.PortsType {
 }
 
 func (node *gasGeneratorNode) Process() error {
-	if err := node.turboCascade.Compressor().Process(); err != nil {
-		return err
-	}
-	if err := node.turboCascade.Transmission().Process(); err != nil {
+	node.readInput()
+	if err := node.turboCascade.ProcessCompressor(); err != nil {
 		return err
 	}
 	if err := node.burner.Process(); err != nil {
 		return err
 	}
-	if err := node.turboCascade.Turbine().Process(); err != nil {
+	if err := node.turboCascade.ProcessTurbine(); err != nil {
 		return err
 	}
+	node.writeOutput()
 	return nil
 }
 
@@ -107,6 +113,14 @@ func (node *gasGeneratorNode) ComplexGasInput() core.Port {
 
 func (node *gasGeneratorNode) ComplexGasOutput() core.Port {
 	return node.complexGasOutput()
+}
+
+func (node *gasGeneratorNode) readInput() {
+	node.turboCascade.CompressorComplexGasInput().SetState(node.ComplexGasInput().GetState())
+}
+
+func (node *gasGeneratorNode) writeOutput() {
+	node.complexGasOutput().SetState(node.turboCascade.TurbineComplexGasOutput().GetState())
 }
 
 func (node *gasGeneratorNode) linkPorts() {

@@ -31,9 +31,17 @@ func NewFreeTurbineBlock(
 	}
 	result.linkPorts()
 
-	result.ports[nodes.ComplexGasInput] = result.turbine.ComplexGasInput()
-	result.ports[nodes.ComplexGasOutput] = result.assembler.ComplexGasPort()
-	result.ports[nodes.PowerOutput] = result.turbine.GasOutput()
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.PowerOutput] = core.NewPort()
+	result.ports[nodes.PowerOutput].SetInnerNode(result)
+	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
 
 	return result
 }
@@ -76,6 +84,7 @@ func (node *freeTurbineBlockNode) GetPorts() core.PortsType {
 }
 
 func (node *freeTurbineBlockNode) Process() error {
+	node.readInput()
 	if err := node.atmNode.Process(); err != nil {
 		return err
 	}
@@ -94,11 +103,12 @@ func (node *freeTurbineBlockNode) Process() error {
 	if err := node.assembler.Process(); err != nil {
 		return err
 	}
+	node.writeOutput()
 	return nil
 }
 
 func (node *freeTurbineBlockNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.GasInput}, nil
+	return []string{nodes.ComplexGasInput}, nil
 }
 
 func (node *freeTurbineBlockNode) GetUpdatePortTags() ([]string, error) {
@@ -106,7 +116,7 @@ func (node *freeTurbineBlockNode) GetUpdatePortTags() ([]string, error) {
 }
 
 func (node *freeTurbineBlockNode) GetPortTags() []string {
-	return []string{nodes.GasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
+	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
 }
 
 func (node *freeTurbineBlockNode) GetPortByTag(tag string) (core.Port, error) {
@@ -153,6 +163,15 @@ func (node *freeTurbineBlockNode) linkPorts() {
 	core.Link(node.turbine.TemperatureOutput(), node.assembler.TemperaturePort())
 	core.Link(node.turbine.GasOutput(), node.assembler.GasPort())
 	core.Link(node.turbine.MassRateRelOutput(), node.assembler.MassRateRelPort())
+}
+
+func (node *freeTurbineBlockNode) readInput() {
+	node.turbine.ComplexGasInput().SetState(node.ComplexGasInput().GetState())
+}
+
+func (node *freeTurbineBlockNode) writeOutput() {
+	node.complexGasOutput().SetState(node.assembler.ComplexGasPort().GetState())
+	node.PowerOutput().SetState(node.turbine.PowerOutput().GetState())
 }
 
 func (node *freeTurbineBlockNode) complexGasInput() core.Port {

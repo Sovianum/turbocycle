@@ -9,11 +9,6 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
 )
 
-const (
-	tFuel = 300
-	t0    = 288
-)
-
 func NewGtn16DoubleShaft(
 	gasSource source.ComplexGasSourceNode,
 	inletPressureDrop constructive.PressureLossNode,
@@ -56,7 +51,8 @@ func (scheme *gtn16DoubleShaft) GetNetwork() core.Network {
 	nodeMap[freeTurbineBlockName] = scheme.freeTurbineBlock
 	nodeMap[outputGasSinkName] = scheme.gasSink
 
-	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.gasGenerator.ComplexGasInput())
+	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
+	core.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.gasGenerator.ComplexGasInput())
 	core.Link(scheme.gasGenerator.ComplexGasOutput(), scheme.compressorTurbinePipe.ComplexGasInput())
 	core.Link(scheme.compressorTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
 	core.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.gasSink.ComplexGasInput())
