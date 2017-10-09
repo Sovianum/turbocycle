@@ -30,6 +30,8 @@ const (
 	CompressorComplexGasOutput = "compressorComplexGasOutput"
 	TurbineComplexGasInput     = "turbineComplexGasInput"
 	TurbineComplexGasOutput    = "turbineComplexGasOutput"
+	HeatExchangerHotInput      = "heatExchangerHotGasInput"
+	HeatExchangerHotOutput     = "heatExchangerHotGasOutput"
 	DefaultN                   = 50
 )
 

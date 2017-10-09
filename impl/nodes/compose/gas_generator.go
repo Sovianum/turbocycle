@@ -116,7 +116,7 @@ func (node *gasGeneratorNode) ComplexGasOutput() core.Port {
 }
 
 func (node *gasGeneratorNode) readInput() {
-	node.turboCascade.CompressorComplexGasInput().SetState(node.ComplexGasInput().GetState())
+	node.turboCascade.CompressorComplexGasInput().SetState(node.complexGasInput().GetState())
 }
 
 func (node *gasGeneratorNode) writeOutput() {
