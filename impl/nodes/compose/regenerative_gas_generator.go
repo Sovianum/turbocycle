@@ -6,7 +6,43 @@ import (
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+	"github.com/Sovianum/turbocycle/fuel"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
+
+func NewRegenerativeGasGenerator(
+	compressorEtaAd, piStag float64,
+	fuel fuel.GasFuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0 float64,
+	etaT, lambdaOut float64, turbineMassRateRelFunc func(constructive.TurbineNode) float64,
+	sigmaRegenerator float64,
+	sigmaRegeneratorPipe float64,
+	etaM float64,
+	precision float64,
+) RegenerativeGasGeneratorNode {
+	var result = &regenerativeGasGeneratorNode{
+		ports:make(core.PortsType),
+		turboCascade:NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
+		burner:constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
+		regenerator:constructive.NewRegeneratorNode(sigmaRegenerator, precision, constructive.SigmaByColdSide),
+		regeneratorPressureDrop:constructive.NewPressureLossNode(sigmaRegeneratorPipe),
+	}
+
+	result.ports[nodes.ComplexGasInput] = core.NewPort()
+	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.ComplexGasOutput] = core.NewPort()
+	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
+	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.HeatExchangerHotInput] = core.NewPort()
+	result.ports[nodes.HeatExchangerHotInput].SetInnerNode(result)
+	result.ports[nodes.HeatExchangerHotInput].SetState(states.StandardAtmosphereState())
+
+	result.ports[nodes.HeatExchangerHotOutput] = core.NewPort()
+	result.ports[nodes.HeatExchangerHotOutput].SetInnerNode(result)
+	result.ports[nodes.HeatExchangerHotOutput].SetState(states.StandardAtmosphereState())
+}
 
 type RegenerativeGasGeneratorNode interface {
 	core.Node
