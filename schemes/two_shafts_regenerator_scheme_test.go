@@ -1,29 +1,27 @@
 package schemes
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/Sovianum/turbocycle/fuel"
-	"github.com/Sovianum/turbocycle/gases"
-	"github.com/Sovianum/turbocycle/impl/nodes/compose"
-	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/nodes/source"
-	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
+	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/Sovianum/turbocycle/gases"
+	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/nodes/compose"
+	"github.com/Sovianum/turbocycle/fuel"
+	"github.com/stretchr/testify/assert"
+	"fmt"
+	"encoding/json"
+	"os"
 )
 
-func TestGtn16DoubleShaft_GetNetwork_Smoke(t *testing.T) {
+func TestTwoShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5)
 	var inletPressureDrop = constructive.NewPressureLossNode(0.98)
-	var gasGenerator = compose.NewGasGeneratorNode(
-		0.86, 6, fuel.GetCH4(),
-		1400, 300, 0.99, 0.99, 3, 300,
-		0.9, 0.3, func(node constructive.TurbineNode) float64 {
+	var turboCascade = compose.NewTurboCascadeNode(
+		0.86, 6, 0.9, 0.3, func(node constructive.TurbineNode) float64 {
 			return 0
-		},
-		0.99, 0.05,
+		}, 0.99, 0.05,
 	)
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), 1400, 300, 0.99, 0.99, 3, 300, 0.05)
 	var compressorTurbinePipe = constructive.NewPressureLossNode(0.98)
 	var freeTurbineBlock = compose.NewFreeTurbineBlock(
 		1e5,
@@ -31,8 +29,11 @@ func TestGtn16DoubleShaft_GetNetwork_Smoke(t *testing.T) {
 			return 0
 		}, 0.9,
 	)
+	var regenerator = constructive.NewRegeneratorNode(0.8, 0.05, constructive.SigmaByColdSide)
 
-	var scheme = NewGtn16TwoShafts(gasSource, inletPressureDrop, gasGenerator, compressorTurbinePipe, freeTurbineBlock)
+	var scheme = NewTwoShaftsRegeneratorScheme(
+		gasSource, inletPressureDrop, turboCascade, burner, compressorTurbinePipe, freeTurbineBlock, regenerator,
+	)
 	var network = scheme.GetNetwork()
 	var callOrder, err1 = network.GetCallOrder()
 	assert.Nil(t, err1)

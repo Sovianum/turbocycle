@@ -11,7 +11,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
-func NewGtn16TwoShaftsRegenerator(
+func NewTwoShaftsRegeneratorScheme(
 	gasSource source.ComplexGasSourceNode,
 	inletPressureDrop constructive.PressureLossNode,
 	turboCascade compose.TurboCascadeNode,
@@ -20,8 +20,8 @@ func NewGtn16TwoShaftsRegenerator(
 	freeTurbineBlock compose.FreeTurbineBlockNode,
 	regenerator constructive.RegeneratorNode,
 
-) Gtn16TwoShaftsRegenerator {
-	return &gtn16TwoShaftsRegenerator{
+) TwoShaftsRegeneratorScheme {
+	return &twoShaftsRegeneratorScheme{
 		gasSource:             gasSource,
 		inletPressureDrop:     inletPressureDrop,
 		turboCascade:          turboCascade,
@@ -36,11 +36,11 @@ func NewGtn16TwoShaftsRegenerator(
 	}
 }
 
-type Gtn16TwoShaftsRegenerator interface {
+type TwoShaftsRegeneratorScheme interface {
 	Scheme
 }
 
-type gtn16TwoShaftsRegenerator struct {
+type twoShaftsRegeneratorScheme struct {
 	gasSource             source.ComplexGasSourceNode
 	inletPressureDrop     constructive.PressureLossNode
 	turboCascade          compose.TurboCascadeNode
@@ -54,7 +54,7 @@ type gtn16TwoShaftsRegenerator struct {
 	breaker2              helper.CycleBreakNode
 }
 
-func (scheme *gtn16TwoShaftsRegenerator) GetNetwork() core.Network {
+func (scheme *twoShaftsRegeneratorScheme) GetNetwork() core.Network {
 	var nodeMap = make(map[string]core.Node)
 	nodeMap[inputGasSourceName] = scheme.gasSource
 	nodeMap[inletPressureDropName] = scheme.inletPressureDrop
