@@ -54,6 +54,22 @@ type twoShaftsRegeneratorScheme struct {
 	breaker2              helper.CycleBreakNode
 }
 
+func (scheme *twoShaftsRegeneratorScheme) GetSpecificPower() float64 {
+	var turbine = scheme.freeTurbineBlock.FreeTurbine()
+	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
+	var massRateRel = turbine.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return lSpecific * massRateRel
+}
+
+func (scheme *twoShaftsRegeneratorScheme) GetFuelMassRateRel() float64 {
+	var massRateRel = scheme.burner.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return scheme.burner.GetFuelRateRel() * massRateRel
+}
+
+func (scheme *twoShaftsRegeneratorScheme) GetQLower() float64 {
+	return scheme.burner.Fuel().QLower()
+}
+
 func (scheme *twoShaftsRegeneratorScheme) GetNetwork() core.Network {
 	var nodeMap = make(map[string]core.Node)
 	nodeMap[inputGasSourceName] = scheme.gasSource

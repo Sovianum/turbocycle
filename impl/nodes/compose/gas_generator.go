@@ -3,6 +3,7 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/impl/nodes"
@@ -39,12 +40,22 @@ func NewGasGeneratorNode(
 type GasGeneratorNode interface {
 	core.Node
 	nodes.ComplexGasChannel
+	Burner() constructive.BurnerNode
+	TurboCascade() TurboCascadeNode
 }
 
 type gasGeneratorNode struct {
 	ports        core.PortsType
 	burner       constructive.BurnerNode
 	turboCascade TurboCascadeNode
+}
+
+func (node *gasGeneratorNode) Burner() constructive.BurnerNode {
+	return node.burner
+}
+
+func (node *gasGeneratorNode) TurboCascade() TurboCascadeNode {
+	return node.turboCascade
 }
 
 func (node *gasGeneratorNode) MarshalJSON() ([]byte, error) {

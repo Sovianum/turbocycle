@@ -7,6 +7,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/Sovianum/turbocycle/impl/states"
 )
 
 func NewTwoShaftsScheme(
@@ -40,6 +41,22 @@ type twoShaftsScheme struct {
 	freeTurbineBlock      compose.FreeTurbineBlockNode
 	gasSink               sink.ComplexGasSinkNode
 	powerSink             nodes.PowerSink
+}
+
+func (scheme *twoShaftsScheme) GetSpecificPower() float64 {
+	var turbine = scheme.freeTurbineBlock.FreeTurbine()
+	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
+	var massRateRel = turbine.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return lSpecific * massRateRel
+}
+
+func (scheme *twoShaftsScheme) GetFuelMassRateRel() float64 {
+	var massRateRel = scheme.gasGenerator.Burner().ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return scheme.gasGenerator.Burner().GetFuelRateRel() * massRateRel
+}
+
+func (scheme *twoShaftsScheme) GetQLower() float64 {
+	return scheme.gasGenerator.Burner().Fuel().QLower()
 }
 
 func (scheme *twoShaftsScheme) GetNetwork() core.Network {

@@ -11,6 +11,7 @@ const (
 	compressorTurbinePowerSinkName   = "compressorTurbinePowerSink"
 	freeTurbinePowerSinkName         = "powerTurbinePowerSink"
 	gasGeneratorName                 = "gasGenerator"
+	regenerativeGasGeneratorName     = "regenerativeGasGenerator"
 	turboCascadeName                 = "turboCascade"
 	freeTurbineBlockName             = "freeTurbineBlock"
 	compressorTurbinePipeName        = "compressorTurbinePipe"

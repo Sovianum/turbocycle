@@ -1,13 +1,14 @@
 package helper
 
 import (
+	"testing"
+
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 const (
@@ -60,7 +61,7 @@ func TestGasStateAssemblerNode_ProcessDesemble(t *testing.T) {
 	var mSink = sink.NewMassRateRelSinkNode()
 	var complexSource = source.NewComplexGasSourceNode(gases.GetAir(), tStag, pStag)
 
-	var assembler = NewGasStateAssemblerNode()
+	var assembler = NewGasStateDisassemblerNode()
 	core.Link(assembler.GasPort(), gSink.GasInput())
 	core.Link(assembler.TemperaturePort(), tSink.TemperatureInput())
 	core.Link(assembler.PressurePort(), pSink.PressureInput())
@@ -71,11 +72,11 @@ func TestGasStateAssemblerNode_ProcessDesemble(t *testing.T) {
 
 	var require, rErr = assembler.GetRequirePortTags()
 	assert.Nil(t, rErr, rErr)
-	assert.Equal(t, 1, len(require), len(require))
+	assert.Equal(t, 1, len(require))
 
 	var update, uErr = assembler.GetUpdatePortTags()
 	assert.Nil(t, uErr, uErr)
-	assert.Equal(t, 4, len(update), len(update))
+	assert.Equal(t, 4, len(update))
 
 	complexSource.Process()
 

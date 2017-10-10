@@ -3,14 +3,15 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
-	"github.com/Sovianum/turbocycle/fuel"
 	"github.com/Sovianum/turbocycle/impl/states"
 )
 
-func NewRegenerativeGasGenerator(
+func NewRegenerativeGasGeneratorNode(
 	compressorEtaAd, piStag float64,
 	fuel fuel.GasFuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0 float64,
 	etaT, lambdaOut float64, turbineMassRateRelFunc func(constructive.TurbineNode) float64,
@@ -42,6 +43,9 @@ func NewRegenerativeGasGenerator(
 	result.ports[nodes.HeatExchangerHotOutput] = core.NewPort()
 	result.ports[nodes.HeatExchangerHotOutput].SetInnerNode(result)
 	result.ports[nodes.HeatExchangerHotOutput].SetState(states.StandardAtmosphereState())
+
+	result.linkPorts()
+	return result
 }
 
 type RegenerativeGasGeneratorNode interface {
@@ -49,6 +53,9 @@ type RegenerativeGasGeneratorNode interface {
 	nodes.ComplexGasChannel
 	HeatExchangerHotInput() core.Port
 	HeatExchangerHotOutput() core.Port
+	Burner() constructive.BurnerNode
+	TurboCascade() TurboCascadeNode
+	Regenerator() constructive.RegeneratorNode
 }
 
 type regenerativeGasGeneratorNode struct {
@@ -57,6 +64,18 @@ type regenerativeGasGeneratorNode struct {
 	turboCascade            TurboCascadeNode
 	regenerator             constructive.RegeneratorNode
 	regeneratorPressureDrop constructive.PressureLossNode
+}
+
+func (node *regenerativeGasGeneratorNode) Burner() constructive.BurnerNode {
+	return node.burner
+}
+
+func (node *regenerativeGasGeneratorNode) TurboCascade() TurboCascadeNode {
+	return node.turboCascade
+}
+
+func (node *regenerativeGasGeneratorNode) Regenerator() constructive.RegeneratorNode {
+	return node.regenerator
 }
 
 func (node *regenerativeGasGeneratorNode) MarshalJSON() ([]byte, error) {

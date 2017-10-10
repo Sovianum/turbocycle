@@ -20,6 +20,7 @@ type BurnerNode interface {
 	nodes.TemperatureOut
 	Alpha() float64
 	GetFuelRateRel() float64
+	Fuel() fuel.GasFuel
 }
 
 type burnerNode struct {
@@ -60,6 +61,10 @@ func NewBurnerNode(
 	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
 
 	return result
+}
+
+func (node *burnerNode) Fuel() fuel.GasFuel {
+	return node.fuel
 }
 
 func (node *burnerNode) MarshalJSON() ([]byte, error) {

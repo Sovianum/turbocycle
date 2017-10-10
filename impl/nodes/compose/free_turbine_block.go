@@ -50,6 +50,7 @@ type FreeTurbineBlockNode interface {
 	core.Node
 	nodes.ComplexGasChannel
 	nodes.PowerSource
+	FreeTurbine() constructive.FreeTurbineNode
 }
 
 type freeTurbineBlockNode struct {
@@ -63,6 +64,10 @@ type freeTurbineBlockNode struct {
 	gSink        nodes.GasSink
 	mSink        nodes.MassRateRelSink
 	hub          helper.HubNode
+}
+
+func (node *freeTurbineBlockNode) FreeTurbine() constructive.FreeTurbineNode {
+	return node.turbine
 }
 
 func (node *freeTurbineBlockNode) MarshalJSON() ([]byte, error) {
