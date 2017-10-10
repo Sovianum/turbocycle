@@ -115,6 +115,9 @@ func (node *regenerativeGasGeneratorNode) Process() error {
 	if err := node.regenerator.Process(); err != nil {
 		return err
 	}
+	if err := node.burner.Process(); err != nil {
+		return err
+	}
 	if err := node.turboCascade.ProcessTurbine(); err != nil {
 		return err
 	}

@@ -39,6 +39,8 @@ func NewThreeShaftsRegeneratorScheme(
 
 type ThreeShaftsRegeneratorScheme interface {
 	Scheme
+	InitGasGeneratorCompressor(state states.ComplexGasPortState)
+	InitGasGeneratorHeatExchanger(state states.ComplexGasPortState)
 }
 
 type threeShaftsRegeneratorScheme struct {
@@ -56,6 +58,13 @@ type threeShaftsRegeneratorScheme struct {
 	breaker2                     helper.CycleBreakNode
 }
 
+func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorCompressor(state states.ComplexGasPortState) {
+	scheme.breaker1.DataSourcePort().SetState(state)
+}
+
+func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorHeatExchanger(state states.ComplexGasPortState) {
+	scheme.breaker2.DataSourcePort().SetState(state)
+}
 
 func (scheme *threeShaftsRegeneratorScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
@@ -91,9 +100,9 @@ func (scheme *threeShaftsRegeneratorScheme) GetNetwork() core.Network {
 	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
 	core.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.middlePressureCascade.CompressorComplexGasInput())
 
-	core.Link(scheme.middlePressureCascade.CompressorComplexGasOutput(), scheme.breaker1.DataSourcePort())
-	core.Link(scheme.breaker1.UpdatePort(), scheme.middlePressureCompressorPipe.ComplexGasInput())
-	core.Link(scheme.middlePressureCompressorPipe.ComplexGasOutput(), scheme.regenerativeGasGenerator.ComplexGasInput())
+	core.Link(scheme.middlePressureCascade.CompressorComplexGasOutput(), scheme.middlePressureCompressorPipe.ComplexGasInput())
+	core.Link(scheme.middlePressureCompressorPipe.ComplexGasOutput(), scheme.breaker1.DataSourcePort())
+	core.Link(scheme.breaker1.UpdatePort(), scheme.regenerativeGasGenerator.ComplexGasInput())
 	core.Link(scheme.regenerativeGasGenerator.ComplexGasOutput(), scheme.highPressureTurbinePipe.ComplexGasInput())
 	core.Link(scheme.highPressureTurbinePipe.ComplexGasOutput(), scheme.middlePressureCascade.TurbineComplexGasInput())
 	core.Link(scheme.middlePressureCascade.TurbineComplexGasOutput(), scheme.middlePressureTurbinePipe.ComplexGasInput())

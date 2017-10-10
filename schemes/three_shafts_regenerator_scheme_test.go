@@ -11,6 +11,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/nodes/source"
+	"github.com/Sovianum/turbocycle/impl/states"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,6 +32,7 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 		},
 		0.8, 0.99, 0.99, 0.05,
 	)
+
 	var middlePressureCompressorPipe = constructive.NewPressureLossNode(0.98)
 	var highPressureTurbinePipe = constructive.NewPressureLossNode(0.98)
 	var middlePressureTurbinePipe = constructive.NewPressureLossNode(0.98)
@@ -40,11 +42,15 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 			return 0
 		}, 0.9,
 	)
+	freeTurbineBlock.FreeTurbine().TemperatureOutput().SetState(states.NewTemperaturePortState(900))
 
 	var scheme = NewThreeShaftsRegeneratorScheme(
 		gasSource, inletPressureDrop, middlePressureCascade, regenerativeGasGenerator, middlePressureCompressorPipe,
 		highPressureTurbinePipe, middlePressureTurbinePipe, freeTurbineBlock,
 	)
+	scheme.InitGasGeneratorCompressor(states.NewComplexGasPortState(gases.GetAir(), 500, 5e5, 1))
+	scheme.InitGasGeneratorHeatExchanger(states.NewComplexGasPortState(gases.GetAir(), 900, 1e5, 1))
+
 	var network = scheme.GetNetwork()
 	var callOrder, err1 = network.GetCallOrder()
 	assert.Nil(t, err1)
