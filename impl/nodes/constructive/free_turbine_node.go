@@ -9,6 +9,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"math"
+	"errors"
 )
 
 type FreeTurbineNode interface {
@@ -166,7 +167,12 @@ func (node *freeTurbineNode) LSpecific() float64 {
 func (node *freeTurbineNode) Process() error {
 	var gasState = node.complexGasInput().GetState().(states.ComplexGasPortState)
 
-	node.temperatureOutput().SetState(states.NewTemperaturePortState(node.getTStagOut()))
+	var tStagOut, err = node.getTStagOut()
+	if err != nil {
+		return err
+	}
+
+	node.temperatureOutput().SetState(states.NewTemperaturePortState(tStagOut))
 	node.pressureOutput().SetState(states.NewPressurePortState(node.pStagOut()))
 	node.gasOutput().SetState(states.NewGasPortState(gasState.Gas))
 	node.massRateRelOutput().SetState(
@@ -204,7 +210,7 @@ func (node *freeTurbineNode) lSpecific() float64 {
 	return gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN) * (node.tStagIn() - node.tStagOut())
 }
 
-func (node *freeTurbineNode) getTStagOut() float64 {
+func (node *freeTurbineNode) getTStagOut() (float64, error) {
 	var tStagOutCurr = node.tStagOutNext(
 		node.pStagIn(), node.pStagOut(), node.tStagIn(), node.tStagIn(),
 	)
@@ -213,13 +219,16 @@ func (node *freeTurbineNode) getTStagOut() float64 {
 	)
 
 	for !common.Converged(tStagOutCurr, tStagOutNext, node.precision) {
+		if math.IsNaN(tStagOutCurr) || math.IsNaN(tStagOutNext) {
+			return 0, errors.New("failed to converge: try different initial guess")
+		}
 		tStagOutCurr = tStagOutNext
 		node.tStagOutNext(
 			node.pStagIn(), node.pStagOut(), node.tStagIn(), tStagOutCurr,
 		)
 	}
 
-	return tStagOutNext
+	return tStagOutNext, nil
 }
 
 func (node *freeTurbineNode) tStagOutNext(pStagIn, pStagOut, tStagIn, tStagOutCurr float64) float64 {

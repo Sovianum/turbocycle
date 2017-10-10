@@ -9,6 +9,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"math"
+	"errors"
 )
 
 type CompressorNode interface {
@@ -110,7 +111,10 @@ func (node *compressorNode) Process() error {
 	}
 
 	var pStagOut = node.pStagIn() * node.PiStag
-	var tStagOut = node.getTStagOut(node.PiStag, node.tStagIn(), node.tStagIn())
+	var tStagOut, err = node.getTStagOut(node.PiStag, node.tStagIn(), node.tStagIn())
+	if err != nil {
+		return err
+	}
 
 	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
 	gasState.TStag = tStagOut
@@ -161,7 +165,7 @@ func (node *compressorNode) lSpecific() float64 {
 	return cpMean * (node.tStagOut() - node.tStagIn())
 }
 
-func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) float64 {
+func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) (float64, error) {
 	var k = gases.K(node.gas(), tStagIn)
 	var x = math.Pow(piCStag, (k-1)/k)
 
@@ -169,11 +173,14 @@ func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) 
 	var tOutNext = node.tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
 
 	for !common.Converged(tOutCurr, tOutNext, node.Precision) {
+		if math.IsNaN(tOutCurr) || math.IsNaN(tOutNext) {
+			return 0, errors.New("failed to converge: try another initial guess")
+		}
 		tOutCurr = tOutNext
 		tOutNext = node.tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
 	}
 
-	return tOutNext
+	return tOutNext, nil
 }
 
 func (node *compressorNode) tStagOutNewFunc(piCStag, tStagIn, tStagOutCurr float64) float64 {

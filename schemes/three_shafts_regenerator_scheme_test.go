@@ -49,7 +49,10 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	var callOrder, err1 = network.GetCallOrder()
 	assert.Nil(t, err1)
 	fmt.Println(callOrder)
-	network.Solve(0.2, 100, 0.05)
+	var converged, solveErr = network.Solve(0.2, 100, 0.05)
+	assert.True(t, converged)
+	assert.Nil(t, solveErr)
+
 	var b, _ = json.MarshalIndent(network, "", "    ")
 	os.Stdout.Write(b)
 }

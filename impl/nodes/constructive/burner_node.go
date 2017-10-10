@@ -9,6 +9,8 @@ import (
 	"github.com/Sovianum/turbocycle/gases"
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/states"
+	"math"
+	"github.com/go-errors/errors"
 )
 
 type BurnerNode interface {
@@ -149,7 +151,10 @@ func (node *burnerNode) GetFuelRateRel() float64 {
 }
 
 func (node *burnerNode) Process() error {
-	var fuelMassRateRel, alpha = node.getFuelParameters(node.initAlpha)
+	var fuelMassRateRel, alpha, err = node.getFuelParameters(node.initAlpha)
+	if err != nil {
+		return err
+	}
 	node.alpha = alpha
 
 	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
@@ -163,17 +168,20 @@ func (node *burnerNode) Process() error {
 	return nil
 }
 
-func (node *burnerNode) getFuelParameters(initAlpha float64) (float64, float64) {
+func (node *burnerNode) getFuelParameters(initAlpha float64) (float64, float64, error) {
 	var currAlpha = initAlpha
 	var nextAlpha = node.getNextAlpha(currAlpha)
 
 	for !common.Converged(currAlpha, nextAlpha, node.precision) {
+		if math.IsNaN(currAlpha) || math.IsNaN(nextAlpha) {
+			return 0, 0, errors.New("failed to converge: try different initial guess")
+		}
 		currAlpha = nextAlpha
 		nextAlpha = node.getNextAlpha(currAlpha)
 	}
 
 	var fuelMassRateRel = node.getFuelMassRateRel(nextAlpha)
-	return fuelMassRateRel, nextAlpha
+	return fuelMassRateRel, nextAlpha, nil
 }
 
 func (node *burnerNode) getNextAlpha(currAlpha float64) float64 {

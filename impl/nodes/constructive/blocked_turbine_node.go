@@ -10,6 +10,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/nodes"
 	"github.com/Sovianum/turbocycle/impl/states"
 	"math"
+	"errors"
 )
 
 type BlockedTurbineNode interface {
@@ -109,7 +110,12 @@ func (node *blockedTurbineNode) GetPorts() core.PortsType {
 
 func (node *blockedTurbineNode) Process() error {
 	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
-	gasState.TStag = node.getTStagOut(node.turbineLabour())
+
+	var err error
+	gasState.TStag, err = node.getTStagOut(node.turbineLabour())
+	if err != nil {
+		return err
+	}
 
 	var piTStag = node.piTStag(gasState.TStag)
 	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), gasState.TStag, nodes.DefaultN))
@@ -166,16 +172,19 @@ func (node *blockedTurbineNode) PowerOutput() core.Port {
 	return node.powerOutput()
 }
 
-func (node *blockedTurbineNode) getTStagOut(turbineLabour float64) float64 {
+func (node *blockedTurbineNode) getTStagOut(turbineLabour float64) (float64, error) {
 	var tTStagCurr = node.getInitTtStag(node.turbineLabour())
 	var tTStagNew = node.getNewTtStag(tTStagCurr, node.turbineLabour())
 
 	for !common.Converged(tTStagCurr, tTStagNew, node.precision) {
+		if math.IsNaN(tTStagCurr) || math.IsNaN(tTStagNew) {
+			return 0, errors.New("failed to converge: try different initial guess")
+		}
 		tTStagCurr = tTStagNew
 		tTStagNew = node.getNewTtStag(tTStagCurr, node.turbineLabour())
 	}
 
-	return tTStagNew
+	return tTStagNew, nil
 }
 
 func (node *blockedTurbineNode) getInitTtStag(turbineLabour float64) float64 {
