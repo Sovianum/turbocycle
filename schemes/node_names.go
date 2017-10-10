@@ -21,4 +21,5 @@ const (
 	middlePressureCompressorPipeName = "middlePressureCompressorPipe"
 	highPressureTurbinePipeName      = "highPressureTurbinePipe"
 	middlePressureTurbinePipeName    = "middlePressureTurbinePipe"
+	coolerName                       = "cooler"
 )

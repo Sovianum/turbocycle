@@ -14,9 +14,9 @@ func GetMassRate(power float64, scheme Scheme) float64 {
 }
 
 func GetSpecificFuelRate(scheme Scheme) float64 {
-	return scheme.GetFuelMassRateRel() * 3600 / scheme.GetSpecificPower()
+	return 3600 * scheme.GetFuelMassRateRel() / scheme.GetSpecificPower()
 }
 
 func GetEfficiency(scheme Scheme) float64 {
-	return 3600 / (scheme.GetSpecificPower() * scheme.GetQLower())
+	return scheme.GetSpecificPower() / (scheme.GetFuelMassRateRel() * scheme.GetQLower())
 }

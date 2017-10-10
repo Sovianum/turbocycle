@@ -21,14 +21,16 @@ type CompressorNode interface {
 	nodes.TemperatureIn
 	nodes.TemperatureOut
 	LSpecific() float64
+	PiStag() float64
+	SetPiStag(piStag float64)
 }
 
 // TODO add collector port
 type compressorNode struct {
 	ports     core.PortsType
-	EtaAd     float64
-	Precision float64
-	PiStag    float64
+	etaAd     float64
+	precision float64
+	piStag    float64
 }
 
 func (node *compressorNode) MarshalJSON() ([]byte, error) {
@@ -43,8 +45,8 @@ func (node *compressorNode) MarshalJSON() ([]byte, error) {
 		GasInputState:    node.gasInput().GetState(),
 		GasOutputState:   node.gasOutput().GetState(),
 		PowerOutputState: node.powerOutput().GetState(),
-		EtaAd:            node.EtaAd,
-		PiStag:           node.PiStag,
+		EtaAd:            node.etaAd,
+		PiStag:           node.piStag,
 		MassRateRel:      node.gasInput().GetState().(states.ComplexGasPortState).MassRateRel,
 	})
 }
@@ -52,9 +54,9 @@ func (node *compressorNode) MarshalJSON() ([]byte, error) {
 func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	var result = &compressorNode{
 		ports:     make(core.PortsType),
-		EtaAd:     etaAd,
-		Precision: precision,
-		PiStag:    piStag,
+		etaAd:     etaAd,
+		precision: precision,
+		piStag:    piStag,
 	}
 
 	result.ports[nodes.ComplexGasInput] = core.NewPort()
@@ -106,12 +108,12 @@ func (node *compressorNode) GetPorts() core.PortsType {
 }
 
 func (node *compressorNode) Process() error {
-	if node.PiStag <= 1 {
-		return fmt.Errorf("Invalid piStag = %f", node.PiStag)
+	if node.piStag <= 1 {
+		return fmt.Errorf("Invalid piStag = %f", node.piStag)
 	}
 
-	var pStagOut = node.pStagIn() * node.PiStag
-	var tStagOut, err = node.getTStagOut(node.PiStag, node.tStagIn(), node.tStagIn())
+	var pStagOut = node.pStagIn() * node.piStag
+	var tStagOut, err = node.getTStagOut(node.piStag, node.tStagIn(), node.tStagIn())
 	if err != nil {
 		return err
 	}
@@ -160,6 +162,14 @@ func (node *compressorNode) LSpecific() float64 {
 	return node.lSpecific()
 }
 
+func (node *compressorNode) PiStag() float64 {
+	return node.piStag
+}
+
+func (node *compressorNode) SetPiStag(piStag float64) {
+	node.piStag = piStag
+}
+
 func (node *compressorNode) lSpecific() float64 {
 	var cpMean = gases.CpMean(node.gas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN)
 	return cpMean * (node.tStagOut() - node.tStagIn())
@@ -169,10 +179,10 @@ func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) 
 	var k = gases.K(node.gas(), tStagIn)
 	var x = math.Pow(piCStag, (k-1)/k)
 
-	var tOutCurr = tStagIn * (1 + (x-1)/node.EtaAd)
+	var tOutCurr = tStagIn * (1 + (x-1)/node.etaAd)
 	var tOutNext = node.tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
 
-	for !common.Converged(tOutCurr, tOutNext, node.Precision) {
+	for !common.Converged(tOutCurr, tOutNext, node.precision) {
 		if math.IsNaN(tOutCurr) || math.IsNaN(tOutNext) {
 			return 0, errors.New("failed to converge: try another initial guess")
 		}
@@ -185,7 +195,7 @@ func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) 
 
 func (node *compressorNode) tStagOutNewFunc(piCStag, tStagIn, tStagOutCurr float64) float64 {
 	var x = node.xFunc(piCStag, tStagIn, tStagOutCurr)
-	return tStagIn * (1 + (x-1)/node.EtaAd)
+	return tStagIn * (1 + (x-1)/node.etaAd)
 }
 
 func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {

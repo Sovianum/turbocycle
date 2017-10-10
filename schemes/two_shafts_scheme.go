@@ -31,6 +31,7 @@ func NewTwoShaftsScheme(
 
 type TwoShaftsScheme interface {
 	Scheme
+	Compressor() constructive.CompressorNode
 }
 
 type twoShaftsScheme struct {
@@ -41,6 +42,10 @@ type twoShaftsScheme struct {
 	freeTurbineBlock      compose.FreeTurbineBlockNode
 	gasSink               sink.ComplexGasSinkNode
 	powerSink             nodes.PowerSink
+}
+
+func (scheme *twoShaftsScheme) Compressor() constructive.CompressorNode {
+	return scheme.gasGenerator.TurboCascade().Compressor()
 }
 
 func (scheme *twoShaftsScheme) GetSpecificPower() float64 {
