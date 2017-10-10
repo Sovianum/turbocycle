@@ -19,7 +19,12 @@ func Lerp(x0 float64, x1 float64, interpCoef float64) float64 {
 	return x0*(1-interpCoef) + x1*interpCoef
 }
 
-func Interp(x float64, xArr []float64, yArr []float64) (float64, error) {
+func InterpTolerate(x float64, xArr []float64, yArr []float64) float64 {
+	var result, _ = Interp(x, xArr, yArr, false)
+	return result
+}
+
+func Interp(x float64, xArr []float64, yArr []float64, breakOutOfRange bool) (float64, error) {
 	if len(xArr) != len(yArr) {
 		return 0, fmt.Errorf("len(xArr) = %d, len(yArr) = %d", len(xArr), len(yArr))
 	}
@@ -31,10 +36,16 @@ func Interp(x float64, xArr []float64, yArr []float64) (float64, error) {
 	}
 
 	if x < xArr[0] {
-		return 0, fmt.Errorf("x(x == %f) < xArr[0](xArr[0] == %f)", x, xArr[0])
+		if breakOutOfRange {
+			return 0, fmt.Errorf("x(x == %f) < xArr[0](xArr[0] == %f)", x, xArr[0])
+		}
+		x = xArr[0]
 	}
 	if x > xArr[len(xArr)-1] {
-		return 0, fmt.Errorf("x(x == %f) > xArr[-1](xArr[-1] == %f)", x, xArr[len(xArr)-1])
+		if breakOutOfRange {
+			return 0, fmt.Errorf("x(x == %f) > xArr[-1](xArr[-1] == %f)", x, xArr[len(xArr)-1])
+		}
+		x = xArr[len(xArr)-1]
 	}
 
 	for i := 0; i != len(xArr)-1; i++ {

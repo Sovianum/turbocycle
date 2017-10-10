@@ -31,11 +31,7 @@ func (air) Cp(t float64) float64 {
 		1000, 1005, 1009, 1013, 1017, 1022, 1026, 1038, 1047, 1059, 1068, 1093, 1114, 1135, 1156, 1172, 1185, 1197, 1210, 1300,
 	}
 
-	var cp, err = common.Interp(t, tArr, cpArr)
-	if err != nil {
-		panic(err)
-	}
-
+	var cp = common.InterpTolerate(t, tArr, cpArr)
 	return cp
 }
 
@@ -55,11 +51,7 @@ func (nitrogen) Cp(t float64) float64 {
 		1157, 1167, 1177, 1187, 1196, 1204, 1212, 1219, 1226, 1232, 1244, 1254, 1263, 1271, 1278, 1284,
 	}
 
-	var cp, err = common.Interp(t, tArr, cpArr)
-	if err != nil {
-		panic(err)
-	}
-
+	var cp = common.InterpTolerate(t, tArr, cpArr)
 	return cp
 }
 
@@ -79,11 +71,7 @@ func (co2) Cp(t float64) float64 {
 		1247, 1259, 1270, 1280, 1290, 1298, 1306, 1313, 1326, 1338, 1348, 1356, 1364, 1371,
 	}
 
-	var cp, err = common.Interp(t, tArr, cpArr)
-	if err != nil {
-		panic(err)
-	}
-
+	var cp = common.InterpTolerate(t, tArr, cpArr)
 	return cp
 }
 
@@ -103,11 +91,7 @@ func (h2oVapour) Cp(t float64) float64 {
 		1247, 1259, 1270, 1280, 1290, 1298, 1306, 1313, 1326, 1338, 1348, 1356, 1364, 1371,
 	}
 
-	var cp, err = common.Interp(t, tArr, cpArr)
-	if err != nil {
-		panic(err)
-	}
-
+	var cp  = common.InterpTolerate(t, tArr, cpArr)
 	return cp
 }
 

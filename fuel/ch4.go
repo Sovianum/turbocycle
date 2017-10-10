@@ -28,10 +28,7 @@ func (gas ch4) Cp(t float64) float64 {
 		4475, 4595, 4708,
 	}
 
-	var cp, err = common.Interp(t, tArr, cpArr)
-	if err != nil {
-		panic(err)
-	}
+	var cp = common.InterpTolerate(t, tArr, cpArr)
 
 	return cp
 }
