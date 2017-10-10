@@ -38,6 +38,7 @@ func NewTwoShaftsRegeneratorScheme(
 
 type TwoShaftsRegeneratorScheme interface {
 	Scheme
+	SingleCompressor
 }
 
 type twoShaftsRegeneratorScheme struct {
@@ -52,6 +53,10 @@ type twoShaftsRegeneratorScheme struct {
 	powerSink             nodes.PowerSink
 	breaker1              helper.CycleBreakNode
 	breaker2              helper.CycleBreakNode
+}
+
+func (scheme *twoShaftsRegeneratorScheme) Compressor() constructive.CompressorNode {
+	return scheme.turboCascade.Compressor()
 }
 
 func (scheme *twoShaftsRegeneratorScheme) GetSpecificPower() float64 {

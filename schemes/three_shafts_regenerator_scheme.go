@@ -39,6 +39,7 @@ func NewThreeShaftsRegeneratorScheme(
 
 type ThreeShaftsRegeneratorScheme interface {
 	Scheme
+	DoubleCompressor
 	InitGasGeneratorCompressor(state states.ComplexGasPortState)
 	InitGasGeneratorHeatExchanger(state states.ComplexGasPortState)
 }
@@ -56,6 +57,14 @@ type threeShaftsRegeneratorScheme struct {
 	powerSink                    nodes.PowerSink
 	breaker1                     helper.CycleBreakNode
 	breaker2                     helper.CycleBreakNode
+}
+
+func (scheme *threeShaftsRegeneratorScheme) LowPressureCompressor() constructive.CompressorNode {
+	return scheme.middlePressureCascade.Compressor()
+}
+
+func (scheme *threeShaftsRegeneratorScheme) HighPressureCompressor() constructive.CompressorNode {
+	return scheme.regenerativeGasGenerator.TurboCascade().Compressor()
 }
 
 func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorCompressor(state states.ComplexGasPortState) {

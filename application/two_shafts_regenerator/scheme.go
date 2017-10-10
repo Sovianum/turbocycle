@@ -32,20 +32,18 @@ const (
 	dgFreeTurbine = -0.01
 	freeTurbinePressureLossSigma = 0.93
 
+	regeneratorSigma = 0.8
+
 	precision = 0.05
 )
 
-func GetInitedTwoShaftsScheme() schemes.TwoShaftsScheme {
+func GetInitedTwoShaftsRegeneratorScheme() schemes.TwoShaftsRegeneratorScheme {
 	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), tAtm, pAtm)
 	var inletPressureDrop = constructive.NewPressureLossNode(sigmaInlet)
-	var gasGenerator = compose.NewGasGeneratorNode(
-		etaComp, piComp, fuel.GetCH4(),
-		tGas, tFuel, sigmaBurn, etaBurn, initAlpha, t0,
-		etaCompTurbine, lambdaOut, func(node constructive.TurbineNode) float64 {
-			return dgCompTurbine
-		},
-		etaM, precision,
-	)
+	var turboCascade = compose.NewTurboCascadeNode(etaComp, piComp, etaCompTurbine, lambdaOut, func(node constructive.TurbineNode) float64 {
+		return dgCompTurbine
+	}, etaM, precision)
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tGas, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
 	var compressorTurbinePipe = constructive.NewPressureLossNode(sigmaCompTurbinePipe)
 	var freeTurbineBlock = compose.NewFreeTurbineBlock(
 		pAtm,
@@ -53,6 +51,9 @@ func GetInitedTwoShaftsScheme() schemes.TwoShaftsScheme {
 			return dgFreeTurbine
 		}, freeTurbinePressureLossSigma,
 	)
+	var regenerator = constructive.NewRegeneratorNode(regeneratorSigma, precision, constructive.SigmaByColdSide)
 
-	return schemes.NewTwoShaftsScheme(gasSource, inletPressureDrop, gasGenerator, compressorTurbinePipe, freeTurbineBlock)
+	return schemes.NewTwoShaftsRegeneratorScheme(
+		gasSource, inletPressureDrop, turboCascade, burner, compressorTurbinePipe, freeTurbineBlock, regenerator,
+	)
 }

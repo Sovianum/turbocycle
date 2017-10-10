@@ -40,6 +40,7 @@ func NewThreeShaftsCoolingScheme(
 
 type ThreeShaftsCoolerScheme interface {
 	Scheme
+	DoubleCompressor
 }
 
 type threeShaftsCoolerScheme struct {
@@ -55,6 +56,14 @@ type threeShaftsCoolerScheme struct {
 	gasSink                      sink.ComplexGasSinkNode
 	powerSink                    nodes.PowerSink
 	breaker                      helper.CycleBreakNode
+}
+
+func (scheme *threeShaftsCoolerScheme) LowPressureCompressor() constructive.CompressorNode {
+	return scheme.middlePressureCascade.Compressor()
+}
+
+func (scheme *threeShaftsCoolerScheme) HighPressureCompressor() constructive.CompressorNode {
+	return scheme.gasGenerator.TurboCascade().Compressor()
 }
 
 func (scheme *threeShaftsCoolerScheme) GetSpecificPower() float64 {

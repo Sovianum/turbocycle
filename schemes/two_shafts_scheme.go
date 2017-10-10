@@ -31,7 +31,7 @@ func NewTwoShaftsScheme(
 
 type TwoShaftsScheme interface {
 	Scheme
-	Compressor() constructive.CompressorNode
+	SingleCompressor
 }
 
 type twoShaftsScheme struct {

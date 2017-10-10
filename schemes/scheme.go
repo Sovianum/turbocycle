@@ -1,12 +1,24 @@
 package schemes
 
-import "github.com/Sovianum/turbocycle/core"
+import (
+	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
+)
 
 type Scheme interface {
 	GetNetwork() core.Network
 	GetSpecificPower() float64
 	GetFuelMassRateRel() float64
 	GetQLower() float64
+}
+
+type SingleCompressor interface {
+	Compressor() constructive.CompressorNode
+}
+
+type DoubleCompressor interface {
+	LowPressureCompressor() constructive.CompressorNode
+	HighPressureCompressor() constructive.CompressorNode
 }
 
 func GetMassRate(power float64, scheme Scheme) float64 {
