@@ -50,6 +50,11 @@ func GetSingleCompressorDataGenerator(
 	}
 }
 
+type DoubleCompressorScheme interface {
+	schemes.Scheme
+	schemes.DoubleCompressor
+}
+
 type DoubleCompressorDataPoint struct {
 	Pi            float64
 	PiFactor      float64
@@ -69,10 +74,11 @@ func (point DoubleCompressorDataPoint) ToRecord() []string {
 }
 
 func GetDoubleCompressorDataGenerator(
-	scheme SingleCompressorScheme, power float64, relaxCoef float64, iterNum int,
+	scheme DoubleCompressorScheme, power float64, relaxCoef float64, iterNum int,
 ) func(pi, piFactor float64) (DoubleCompressorDataPoint, error) {
 	return func(pi, piFactor float64) (DoubleCompressorDataPoint, error) {
-		scheme.Compressor().SetPiStag(pi)
+		scheme.LowPressureCompressor().SetPiStag(pi * piFactor)
+		scheme.HighPressureCompressor().SetPiStag(1 / piFactor)
 		var converged, err = scheme.GetNetwork().Solve(relaxCoef, iterNum, 0.001)
 		if err != nil {
 			return DoubleCompressorDataPoint{}, err
