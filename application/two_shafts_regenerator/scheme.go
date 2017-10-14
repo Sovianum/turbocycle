@@ -1,4 +1,4 @@
-package two_shafts
+package two_shafts_regenerator
 
 import (
 	"github.com/Sovianum/turbocycle/fuel"

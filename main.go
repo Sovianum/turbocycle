@@ -7,8 +7,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/application"
 	"github.com/Sovianum/turbocycle/schemes"
-	"github.com/Sovianum/turbocycle/application/three_shafts_regenerator"
-	"github.com/Sovianum/turbocycle/application/three_shafts"
+	"github.com/Sovianum/turbocycle/application/three_shafts_cool_regenerator"
 )
 
 const (
@@ -27,28 +26,47 @@ func main() {
 	//}
 	//
 	//if err := saveTwoShaftSchemeData(
-	//	two_shafts2.GetInitedTwoShaftsRegeneratorScheme(), 5, 0.1, 100, dataRoot + "2nr.csv",
+	//	two_shafts_regenerator.GetInitedTwoShaftsRegeneratorScheme(), 5, 0.1, 100, dataRoot + "2nr.csv",
+	//); err != nil {
+	//	panic(err)
+	//}
+	//
+	//if err := saveThreeShaftsSchemeData(
+	//	three_shafts.GetInitedThreeShaftsScheme(),
+	//	8, 0.1, 120,
+	//	0.15, 0.1, 8,
+	//	dataRoot + "3n.csv",
+	//); err != nil {
+	//	panic(err)
+	//}
+	//
+	//if err := saveThreeShaftsSchemeData(
+	//	three_shafts_regenerator.GetInitedThreeShaftsRegeneratorScheme(),
+	//	7, 0.1, 120,
+	//	0.15, 0.1, 8,
+	//	dataRoot + "3nr.csv",
+	//); err != nil {
+	//	panic(err)
+	//}
+
+	//if err := saveThreeShaftsSchemeData(
+	//	three_shafts_cool.GetInitedThreeShaftsCoolingScheme(),
+	//	20, 0.1, 120,
+	//	0.15, 0.1, 8,
+	//	dataRoot + "3nc.csv",
 	//); err != nil {
 	//	panic(err)
 	//}
 
 	if err := saveThreeShaftsSchemeData(
-		three_shafts.GetInitedThreeShaftsScheme(),
-		8, 0.1, 120,
+		three_shafts_cool_regenerator.GetInitedThreeShaftsCoolRegeneratorScheme(),
+		8, 0.1, 150,
 		0.15, 0.1, 8,
-		dataRoot + "3n.csv",
+		dataRoot + "3ncr.csv",
 	); err != nil {
 		panic(err)
 	}
 
-	if err := saveThreeShaftsSchemeData(
-		three_shafts_regenerator.GetInitedThreeShaftsRegeneratorScheme(),
-		7, 0.1, 120,
-		0.15, 0.1, 8,
-		dataRoot + "3nr.csv",
-	); err != nil {
-		panic(err)
-	}
 }
 
 func saveThreeShaftsSchemeData(
