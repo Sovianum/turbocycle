@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/Sovianum/turbocycle/schemes"
+	"github.com/Sovianum/turbocycle/library/schemes"
 )
 
 type SingleCompressorScheme interface {

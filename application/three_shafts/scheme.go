@@ -1,12 +1,12 @@
 package three_shafts
 
 import (
-	"github.com/Sovianum/turbocycle/fuel"
-	"github.com/Sovianum/turbocycle/gases"
-	"github.com/Sovianum/turbocycle/impl/nodes/compose"
-	"github.com/Sovianum/turbocycle/impl/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/nodes/source"
-	"github.com/Sovianum/turbocycle/schemes"
+	"github.com/Sovianum/turbocycle/helpers/fuel"
+	"github.com/Sovianum/turbocycle/helpers/gases"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
+	"github.com/Sovianum/turbocycle/library/schemes"
 )
 
 const (
