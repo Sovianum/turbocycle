@@ -91,7 +91,7 @@ func (h2oVapour) Cp(t float64) float64 {
 		1247, 1259, 1270, 1280, 1290, 1298, 1306, 1313, 1326, 1338, 1348, 1356, 1364, 1371,
 	}
 
-	var cp  = common.InterpTolerate(t, tArr, cpArr)
+	var cp = common.InterpTolerate(t, tArr, cpArr)
 	return cp
 }
 

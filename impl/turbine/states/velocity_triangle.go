@@ -16,29 +16,29 @@ type VelocityTriangle interface {
 
 func NewInletTriangle(u, c, alpha float64) VelocityTriangle {
 	return rotorInletVelocityTriangle{
-		velocityTriangle{u:u, c:c, alpha:alpha},
+		velocityTriangle{u: u, c: c, alpha: alpha},
 	}
 }
 
 func NewInletTriangleFromProjections(cu, ca, u float64) VelocityTriangle {
-	var c = math.Sqrt(cu * cu + ca * ca)
+	var c = math.Sqrt(cu*cu + ca*ca)
 	var alpha = math.Atan2(ca, cu)
 	return rotorInletVelocityTriangle{
-		velocityTriangle{u:u, c:c, alpha:alpha},
+		velocityTriangle{u: u, c: c, alpha: alpha},
 	}
 }
 
 func NewOutletTriangle(u, c, alpha float64) VelocityTriangle {
 	return rotorOutletVelocityTriangle{
-		velocityTriangle{u:u, c:c, alpha:alpha},
+		velocityTriangle{u: u, c: c, alpha: alpha},
 	}
 }
 
 func NewOutletTriangleFromProjections(cu, ca, u float64) VelocityTriangle {
-	var c = math.Sqrt(cu * cu + ca * ca)
+	var c = math.Sqrt(cu*cu + ca*ca)
 	var alpha = math.Atan2(ca, cu)
 	return rotorOutletVelocityTriangle{
-		velocityTriangle{u:u, c:c, alpha:alpha},
+		velocityTriangle{u: u, c: c, alpha: alpha},
 	}
 }
 

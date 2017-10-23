@@ -43,7 +43,7 @@ const (
 	dgFreeTurbine                = -0.01
 	freeTurbinePressureLossSigma = 0.93
 
-	coolerTOut = 320
+	coolerTOut  = 320
 	coolerSigma = 0.98
 
 	precision = 0.05
@@ -79,6 +79,6 @@ func GetInitedThreeShaftsCoolingScheme() schemes.ThreeShaftsCoolerScheme {
 
 	return schemes.NewThreeShaftsCoolingScheme(
 		gasSource, inletPressureDrop, middlePressureCascade, cooler, gasGenerator, middlePressureCompressorPipe,
-			highPressureTurbinePipe, middlePressureTurbinePipe, freeTurbineBlock,
+		highPressureTurbinePipe, middlePressureTurbinePipe, freeTurbineBlock,
 	)
 }

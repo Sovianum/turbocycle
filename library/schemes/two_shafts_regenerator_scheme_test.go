@@ -1,16 +1,16 @@
 package schemes
 
 import (
-	"testing"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
-	"github.com/Sovianum/turbocycle/helpers/gases"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
-	"github.com/Sovianum/turbocycle/helpers/fuel"
-	"github.com/stretchr/testify/assert"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"github.com/Sovianum/turbocycle/helpers/fuel"
+	"github.com/Sovianum/turbocycle/helpers/gases"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
+	"github.com/stretchr/testify/assert"
 	"os"
+	"testing"
 )
 
 func TestTwoShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {

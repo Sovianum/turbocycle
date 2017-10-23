@@ -43,10 +43,10 @@ const (
 	dgFreeTurbine                = -0.01
 	freeTurbinePressureLossSigma = 0.93
 
-	regeneratorSigma = 0.8
+	regeneratorSigma     = 0.8
 	regeneratorPipeSigma = 0.98
 
-	coolerTOut = 320
+	coolerTOut  = 320
 	coolerSigma = 0.98
 
 	precision = 0.05

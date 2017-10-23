@@ -91,7 +91,6 @@ func (scheme *threeShaftsRegeneratorScheme) GetQLower() float64 {
 	return scheme.regenerativeGasGenerator.Burner().Fuel().QLower()
 }
 
-
 func (scheme *threeShaftsRegeneratorScheme) GetNetwork() core.Network {
 	var nodeMap = make(map[string]core.Node)
 	nodeMap[inputGasSourceName] = scheme.gasSource

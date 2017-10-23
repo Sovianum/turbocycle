@@ -21,11 +21,11 @@ func NewRegenerativeGasGeneratorNode(
 	precision float64,
 ) RegenerativeGasGeneratorNode {
 	var result = &regenerativeGasGeneratorNode{
-		ports:make(core.PortsType),
-		turboCascade:NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
-		burner:constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
-		regenerator:constructive.NewRegeneratorNode(sigmaRegenerator, precision, constructive.SigmaByColdSide),
-		regeneratorPressureDrop:constructive.NewPressureLossNode(sigmaRegeneratorPipe),
+		ports:                   make(core.PortsType),
+		turboCascade:            NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
+		burner:                  constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
+		regenerator:             constructive.NewRegeneratorNode(sigmaRegenerator, precision, constructive.SigmaByColdSide),
+		regeneratorPressureDrop: constructive.NewPressureLossNode(sigmaRegeneratorPipe),
 	}
 
 	result.ports[nodes.ComplexGasInput] = core.NewPort()

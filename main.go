@@ -6,14 +6,14 @@ import (
 	"encoding/csv"
 
 	"github.com/Sovianum/turbocycle/application"
-	"github.com/Sovianum/turbocycle/library/schemes"
 	"github.com/Sovianum/turbocycle/application/three_shafts_cool_regenerator"
+	"github.com/Sovianum/turbocycle/library/schemes"
 )
 
 const (
-	power = 16e6
+	power     = 16e6
 	relaxCoef = 0.1
-	iterNum = 100
+	iterNum   = 100
 
 	dataRoot = "/home/artem/Documents/University/CoolingSystemProject/notebooks/cycle/data/"
 )
@@ -62,7 +62,7 @@ func main() {
 		three_shafts_cool_regenerator.GetInitedThreeShaftsCoolRegeneratorScheme(),
 		8, 0.1, 150,
 		0.15, 0.1, 8,
-		dataRoot + "3ncr.csv",
+		dataRoot+"3ncr.csv",
 	); err != nil {
 		panic(err)
 	}
@@ -77,12 +77,12 @@ func saveThreeShaftsSchemeData(
 ) error {
 	var piArr []float64
 	for i := 0; i != piStepNum; i++ {
-		piArr = append(piArr, startPi + float64(i) * piStep)
+		piArr = append(piArr, startPi+float64(i)*piStep)
 	}
 
 	var piFactorArr []float64
 	for i := 0; i != piFactorStepNum; i++ {
-		piFactorArr = append(piFactorArr, startPiFactor+ float64(i) *piFactorStep)
+		piFactorArr = append(piFactorArr, startPiFactor+float64(i)*piFactorStep)
 	}
 
 	var records [][]string
@@ -114,7 +114,7 @@ func saveTwoShaftSchemeData(scheme application.SingleCompressorScheme, startPi, 
 	var piArr []float64
 
 	for i := 0; i != stepNum; i++ {
-		piArr = append(piArr, startPi + float64(i) * piStep)
+		piArr = append(piArr, startPi+float64(i)*piStep)
 	}
 
 	var records [][]string

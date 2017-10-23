@@ -2,6 +2,7 @@ package constructive
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
@@ -9,7 +10,6 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"math"
-	"errors"
 )
 
 type FreeTurbineNode interface {

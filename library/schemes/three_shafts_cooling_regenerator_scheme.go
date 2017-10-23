@@ -28,14 +28,14 @@ func NewThreeShaftsCoolingRegeneratorScheme(
 		middlePressureCascade:        middlePressureCascade,
 		regenerativeGasGenerator:     regenerativeGasGenerator,
 		middlePressureCompressorPipe: middlePressureCompressorPipe,
-		cooler: cooler,
-		highPressureTurbinePipe:      highPressureTurbinePipe,
-		middlePressureTurbinePipe:    middlePressureTurbinePipe,
-		freeTurbineBlock:             freeTurbineBlock,
-		gasSink:                      sink.NewComplexGasSinkNode(),
-		powerSink:                    sink.NewPowerSinkNode(),
-		breaker1:                     helper.NewCycleBreakerNode(states.StandardAtmosphereState()),
-		breaker2:                     helper.NewCycleBreakerNode(states.StandardAtmosphereState()),
+		cooler:                    cooler,
+		highPressureTurbinePipe:   highPressureTurbinePipe,
+		middlePressureTurbinePipe: middlePressureTurbinePipe,
+		freeTurbineBlock:          freeTurbineBlock,
+		gasSink:                   sink.NewComplexGasSinkNode(),
+		powerSink:                 sink.NewPowerSinkNode(),
+		breaker1:                  helper.NewCycleBreakerNode(states.StandardAtmosphereState()),
+		breaker2:                  helper.NewCycleBreakerNode(states.StandardAtmosphereState()),
 	}
 }
 
@@ -50,7 +50,7 @@ type threeShaftsCoolingRegeneratorScheme struct {
 	gasSource                    source.ComplexGasSourceNode
 	inletPressureDrop            constructive.PressureLossNode
 	middlePressureCascade        compose.TurboCascadeNode
-	cooler constructive.CoolerNode
+	cooler                       constructive.CoolerNode
 	regenerativeGasGenerator     compose.RegenerativeGasGeneratorNode
 	middlePressureCompressorPipe constructive.PressureLossNode
 	highPressureTurbinePipe      constructive.PressureLossNode
@@ -93,7 +93,6 @@ func (scheme *threeShaftsCoolingRegeneratorScheme) GetFuelMassRateRel() float64 
 func (scheme *threeShaftsCoolingRegeneratorScheme) GetQLower() float64 {
 	return scheme.regenerativeGasGenerator.Burner().Fuel().QLower()
 }
-
 
 func (scheme *threeShaftsCoolingRegeneratorScheme) GetNetwork() core.Network {
 	var nodeMap = make(map[string]core.Node)

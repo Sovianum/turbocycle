@@ -10,26 +10,26 @@ import (
 )
 
 const (
-	tAtm = 288
-	pAtm = 1e5
-	sigmaInlet = 0.98
-	etaComp = 0.86
-	piComp = 11
-	tGas = 1223
-	tFuel = 300
-	sigmaBurn = 0.99
-	etaBurn = 0.98
-	initAlpha = 3
-	t0 = 300
+	tAtm           = 288
+	pAtm           = 1e5
+	sigmaInlet     = 0.98
+	etaComp        = 0.86
+	piComp         = 11
+	tGas           = 1223
+	tFuel          = 300
+	sigmaBurn      = 0.99
+	etaBurn        = 0.98
+	initAlpha      = 3
+	t0             = 300
 	etaCompTurbine = 0.9
-	lambdaOut = 0.3
-	dgCompTurbine = -0.01
-	etaM = 0.99
+	lambdaOut      = 0.3
+	dgCompTurbine  = -0.01
+	etaM           = 0.99
 
 	sigmaCompTurbinePipe = 0.98
 
-	etaFreeTurbine = 0.92
-	dgFreeTurbine = -0.01
+	etaFreeTurbine               = 0.92
+	dgFreeTurbine                = -0.01
 	freeTurbinePressureLossSigma = 0.93
 
 	precision = 0.05
