@@ -89,3 +89,11 @@ func ApproxEqual(expected, got, precision float64) bool {
 
 	return min <= got && got <= max
 }
+
+func ToDegrees(x float64) float64 {
+	return x * 180 / math.Pi
+}
+
+func ToRadians(x float64) float64 {
+	return x / math.Pi / 180
+}

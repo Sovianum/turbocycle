@@ -3,8 +3,12 @@ package nodes
 import "github.com/Sovianum/turbocycle/core"
 
 const (
-	massRateInput  = "massRateInput"
-	massRateOutput = "massRateOutput"
+	massRateInput   = "massRateInput"
+	massRateOutput  = "massRateOutput"
+	dimensionInput  = "dimensionInput"
+	dimensionOutput = "dimensionOutput"
+	VelocityInput   = "VelocityInput"
+	velocityOutput  = "velocityOutput"
 )
 
 type MassRateChannel interface {
@@ -31,4 +35,17 @@ type VelocitySink interface {
 
 type VelocitySource interface {
 	VelocityOutput() core.Port
+}
+
+type DimensionChannel interface {
+	DimensionSource
+	DimensionSink
+}
+
+type DimensionSource interface {
+	DimensionInput() core.Port
+}
+
+type DimensionSink interface {
+	DimensionSource() core.Port
 }

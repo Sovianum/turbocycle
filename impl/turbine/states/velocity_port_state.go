@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	inletTriangleType  = "inletTriangleType"
-	outletTriangleType = "outletTriangleType"
+	InletTriangleType  = "InletTriangleType"
+	OutletTriangleType = "OutletTriangleType"
 )
 
 type VelocityPortState struct {
@@ -51,9 +51,9 @@ func (state VelocityPortState) Mix(another core.PortState, relaxCoef float64) (c
 		var triangle VelocityTriangle
 
 		switch state.TriangleType {
-		case inletTriangleType:
+		case InletTriangleType:
 			triangle = NewInletTriangle(u, c, alpha)
-		case outletTriangleType:
+		case OutletTriangleType:
 			triangle = NewOutletTriangle(u, c, alpha)
 		default:
 			return nil, fmt.Errorf("incorrect type %s", state.TriangleType)
