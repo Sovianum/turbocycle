@@ -1,6 +1,8 @@
 package geometry
 
-import "math"
+import (
+	"math"
+)
 
 type AxialProfileLine interface {
 	Diameter(x float64) float64
@@ -13,6 +15,15 @@ func NewAxialProfileLine(x0, d0, angle float64) AxialProfileLine {
 		d0:    d0,
 		angle: angle,
 	}
+}
+
+func MeanLine(innerLine, outerLine AxialProfileLine, interpFactor float64) AxialProfileLine {
+	var x0 = 0.
+	var d0 = innerLine.Diameter(x0) * (1 -interpFactor) + outerLine.Diameter(x0) * interpFactor
+	var angle = innerLine.Angle() * (1 -interpFactor) + outerLine.Angle() * interpFactor
+	return NewAxialProfileLine(
+		x0, d0, angle,
+	)
 }
 
 type axialProfileLine struct {

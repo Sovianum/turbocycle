@@ -7,6 +7,13 @@ type StageGeometryGenerator interface {
 	RotorGenerator() BladingGeometryGenerator
 }
 
+func NewStageGeometryGenerator(statorGen, rotorGen BladingGeometryGenerator) StageGeometryGenerator {
+	return &stageGeometryGenerator{
+		statorGenerator: statorGen,
+		rotorGenerator:  rotorGen,
+	}
+}
+
 type stageGeometryGenerator struct {
 	statorGenerator BladingGeometryGenerator
 	rotorGenerator  BladingGeometryGenerator

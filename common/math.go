@@ -84,8 +84,8 @@ func Average(f func(float64) float64, x0 float64, x1 float64, n int) float64 {
 }
 
 func ApproxEqual(expected, got, precision float64) bool {
-	var min = expected * (1 - precision/2)
-	var max = expected * (1 + precision/2)
+	var min = expected - math.Abs(expected) * precision/2
+	var max = expected + math.Abs(expected) * precision/2
 
 	return min <= got && got <= max
 }

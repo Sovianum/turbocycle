@@ -76,14 +76,11 @@ func (gen *bladingGeometryGenerator) GenerateFromInlet(dMeanIn float64) BladingG
 
 	var innerProfile = NewAxialProfileLine(0, dInnerIn, gen.gammaIn)
 	var outerProfile = NewAxialProfileLine(0, dOuterIn, gen.gammaOut)
-	var meanProfile = NewAxialProfileLine(0, dMeanIn, gammaMean)
 
-	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, meanProfile, outerProfile)
+	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, outerProfile)
 }
 
 func (gen *bladingGeometryGenerator) GenerateFromOutlet(dMeanOut float64) BladingGeometry {
-	var _, gammaMean = GetTotalAndMeanLineAngles(gen.gammaIn, gen.gammaOut)
-
 	var bladeWidth = gen.lRelOut / gen.elongation * dMeanOut
 	var gapWidth = bladeWidth * gen.deltaRel
 	var bladingWidth = bladeWidth + gapWidth
@@ -94,9 +91,8 @@ func (gen *bladingGeometryGenerator) GenerateFromOutlet(dMeanOut float64) Bladin
 
 	var innerProfile = NewAxialProfileLine(bladingWidth, dInnerOut, gen.gammaIn)
 	var outerProfile = NewAxialProfileLine(bladingWidth, dOuterOut, gen.gammaOut)
-	var meanProfile = NewAxialProfileLine(bladingWidth, dMeanOut, gammaMean)
 
-	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, meanProfile, outerProfile)
+	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, outerProfile)
 }
 
 func (gen *bladingGeometryGenerator) LRelOut() float64 {
