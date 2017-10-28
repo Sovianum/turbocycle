@@ -23,7 +23,10 @@ type TurbineStageNode interface {
 	MassRateChannel
 }
 
-func NewTurbineStageNode(n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64) TurbineStageNode {
+func NewTurbineStageNode(
+	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
+	gen geometry.StageGeometryGenerator,
+) TurbineStageNode {
 	var result = &turbineStageNode{
 		ports:         make(core.PortsType),
 		n:             n,
@@ -33,6 +36,7 @@ func NewTurbineStageNode(n, stageHeatDrop, reactivity, phi, psi, airGapRel, prec
 		psi:           psi,
 		airGapRel:     airGapRel,
 		precision:     precision,
+		stageGeomGen:  gen,
 	}
 	result.ports[nodes.GasInput] = core.NewPort()
 	result.ports[nodes.GasInput].SetInnerNode(result)
@@ -62,7 +66,7 @@ func NewTurbineStageNode(n, stageHeatDrop, reactivity, phi, psi, airGapRel, prec
 	result.ports[VelocityInput].SetInnerNode(result)
 	result.ports[VelocityInput].SetState(
 		states2.NewVelocityPortState(
-			states2.NewInletTriangle(0, 0, math.Pi / 2), states2.InletTriangleType,
+			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
 		),
 	)
 
@@ -70,7 +74,7 @@ func NewTurbineStageNode(n, stageHeatDrop, reactivity, phi, psi, airGapRel, prec
 	result.ports[velocityOutput].SetInnerNode(result)
 	result.ports[velocityOutput].SetState(
 		states2.NewVelocityPortState(
-			states2.NewInletTriangle(0, 0, math.Pi / 2), states2.InletTriangleType,
+			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
 		),
 	)
 
@@ -765,7 +769,7 @@ func (node *turbineStageNode) p0(pack *dataPack) {
 		return
 	}
 	var k = gases.K(node.gas(), node.t0Stag()) // todo check if correct temperature
-	pack.P0 = node.p0Stag() * math.Pow(node.t0Stag()/pack.T0, k/(k-1))
+	pack.P0 = node.p0Stag() * math.Pow(node.t0Stag()/pack.T0, -k/(k-1))
 }
 
 func (node *turbineStageNode) t0(pack *dataPack) {

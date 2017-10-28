@@ -1,12 +1,13 @@
 package geometry
 
 import (
-	"github.com/stretchr/testify/suite"
-	"github.com/stretchr/testify/assert"
-	"github.com/Sovianum/turbocycle/common"
-	"testing"
 	"fmt"
 	"math"
+	"testing"
+
+	"github.com/Sovianum/turbocycle/common"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
 	gapWidth   = 10e-3
 	gammaIn    = -0.09
 	gammaOut   = 0.06
-	dIn        = 1
+	dIn        = 1.
 	dMeanIn    = 1.1
 	dOut       = 1.2
 
@@ -34,27 +35,44 @@ func (suite *BladingGeometryTestSuite) SetupTest() {
 	)
 }
 
-func (suite *BladingGeometryTestSuite) TestMeanLine() {
-	var meanAngle = (gammaOut + gammaIn) / 2
+func (suite *BladingGeometryTestSuite) TestFreeFunctions() {
+	var lIn = (dOut - dIn) / 2
+	var lRelIn = lIn / dMeanIn
+	assert.True(suite.T(), common.ApproxEqual(lRelIn, RelativeHeight(0, suite.geom), 0.0001))
+	assert.True(suite.T(), common.ApproxEqual(bladeWidth, ChordProjection(suite.geom), 0.00001))
+
+	var elongationIn = lIn / bladeWidth
+	assert.True(suite.T(), common.ApproxEqual(elongationIn, Elongation(0, suite.geom), 0.000001))
+	assert.True(suite.T(), common.ApproxEqual(gapWidth, AxialGapProjection(suite.geom), 0.000001))
+
+	var expectedArea = math.Pi * lIn * dMeanIn
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(meanAngle, suite.geom.MeanProfile().Angle(), 0.001),
+		common.ApproxEqual(expectedArea, Area(0, suite.geom), 0.00001),
+		testMessage(expectedArea, Area(0, suite.geom)),
+	)
+}
+
+func (suite *BladingGeometryTestSuite) TestMeanLine() {
+	var meanAngle = math.Atan((math.Tan(gammaOut) + math.Tan(gammaIn)) / 2)
+	assert.True(
+		suite.T(),
+		common.ApproxEqual(meanAngle, suite.geom.MeanProfile().Angle(), 0.00001),
 		testMessage(meanAngle, suite.geom.MeanProfile().Angle()),
 	)
-	assert.True(suite.T(), common.ApproxEqual(dMeanIn, suite.geom.MeanProfile().Diameter(0), 0.001))
+	assert.True(suite.T(), common.ApproxEqual(dMeanIn, suite.geom.MeanProfile().Diameter(0), 0.00001))
 
 	var xOut = suite.geom.XGapOut()
 	var dOut = dMeanIn + 2 * math.Tan(meanAngle) * xOut
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(dOut, suite.geom.MeanProfile().Diameter(xOut), 0.0001),
+		common.ApproxEqual(dOut, suite.geom.MeanProfile().Diameter(xOut), 0.000001),
 		testMessage(dOut, suite.geom.MeanProfile().Diameter(xOut)),
 	)
-
 }
 
 func (suite *BladingGeometryTestSuite) TestExpansionAngle() {
-	assert.True(suite.T(), common.ApproxEqual(gammaOut - gammaIn, ExpansionAngle(suite.geom), 0.001))
+	assert.True(suite.T(), common.ApproxEqual(gammaOut - gammaIn, ExpansionAngle(suite.geom), 0.00001))
 }
 
 func TestBladingGeometryTestSuite(t *testing.T) {

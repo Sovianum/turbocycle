@@ -1,10 +1,11 @@
 package geometry
 
 import (
-	"github.com/Sovianum/turbocycle/common"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	"github.com/Sovianum/turbocycle/common"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAxialProfileLine(t *testing.T) {
