@@ -21,6 +21,11 @@ type TurbineStageNode interface {
 	nodes.TemperatureChannel
 	VelocityChannel
 	MassRateChannel
+	SetFirstStageMode(isFirstStage bool)
+	SetAlpha1FirstStage(alpha1FirstStage float64)
+	StageGeomGen() geometry.StageGeometryGenerator
+	Ht() float64
+	Reactivity() float64
 }
 
 func NewTurbineStageNode(
@@ -28,15 +33,17 @@ func NewTurbineStageNode(
 	gen geometry.StageGeometryGenerator,
 ) TurbineStageNode {
 	var result = &turbineStageNode{
-		ports:         make(core.PortsType),
-		n:             n,
-		stageHeatDrop: stageHeatDrop,
-		reactivity:    reactivity,
-		phi:           phi,
-		psi:           psi,
-		airGapRel:     airGapRel,
-		precision:     precision,
-		stageGeomGen:  gen,
+		ports:            make(core.PortsType),
+		n:                n,
+		stageHeatDrop:    stageHeatDrop,
+		reactivity:       reactivity,
+		phi:              phi,
+		psi:              psi,
+		airGapRel:        airGapRel,
+		precision:        precision,
+		stageGeomGen:     gen,
+		alpha1FirstStage: math.NaN(),
+		isFirstStageNode: false,
 	}
 	result.ports[nodes.GasInput] = core.NewPort()
 	result.ports[nodes.GasInput].SetInnerNode(result)
@@ -90,18 +97,21 @@ func NewTurbineStageNode(
 }
 
 type turbineStageNode struct {
-	ports         core.PortsType
-	n             float64
-	stageHeatDrop float64
-	reactivity    float64
-	phi           float64
-	psi           float64
-	airGapRel     float64
+	ports            core.PortsType
+	n                float64
+	stageHeatDrop    float64
+	reactivity       float64
+	phi              float64
+	psi              float64
+	airGapRel        float64
+	alpha1FirstStage float64
 
 	stageGeomGen  geometry.StageGeometryGenerator
 	stageGeometry geometry.StageGeometry
 
 	precision float64
+
+	isFirstStageNode bool
 }
 
 type dataPack struct {
@@ -139,6 +149,7 @@ type dataPack struct {
 	Alpha1                     float64                  `json:"alpha_1"`
 	U1                         float64                  `json:"u_1"`
 	C1a                        float64                  `json:"c_1_a"`
+	RotorMeanInletDiameter     float64                  `json:"d_rotor_blade_in_mean"`
 	Area1                      float64                  `json:"area_1"`
 	Density1                   float64                  `json:"density_1"`
 	P1                         float64                  `json:"p_1"`
@@ -227,6 +238,14 @@ func (node *turbineStageNode) ContextDefined() bool {
 	return true
 }
 
+func (node *turbineStageNode) SetFirstStageMode(isFirstStageNode bool) {
+	node.isFirstStageNode = isFirstStageNode
+}
+
+func (node *turbineStageNode) SetAlpha1FirstStage(alpha1FirstStage float64) {
+	node.alpha1FirstStage = alpha1FirstStage
+}
+
 func (node *turbineStageNode) GasOutput() core.Port {
 	return node.gasOutput()
 }
@@ -267,26 +286,26 @@ func (node *turbineStageNode) MassRateOutput() core.Port {
 	return node.massRateOutput()
 }
 
+func (node *turbineStageNode) StageGeomGen() geometry.StageGeometryGenerator {
+	return node.stageGeomGen
+}
+
+func (node *turbineStageNode) Ht() float64 {
+	return node.stageHeatDrop
+}
+
+func (node *turbineStageNode) Reactivity() float64 {
+	return node.reactivity
+}
+
 func (node *turbineStageNode) getDataPack() *dataPack {
 	var pack = new(dataPack)
+	if node.isFirstStageNode {
+		node.initCalc(pack)
+	} else {
+		node.initCalcFirstStage(pack)
+	}
 
-	node.t0(pack)
-	node.p0(pack)
-	node.density0(pack)
-	node.getStatorMeanInletDiameter(pack)
-	node.getStageGeometry(pack)
-	node.statorHeatDrop(pack)
-
-	node.t1Prime(pack)
-	node.c1Ad(pack)
-	node.c1(pack)
-	node.t1(pack)
-	node.p1(pack)
-	node.density1(pack)
-	node.area1(pack)
-	node.c1a(pack)
-	node.u1(pack)
-	node.alpha1(pack)
 	node.rotorInletTriangle(pack)
 	node.u2(pack)
 	node.tw1(pack)
@@ -318,6 +337,40 @@ func (node *turbineStageNode) getDataPack() *dataPack {
 	node.etaT(pack)
 
 	return pack
+}
+
+func (node *turbineStageNode) initCalc(pack *dataPack) {
+	node.t0(pack)
+	node.p0(pack)
+	node.density0(pack)
+	node.getStatorMeanInletDiameter(pack)
+	node.getStageGeometry(pack)
+	node.statorHeatDrop(pack)
+	node.t1Prime(pack)
+	node.c1Ad(pack)
+	node.c1(pack)
+	node.t1(pack)
+	node.p1(pack)
+	node.density1(pack)
+	node.area1(pack)
+	node.c1a(pack)
+	node.u1(pack)
+	node.alpha1(pack)
+}
+
+func (node *turbineStageNode) initCalcFirstStage(pack *dataPack) {
+	node.statorHeatDrop(pack)
+	node.t1Prime(pack)
+	node.c1Ad(pack)
+	node.c1(pack)
+	node.c1aFirstStage(pack)
+	node.t1(pack)
+	node.p1(pack)
+	node.density1(pack)
+	node.area1FirstStage(pack)
+	node.dRotorBladeMean(pack)
+	node.getStageGeometryFirstStage(pack)
+	node.u1(pack)
 }
 
 func (node *turbineStageNode) etaTStag(pack *dataPack) {
@@ -529,6 +582,7 @@ func (node *turbineStageNode) t2(pack *dataPack) {
 	var newT2, newCp = iterate(currT2, currCp)
 
 	for !(common.Converged(currT2, newT2, node.precision) && common.Converged(currCp, newCp, node.precision)) {
+		currT2, currCp = newT2, newCp
 		newT2, newCp = iterate(currT2, currCp)
 	}
 
@@ -612,7 +666,12 @@ func (node *turbineStageNode) alpha1(pack *dataPack) {
 		pack.err = fmt.Errorf("%s: alpha1", pack.err.Error())
 		return
 	}
-	pack.Alpha1 = math.Asin(pack.C1a / pack.C1)
+	var alpha1 = math.Asin(pack.C1a / pack.C1)
+	if math.IsNaN(alpha1) {
+		pack.err = fmt.Errorf("failed to calculate alpha_1 (c_a_1 = %v, c1 = %v)", pack.C1a, pack.C1)
+		return
+	}
+	pack.Alpha1 = alpha1
 }
 
 func (node *turbineStageNode) u1(pack *dataPack) {
@@ -625,6 +684,17 @@ func (node *turbineStageNode) u1(pack *dataPack) {
 	) * node.n / 60
 }
 
+func (node *turbineStageNode) c1aFirstStage(pack *dataPack) {
+	if pack.err != nil {
+		pack.err = fmt.Errorf("%s: c1a", pack.err.Error())
+		return
+	}
+	if math.IsNaN(node.alpha1FirstStage) {
+		pack.err = fmt.Errorf("alpha1 not set for first stage")
+	}
+	pack.C1a = pack.C1 * math.Sin(node.alpha1FirstStage)
+}
+
 func (node *turbineStageNode) c1a(pack *dataPack) {
 	if pack.err != nil {
 		pack.err = fmt.Errorf("%s: c1a", pack.err.Error())
@@ -633,12 +703,32 @@ func (node *turbineStageNode) c1a(pack *dataPack) {
 	pack.C1a = node.massRate() / (pack.Area1 * pack.Density1)
 }
 
+func (node *turbineStageNode) dRotorBladeMean(pack *dataPack) {
+	if pack.err != nil {
+		pack.err = fmt.Errorf("%s: dRotorBladeMean", pack.err.Error())
+		return
+	}
+	var lRelOut = node.stageGeomGen.StatorGenerator().LRelOut()
+	pack.RotorMeanInletDiameter = math.Sqrt(pack.Area1 / (math.Pi * lRelOut))
+}
+
 func (node *turbineStageNode) area1(pack *dataPack) {
 	if pack.err != nil {
 		pack.err = fmt.Errorf("%s: area1", pack.err.Error())
 		return
 	}
-	pack.Area1 = geometry.Area(pack.StageGeometry.StatorGeometry().XGapOut(), pack.StageGeometry.StatorGeometry())
+	pack.Area1 = geometry.Area(
+		pack.StageGeometry.StatorGeometry().XGapOut(),
+		pack.StageGeometry.StatorGeometry(),
+	)
+}
+
+func (node *turbineStageNode) area1FirstStage(pack *dataPack) {
+	if pack.err != nil {
+		pack.err = fmt.Errorf("%s: area1", pack.err.Error())
+		return
+	}
+	pack.Area1 = node.massRate() / (pack.C1a * pack.Density1)
 }
 
 func (node *turbineStageNode) density1(pack *dataPack) {
@@ -727,12 +817,24 @@ func (node *turbineStageNode) statorHeatDrop(pack *dataPack) {
 	pack.StatorHeatDrop = node.stageHeatDrop * (1 - node.reactivity)
 }
 
+func (node *turbineStageNode) getStageGeometryFirstStage(pack *dataPack) {
+	if pack.err != nil {
+		pack.err = fmt.Errorf("%s: getStageGeometry", pack.err.Error())
+		return
+	}
+	pack.StageGeometry = node.stageGeomGen.GenerateFromRotorInlet(
+		pack.RotorMeanInletDiameter,
+	)
+}
+
 func (node *turbineStageNode) getStageGeometry(pack *dataPack) {
 	if pack.err != nil {
 		pack.err = fmt.Errorf("%s: getStageGeometry", pack.err.Error())
 		return
 	}
-	pack.StageGeometry = node.stageGeomGen.GenerateFromStatorInlet(pack.StatorMeanInletDiameter)
+	pack.StageGeometry = node.stageGeomGen.GenerateFromStatorInlet(
+		pack.StatorMeanInletDiameter,
+	)
 }
 
 func (node *turbineStageNode) getStatorMeanInletDiameter(pack *dataPack) {
@@ -748,8 +850,11 @@ func (node *turbineStageNode) getStatorMeanInletDiameter(pack *dataPack) {
 		node.stageGeomGen.StatorGenerator().GammaIn(),
 		node.stageGeomGen.StatorGenerator().GammaOut(),
 	)
+	var deltaRel = node.stageGeomGen.StatorGenerator().DeltaRel()
 	var lRelOut = node.stageGeomGen.StatorGenerator().LRelOut()
-	var lRelIn = lRelOut * (baRel - (math.Tan(gammaOut) - math.Tan(gammaIn))) / (baRel - 2*lRelOut*math.Tan(gammaMean))
+	var enom = baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
+	var denom = baRel - 2*(1+deltaRel)*lRelOut*math.Tan(gammaMean)
+	var lRelIn = enom / denom
 
 	var c0 = node.statorInletTriangle().C()
 	pack.StatorMeanInletDiameter = math.Sqrt(node.massRate() / (math.Pi * pack.Density0 * c0 * lRelIn))
