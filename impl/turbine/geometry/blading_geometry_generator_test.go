@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/Sovianum/turbocycle/common"
 )
 
 const (
@@ -21,6 +22,37 @@ type BladingGeometryGeneratorTestSuite struct {
 func (suite *BladingGeometryGeneratorTestSuite) SetupTest() {
 	suite.gen = NewGeneratorFromProfileAngles(
 		lRelOut, elongation, deltaRel, gammaIn, gammaOut,
+	)
+}
+
+func (suite *BladingGeometryGeneratorTestSuite) TestAngleConversions() {
+	var expectedInnerAngle = -0.5
+	var expectedOuterAngle = 0.5
+	var expectedMeanAngle = 0.
+	var expectedTotalAngle = 1.
+
+	var innerAngle, outerAngle = GetInnerAndOuterAngles(expectedTotalAngle, expectedMeanAngle)
+	var totalAngle, meanAngle = GetTotalAndMeanLineAngles(expectedInnerAngle, expectedOuterAngle)
+
+	assert.True(
+		suite.T(),
+		common.ApproxEqual(expectedInnerAngle, innerAngle, 0.00001),
+		testMessage(expectedInnerAngle, innerAngle),
+	)
+	assert.True(
+		suite.T(),
+		common.ApproxEqual(expectedOuterAngle, outerAngle, 0.00001),
+		testMessage(expectedOuterAngle, outerAngle),
+	)
+	assert.True(
+		suite.T(),
+		common.ApproxEqual(expectedTotalAngle, totalAngle, 0.00001),
+		testMessage(expectedTotalAngle, totalAngle),
+	)
+	assert.True(
+		suite.T(),
+		common.ApproxEqual(expectedMeanAngle, meanAngle, 0.00001),
+		testMessage(expectedMeanAngle, meanAngle),
 	)
 }
 

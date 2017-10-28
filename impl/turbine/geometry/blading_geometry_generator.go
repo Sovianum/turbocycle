@@ -44,10 +44,12 @@ func GetInnerAndOuterAngles(totalAngle, meanLineAngle float64) (float64, float64
 	var tanGammaM = math.Tan(meanLineAngle)
 	var tanGamma = math.Tan(totalAngle)
 
-	var tanGammaIn = tanGammaM + 1/tanGamma - math.Sqrt(1+tanGammaM*tanGammaM+1/(tanGamma*tanGamma))
-	var tanGammaOut = tanGammaIn + totalAngle
+	var tanGammaIn = tanGammaM + 1/tanGamma - math.Sqrt(1 + tanGammaM*tanGammaM + 1/(tanGamma*tanGamma))
 
-	return tanGammaIn, tanGammaOut
+	var gammaIn = math.Atan(tanGammaIn)
+	var gammaOut = totalAngle + gammaIn
+
+	return gammaIn, gammaOut
 }
 
 type bladingGeometryGenerator struct {
