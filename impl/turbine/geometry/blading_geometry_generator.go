@@ -2,14 +2,58 @@ package geometry
 
 import "math"
 
-type BladingGeometryGenerator interface {
-	GenerateFromInlet(dMeanIn float64) BladingGeometry
-	GenerateFromOutlet(dMeanOut float64) BladingGeometry
-	LRelOut() float64
+func NewIncompleteGeneratorFromProfileAngles(elongation, deltaRel, gammaIn, gammaOut float64) IncompleteBladingGeometryGenerator {
+	return &incompleteBladingGeometryGenerator{
+		elongation: elongation,
+		deltaRel:   deltaRel,
+		gammaIn:    gammaIn,
+		gammaOut:   gammaOut,
+	}
+}
+
+func NewIncompleteGeneratorFromTotalAndMeanAngles(elongation, deltaRel, totalAngle, meanAngle float64) IncompleteBladingGeometryGenerator {
+	var gammaIn, gammaOut = GetInnerAndOuterAngles(totalAngle, meanAngle)
+	return &incompleteBladingGeometryGenerator{
+		elongation: elongation,
+		deltaRel:   deltaRel,
+		gammaIn:    gammaIn,
+		gammaOut:   gammaOut,
+	}
+}
+
+type IncompleteBladingGeometryGenerator interface {
+	GetGenerator(lRelOut float64) BladingGeometryGenerator
 	Elongation() float64
 	DeltaRel() float64
 	GammaIn() float64
 	GammaOut() float64
+}
+
+type incompleteBladingGeometryGenerator struct {
+	elongation float64
+	deltaRel   float64
+	gammaIn    float64
+	gammaOut   float64
+}
+
+func (gen *incompleteBladingGeometryGenerator) GetGenerator(lRelOut float64) BladingGeometryGenerator {
+	return NewGeneratorFromProfileAngles(lRelOut, gen.elongation, gen.deltaRel, gen.gammaIn, gen.gammaOut)
+}
+
+func (gen *incompleteBladingGeometryGenerator) Elongation() float64 {
+	return gen.elongation
+}
+
+func (gen *incompleteBladingGeometryGenerator) DeltaRel() float64 {
+	return gen.deltaRel
+}
+
+func (gen *incompleteBladingGeometryGenerator) GammaIn() float64 {
+	return gen.gammaIn
+}
+
+func (gen *incompleteBladingGeometryGenerator) GammaOut() float64 {
+	return gen.gammaOut
 }
 
 func NewGeneratorFromProfileAngles(lRelOut, elongation, deltaRel, gammaIn, gammaOut float64) BladingGeometryGenerator {
@@ -31,6 +75,16 @@ func NewGeneratorFromTotalAndMeanAngles(lRelOut, elongation, deltaRel, totalAngl
 		gammaIn:    gammaIn,
 		gammaOut:   gammaOut,
 	}
+}
+
+type BladingGeometryGenerator interface {
+	GenerateFromInlet(dMeanIn float64) BladingGeometry
+	GenerateFromOutlet(dMeanOut float64) BladingGeometry
+	LRelOut() float64
+	Elongation() float64
+	DeltaRel() float64
+	GammaIn() float64
+	GammaOut() float64
 }
 
 func GetTotalAndMeanLineAngles(gammaIn, gammaOut float64) (float64, float64) {
@@ -64,20 +118,17 @@ func (gen *bladingGeometryGenerator) GenerateFromInlet(dMeanIn float64) BladingG
 	var _, gammaMean = GetTotalAndMeanLineAngles(gen.gammaIn, gen.gammaOut)
 
 	var elongationRel = gen.lRelOut / gen.elongation
-	var bladeWidth = elongationRel / (1 - 2*elongationRel*math.Tan(gammaMean)) * dMeanIn
+	var dMeanOut = 1 / (1 - 2*elongationRel*(1 + gen.deltaRel)*math.Tan(gammaMean)) * dMeanIn
+	var bladeWidth = dMeanOut * elongationRel
 	var gapWidth = bladeWidth * gen.deltaRel
 	var bladingWidth = bladeWidth + gapWidth
 
-	var dMeanOut = dMeanIn + 2*bladingWidth*math.Tan(gammaMean)
 	var lOut = dMeanOut * gen.lRelOut
 	var dInnerOut = dMeanOut - lOut
 	var dOuterOut = dMeanOut + lOut
 
-	var dInnerIn = dInnerOut - 2*bladingWidth*math.Tan(gen.gammaIn)
-	var dOuterIn = dOuterOut - 2*bladingWidth*math.Tan(gen.gammaOut)
-
-	var innerProfile = NewAxialProfileLine(0, dInnerIn, gen.gammaIn)
-	var outerProfile = NewAxialProfileLine(0, dOuterIn, gen.gammaOut)
+	var innerProfile = NewAxialProfileLine(bladingWidth, dInnerOut, gen.gammaIn)
+	var outerProfile = NewAxialProfileLine(bladingWidth, dOuterOut, gen.gammaOut)
 
 	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, outerProfile)
 }

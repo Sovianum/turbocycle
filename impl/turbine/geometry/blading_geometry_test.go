@@ -36,6 +36,16 @@ func (suite *BladingGeometryTestSuite) SetupTest() {
 }
 
 func (suite *BladingGeometryTestSuite) TestFreeFunctions() {
+	var x = 10.0
+	assert.True(
+		suite.T(),
+		common.ApproxEqual(
+			Height(x, suite.geom),
+			(suite.geom.OuterProfile().Diameter(x) - suite.geom.InnerProfile().Diameter(x)) / 2,
+			0.000001,
+		),
+	)
+
 	var lIn = (dOut - dIn) / 2
 	var lRelIn = lIn / dMeanIn
 	assert.True(suite.T(), common.ApproxEqual(lRelIn, RelativeHeight(0, suite.geom), 0.0001))

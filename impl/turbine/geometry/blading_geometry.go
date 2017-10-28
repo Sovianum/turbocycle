@@ -2,6 +2,16 @@ package geometry
 
 import "math"
 
+func NewBladingGeometry(bladeWidth, gapWidth float64, innerProfile, outerProfile AxialProfileLine) BladingGeometry {
+	return &bladingGeometry{
+		bladeWidth:   bladeWidth,
+		gapWidth:     gapWidth,
+		innerProfile: innerProfile,
+		outerProfile: outerProfile,
+		meanProfile:  MeanLine(innerProfile, outerProfile, 0.5),
+	}
+}
+
 type BladingGeometry interface {
 	XBladeIn() float64
 	XBladeOut() float64
@@ -40,16 +50,6 @@ func AxialGapProjection(geom BladingGeometry) float64 {
 
 func Area(x float64, geom BladingGeometry) float64 {
 	return math.Pi * geom.MeanProfile().Diameter(x) * Height(x, geom)
-}
-
-func NewBladingGeometry(bladeWidth, gapWidth float64, innerProfile, outerProfile AxialProfileLine) BladingGeometry {
-	return &bladingGeometry{
-		bladeWidth:   bladeWidth,
-		gapWidth:     gapWidth,
-		innerProfile: innerProfile,
-		outerProfile: outerProfile,
-		meanProfile:  MeanLine(innerProfile, outerProfile, 0.5),
-	}
 }
 
 type bladingGeometry struct {

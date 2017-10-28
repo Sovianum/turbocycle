@@ -20,7 +20,6 @@ func NewAxialProfileLine(x0, d0, angle float64) AxialProfileLine {
 func MeanLine(innerLine, outerLine AxialProfileLine, interpFactor float64) AxialProfileLine {
 	var x0 = 0.
 	var d0 = innerLine.Diameter(x0) * (1 -interpFactor) + outerLine.Diameter(x0) * interpFactor
-	//var angle = innerLine.Angle() * (1 -interpFactor) + outerLine.Angle() * interpFactor
 	var angle = math.Atan(
 		(1 - interpFactor) * math.Tan(innerLine.Angle()) + interpFactor * math.Tan(outerLine.Angle()),
 	)
