@@ -39,6 +39,14 @@ func NewThreeShaftsScheme(
 type ThreeShaftsScheme interface {
 	Scheme
 	DoubleCompressor
+	FreeTurbineBlock() compose.FreeTurbineBlockNode
+	MiddlePressureTurbinePipe() constructive.PressureLossNode
+	HighPressureTurbinePipe() constructive.PressureLossNode
+	MiddlePressureCompressorPipe() constructive.PressureLossNode
+	GasGenerator() compose.GasGeneratorNode
+	MiddlePressureCascade() compose.TurboCascadeNode
+	InletPressureDrop() constructive.PressureLossNode
+	GasSource() source.ComplexGasSourceNode
 }
 
 type threeShaftsScheme struct {
@@ -53,6 +61,38 @@ type threeShaftsScheme struct {
 	gasSink                      sink.ComplexGasSinkNode
 	powerSink                    nodes.PowerSink
 	breaker                      helper.CycleBreakNode
+}
+
+func (scheme *threeShaftsScheme) FreeTurbineBlock() compose.FreeTurbineBlockNode {
+	return scheme.freeTurbineBlock
+}
+
+func (scheme *threeShaftsScheme) MiddlePressureTurbinePipe() constructive.PressureLossNode {
+	return scheme.middlePressureTurbinePipe
+}
+
+func (scheme *threeShaftsScheme) HighPressureTurbinePipe() constructive.PressureLossNode {
+	return scheme.highPressureTurbinePipe
+}
+
+func (scheme *threeShaftsScheme) MiddlePressureCompressorPipe() constructive.PressureLossNode {
+	return scheme.middlePressureCompressorPipe
+}
+
+func (scheme *threeShaftsScheme) GasGenerator() compose.GasGeneratorNode {
+	return scheme.gasGenerator
+}
+
+func (scheme *threeShaftsScheme) MiddlePressureCascade() compose.TurboCascadeNode {
+	return scheme.middlePressureCascade
+}
+
+func (scheme *threeShaftsScheme) InletPressureDrop() constructive.PressureLossNode {
+	return scheme.inletPressureDrop
+}
+
+func (scheme *threeShaftsScheme) GasSource() source.ComplexGasSourceNode {
+	return scheme.gasSource
 }
 
 func (scheme *threeShaftsScheme) LowPressureCompressor() constructive.CompressorNode {
