@@ -6,7 +6,7 @@ import (
 	"encoding/csv"
 
 	"github.com/Sovianum/turbocycle/application"
-	"github.com/Sovianum/turbocycle/application/three_shafts_cool_regenerator"
+	"github.com/Sovianum/turbocycle/application/schemes/three_shafts_cool_regenerator"
 	"github.com/Sovianum/turbocycle/library/schemes"
 )
 

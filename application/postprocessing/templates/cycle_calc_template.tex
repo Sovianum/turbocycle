@@ -1,0 +1,227 @@
+\subsection{Расчет цикла при $\pi_к = <PiComp>$}
+Расчет ГТД носит итерационный характер, так как параметры газа на входе в камеру сгорания за счет регенератора зависят от температуры на выходе из силовой турбины. Таким образом, расчет, представленный ниже, относится к последней итерации для случая $\pi_к = <PiComp>$. При этом принимается температура на выходе из силовой турбины: $T_т = <FreeTurbineTOut>$.
+\begin{enumerate}
+	\item Оределим давлени за входным фильтром: 
+		$$p_ф=\sigma_ф p_a = <InletFilterSigma> \cdot <AtmP> = <FilterPOut> \/\ МПа$$
+	\item Определим давление за входным устройством: 
+		$$p_{вх} = \sigma_{вх} p_{вх} = <InletPipeSigma> \cdot <FilterPOut> = <InletTubePOut> \/\ МПа$$
+	\item Определим давление за компрессором: 
+		$$p_к = \pi_к p_{вх} = <PiComp> \cdot <InletTubePOut> = <CompPOut> \/\ МПа$$
+	\item Определим температуру газа за компрессором, принимая показатель адиабаты воздуха $k_в = <CycleKAirShort>$:
+		$$T_к = T_a \left[ 1 + \frac{\pi_к^{\frac{k_в - 1}{k_в}} - 1}{\eta_к} \right] =
+			<AtmT> \left[ 1 + \frac{{<PiComp>}^{\frac{<CycleKAirShort> - 1}{<CycleKAirShort>}} - 1}{<EtaComp>} \right] = <CompTOut> \/\ К$$
+	\item Определим уточненное значение показателя адиабаты:
+		$$k_в^\prime = \frac{\int\limits_{T_a}^{T_к} k_в(T) dT}{T_к - T_a} =
+				\frac{\int\limits_{<AtmT>}^{<CompTOut>} k_в(T) dT}{<CompTOut> - <AtmT>} = <CycleKAirLong>$$
+	\item Определим погрешность определения показателя адиабаты:
+		$$\delta = \frac{\left| k_в^\prime - k_в \right|}{k_в} \cdot 100 \% =
+			\frac{\left| <CycleKAirLong> - <CycleKAirShort> \right|}{<CycleKAirShort>} \cdot 100 \% =
+			<CycleKAirDelta> \% < 5 \%$$
+	Точность определения показателя адиабаты воздуха находится в пределах допуска.
+	\item Определим давление за регенератором по холодной стороне:
+		$$p_{р.х.} = p_к \sigma_{р.х.} = <CompPOut> \cdot <RegenColdSigma> = <RegenPColdOut> \/\ МПа$$
+	\item Определим температуру за регенератором по холодной стороне:
+		$$T_р = T_к \left(1 - \sigma \right) + T_т \sigma =
+	<CompTOut> \cdot \left(1 - <RegCoef> \right) + <FreeTurbineTOut> \cdot <RegCoef> = <RegenTColdOut> \/\ К$$
+	\item Используя найденный показатель адиабаты воздуха, определим теплоемкость воздуха в процессе сжатия воздуха в компрессоре:
+		$$c_{pв} = \frac{k_в}{k_в - 1} R_в =
+			\frac{<CycleKAirShort>}{<CycleKAirShort> - 1} \cdot <CycleAirGasConstant> =
+			<CycleAirSpecificHeat> \/\ Дж/кг$$
+	\item Определим работу компрессора:
+		$$L_к = c_{pв} \left( T_к - T_a \right) =
+			<CycleAirSpecificHeat> \cdot \left( <CompTOut> - <AtmT> \right) =
+			<CompSpecificLabour> \cdot 10^6 \/\ Дж/кг = $$
+	\item Температура газа за камерой сгорания:
+		$$T_г = <BurnerTOut> \/\ К$$
+	\item Определим относительный расход топлива. Расчет носит итерационный характер. Ниже описана последняя итерация. Теплоемкость продуктов сгорания природного газа рассчитывается через показатель адиабаты и газовую постоянную газа. При этом газовая постоянная и истинный показатель адиабаты рассчитываются как средневзвешенное соответственных характеристик компонентов продуктов). При расчета приняты следующие значения:
+	\begin{enumerate} % список значений для расчета удельного расхода топлива
+		\item[1)] теплоемкость топлива: 
+			$$c_{pm} = <CycleFuelSpecificHeat> \/\ Дж / (кг \cdot К);$$
+		\item[2)] температура подачи топлива: 
+			$$T_m = <FuelT> \/\ К;$$
+		\item[3)] температура определения теплофизических параметров веществ:
+			$$T_0 = <ParameterDetermT> \/\ К;$$
+		\item[4)] истинная теплоемкость воздуха перед камерой сгорания:
+			$$c_{pв}\left( T_р \right) = <BurnerInletAirSpecificHeat> \/\ Дж/(кг \cdot К);$$
+		\item[5)] истинная теплоемкость воздуха при температуре определения теплофизических параметров веществ:
+			$$c_{pв}\left( T_0 \right) = <ParameterDetermAirSpecificHeat> \/\ Дж/(кг \cdot К);$$
+		\item[6)] низшая теплота сгорания топлива: 
+			$$Q_н^р = <LowerQ> \cdot 10^3 \/\ Дж / (кг \cdot К);$$
+		\item[7)] полнота сгорания: 
+			$$\eta_г = <EtaBurn>;$$
+		\item[8)] масса воздуха, необходимая для сжигания 1 кг топлива:
+			$$l_0 = <TheoryAirMass> \/\ кг;$$
+	\end{enumerate}
+
+	\begin{enumerate}
+		\item Зададимся коэффициентом избытка воздуха: $$\alpha = <CycleBurnAlpha>;$$
+		\item Теплоемкость продуктов сгорания природного газа при данном значении коэффициента избытка воздуха при температуре $T_г$ составляет:
+			$$c_{pг}\left( T_г \right) = <BurnerOutletGasSpecificHeat> \/\ Дж/(кг \cdot К);$$
+		\item Теплоемкость продуктов сгорания природного газа при данном значении коэффициента избытка воздуха при температуре $T_0$ составляет:
+			$$c_{pг}\left( T_0 \right) = <ParameterDetermGasSpecificHeat> \/\ Дж / (кг \cdot К);$$
+		\item Определим относительный расход топлива:
+			$$g_m = \frac{G_m}{G_в^г} =
+		\frac{
+			c_{pг} \left( T_г \right) T_г -
+			c_{pв} \left( T_р \right) T_р -
+			\left[
+				\left(
+					c_{pг}\left( T_0 \right) - c_{pв}\left( T_0 \right)
+				\right) T_0
+			\right]
+		}{
+			Q_н^р \eta_г -
+			\left[
+				c_{pг} \left( T_г \right) T_г -
+				c_{pг} \left( T_0 \right) T_0
+			\right] +
+			c_{pm} \left( T_m - T_0 \right)
+		} = $$
+
+		$$=
+		\frac{
+			<BurnerOutletGasSpecificHeat> \cdot <BurnerTOut> -
+			<BurnerInletAirSpecificHeat> \cdot <RegenTColdOut> -
+			\left[
+				\left(
+					<ParameterDetermGasSpecificHeat> - <ParameterDetermAirSpecificHeat>
+				\right) \cdot <ParameterDetermT>
+			\right]
+		}{
+			<LowerQ> \cdot 10^3 \cdot <EtaBurn> -
+			\left[
+				<BurnerOutletGasSpecificHeat> \cdot <BurnerTOut> -
+				<ParameterDetermGasSpecificHeat> \cdot <ParameterDetermT>
+			\right] +
+			<CycleFuelSpecificHeat> \left( <FuelT> - <ParameterDetermT> \right)
+		} = <FuelMassRateRel>$$
+		\item Определим коэффициент избытка воздуха:
+			$$\alpha^\prime = \frac{1}{g_m l_0} =
+		\frac{1}{<FuelMassRateRel> \cdot <TheoryAirMass>} = <CycleBurnAlphaLong>$$
+		\item Определим ошибку в определении коэффициента воздуха:
+			$$\delta = \frac{\left| \alpha^\prime - \alpha \right|}{\alpha} \cdot 100\% =
+		\frac{\left| <CycleBurnAlphaLong> - <CycleBurnAlpha> \right|}{<CycleBurnAlpha>} \cdot 100\% = <AlphaCalcError> \% < 5 \%
+		$$
+		Погрешность определения в пределах допуска.
+	\end{enumerate}
+
+	\item Определим удельный расход через турбину:
+		$$g_{тк} = \left( 1 + g_m \right) \left( 1 - g_{ут} - g_{охл} \right) =
+			\left( 1 + <FuelMassRateRel> \right) \left( 1 - <LeakMassRateRel> - <CoolMassRateRel> \right) = <CompTurbineMassRateRel>$$
+	\item Определим удельную работу турбины компрессора:
+		$$L_{тк} = \frac{L_к}{g_{тк}\eta_м} = \frac{<CompSpecificLabour> \cdot 10^6}{<CompTurbineMassRateRel> \cdot <EtaMech> } = <CompTurbineSpecificLabour> \cdot 10^6 \/\ Дж/кг$$
+	\item Определим давление газа перед турбиной компрессора:
+		$$p_г = p_{р.х.} \sigma_г = <RegenPColdOut> \cdot <BurnSigma> = <CompTurbinePIn> \/\ МПа$$
+	\item Определим среднюю теплоемкость газа в процессе расширения газа в турбине, принимая показатель адиабаты газа $k_г = <CycleCompTurbineKGasShort>$:
+		$$c_{pг} = \frac{k_г}{k_г - 1} R_г =
+			\frac{<CycleCompTurbineKGasShort>}{<CycleCompTurbineKGasShort> - 1} \cdot <CycleCompTurbineGasGasConstant> = <CompTurbineSpecificHeat> \/\ Дж/(кг \cdot К) $$
+	\item Определим давление воздуха за турбиной компрессора:
+		$$p_{тк} = p_г
+			\left[
+				1 - \frac{L_{тк}}{c_{pг} T_г \eta_{тк}}
+			\right] ^ \frac{k_г}{k_г - 1} =
+			<CompTurbinePIn>
+			\left[
+				1 - \frac{<CompTurbineSpecificLabour> \cdot 10^6}
+				{<CompTurbineSpecificHeat> \cdot <BurnerTOut> \cdot <EtaCompTurb>}
+			\right] ^ \frac{<CycleCompTurbineKGasShort>}{<CycleCompTurbineKGasShort> - 1} =
+			 <CompTurbinePOut> \/\ МПа$$
+	\item Определим температуру газа за турбиной компрессора:
+	 	$$T_{тк} = T_г
+			 \left\lbrace
+			 	1 -
+			 	\left[
+			 		1 -
+			 			\left(
+			 				\frac{p_{тк}}{p_г}
+			 			\right) ^ \frac{k_г}{k_г - 1}
+			 	\right] \eta_{тк}
+			 \right\rbrace =
+			 <BurnerTOut>
+			 \left\lbrace
+			 	1 -
+			 	\left[
+			 		1 -
+			 			\left(
+			 				\frac{<CompTurbinePOut>}{<CompTurbinePIn>}
+			 			\right) ^ \frac{<CycleCompTurbineKGasShort>}{<CycleCompTurbineKGasShort> - 1}
+			 	\right] \cdot <EtaCompTurb>
+			 \right\rbrace = <CompTurbineTOut> \/\ К$$
+	\item Определим уточненное значение показателя адиабаты газа:
+		$$k_г^\prime = \frac{\int\limits_{T_{тк}}^{T_г} k_г(T) dT}{T_г - T_{тк}} =
+			\frac{\int\limits_{<CompTurbineTOut>}^{<BurnerTOut>} k_г(T) dT}{<BurnerTOut> - <CompTurbineTOut>} = <CycleCompTurbineKGasLong>$$
+	\item Определим погрешность определения показателя адиабаты:
+		$$\delta = \frac{\left| k_г^\prime - k_г \right|}{k_г} \cdot 100 \% =
+			\frac{\left| <CycleCompTurbineKGasLong> - <CycleCompTurbineKGasShort> \right|}{<CycleCompTurbineKGasShort>} \cdot 100 \% =
+			<CompTurbineKCalcError> \% < 5 \%$$
+	Погрешность определения показателя адиабаты в пределах допуска.
+	\item Определим давление перед силовой турбиной:
+		$$p_с = p_{тк}\sigma_{тк} = <CompTurbinePOut> \cdot <CompTurbPipeSigma> = <FreeTurbinePIn> \/\ МПа$$
+	\item Зададим значение приведенной скорости на выходе из выходного устройства:
+		$$\lambda_{вых} = <LambdaOut>$$
+	\item Определим давление торможения на выходе из выходного устройства:
+		$$p_{вых} = p_a \pi \left( \lambda_{вых}, k_г \right) =
+			<AtmP> \cdot \pi \left( <LambdaOut>, <CycleCompTurbineKGasShort> \right) =
+			<RegTubePOut> \/\ МПа$$
+	\item Определим давление за регенератором по горячей стороне:
+		$$p_у = \frac{p_{вых}}{\sigma_{вых}} = \frac{<RegTubePOut>}{<OutletPipeSigma>} =
+			<RegenPHotOut> \/\ МПа$$
+	\item Определим давление перед регенератором по горячей стороне:
+		$$p_{р.г.} = \frac{p_у}{\sigma_{р.г.}} = \frac{<RegenPHotOut>}{<RegenHotSigma>} =
+			<RegenPHotIn> \/\ МПа$$
+	\item Определим давление торможения за силовой турбиной:
+		$$p_т = \frac{p_{р.г.}}{\sigma_т} = \frac{<RegenPHotIn>}{<OutletPipeSigma>} =
+	<FreeTurbinePOut> \/\ МПа$$
+	\item Определим температуру торможения на выходе из силовой турбины:
+		$$T_т = T_{тк}
+		 \left\lbrace
+		 	1 -
+		 	\left[
+		 		1 -
+		 			\left(
+		 				\frac{p_с}{p_т}
+		 			\right) ^ \frac{k_г}{k_г - 1}
+		 	\right] \eta_т
+		 \right\rbrace =
+		 <CompTurbineTOut>
+		 \left\lbrace
+		 	1 -
+		 	\left[
+		 		1 -
+		 			\left(
+		 				\frac{<FreeTurbinePIn>}{<FreeTurbinePOut>}
+		 			\right) ^ \frac{<CycleCompTurbineKGasShort>}{<CycleCompTurbineKGasShort> - 1}
+		 	\right] \cdot <EtaFreeTurb>
+		 \right\rbrace = <FreeTurbineTOut> \/\ К$$
+	 \item Определим уточненное значение показателя адиабаты газа в процессе расширения в силовой турбине:
+	 	$$k_г^\prime = \frac{\int\limits_{T_{тк}}^{T_г} k_г(T) dT}{T_г - T_{тк}} =
+			\frac{\int\limits_{<FreeTurbineTOut>}^{<CompTurbineTOut>} k_г(T) dT}{<CompTurbineTOut> - <FreeTurbineTOut>} = <CycleCompTurbineKGasLong>$$
+	\item Определим погрешность определения показателя адиабаты газа в процессе расширения в силовой турбине:
+		$$\delta = \frac{\left| k_г^\prime - k_г \right|}{k_г} \cdot 100 \% =
+			\frac{\left| <CycleCompTurbineKGasLong> - <CycleCompTurbineKGasShort> \right|}{<CycleCompTurbineKGasShort>} \cdot 100 \% =
+			<CompTurbineKCalcError> \% < 5 \%$$
+	Погрешность определения показателя адиабаты в пределах допуска.
+	\item Определим значение теплоемкости газа в свободной турбине, задавая показатель адиабаты газа $k_г = <CycleCompTurbineKGasShort>$:
+		$$c_{pг} = \frac{k_г}{k_г - 1} R_г =
+			\frac{<CycleCompTurbineKGasShort>}{<CycleCompTurbineKGasShort> - 1} \cdot <CycleCompTurbineGasGasConstant> = <FreeTurbineSpecificHeat> Дж/(кг \cdot К)$$
+			\item Определим удельную работу силовой турбины:
+		$$L_т = c_{pг} \left( T_{тк} - T_т \right) =
+			<FreeTurbineSpecificHeat> \left( <CompTurbineTOut> - <FreeTurbineTOut> \right) =
+			<FreeTurbineSpecificLabour> \cdot 10^6 Дж/кг$$
+	\item Определим удельную мощность ГТД:
+		$$N_{e уд} = L_т g_т =
+			<FreeTurbineSpecificLabour> \cdot 10^6 \cdot <FreeTurbineMassRateRel> =
+			<EngineSpecificPower> \cdot 10^6 Дж/кг$$
+	\item Определим экономичность ГТД:
+		$$C_e = \frac{3600}{N_{e уд}} g_т =
+			\frac{3600}{<EngineSpecificPower> \cdot 10^6} \cdot <FreeTurbineMassRateRel> =
+			<EngineFuelMassRateSpecific> \cdot 10^{-3} Вт/ч$$
+	\item Определим КПД ГТД:
+		$$\eta_e = \frac{3600}{C_e Q_н^р} =
+			\frac{3600}{<EngineFuelMassRateSpecific> \cdot 10^{-3} \cdot <LowerQ> \cdot 10^6}
+			= <EngineEta>$$
+	\item Определим расход воздуха:
+		$$G_в = \frac{N_e}{N_{e уд} \eta_р} =
+			\frac{6000 \cdot 10^3}{<EngineSpecificPower> \cdot 10^6 \cdot <EtaGen>} =
+			<EngineMassRate> кг/с$$
+\end{enumerate}
