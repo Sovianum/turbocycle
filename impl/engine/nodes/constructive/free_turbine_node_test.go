@@ -52,7 +52,16 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 }
 
 func getTestFreeTurbineNode() FreeTurbineNode {
-	return NewFreeTurbineNode(etaT, lambdaOut, 0.05, func(node TurbineNode) float64 {
-		return 0
-	})
+	return NewFreeTurbineNode(
+		etaT, lambdaOut, 0.05,
+		func(node TurbineNode) float64 {
+			return 0
+		},
+		func(node TurbineNode) float64 {
+			return 0
+		},
+		func(node TurbineNode) float64 {
+			return 0
+		},
+	)
 }

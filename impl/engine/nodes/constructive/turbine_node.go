@@ -19,6 +19,13 @@ type TurbineNode interface {
 	PiTStag() float64
 	InputGas() gases.Gas
 	LambdaOut() float64
+	Eta() float64
+	LSpecific() float64
+	PStatOut() float64
+	TStatOut() float64
+	MassRateRel() float64
+	LeakMassRateRel() float64
+	CoolMassRateRel() float64
 }
 
 type GasBiPole interface {

@@ -21,20 +21,27 @@ type BlockedTurbineNode interface {
 }
 
 type blockedTurbineNode struct {
-	ports           core.PortsType
-	etaT            float64
-	precision       float64
-	lambdaOut       float64
-	massRateRelFunc func(TurbineNode) float64
+	ports             core.PortsType
+	etaT              float64
+	precision         float64
+	lambdaOut         float64
+	leakMassRateFunc  func(TurbineNode) float64
+	coolMasRateRel    func(TurbineNode) float64
+	inflowMassRateRel func(TurbineNode) float64
 }
 
-func NewBlockedTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) BlockedTurbineNode {
+func NewBlockedTurbineNode(
+	etaT, lambdaOut, precision float64,
+	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(TurbineNode) float64,
+) BlockedTurbineNode {
 	var result = &blockedTurbineNode{
-		ports:           make(core.PortsType),
-		etaT:            etaT,
-		precision:       precision,
-		lambdaOut:       lambdaOut,
-		massRateRelFunc: massRateRelFunc,
+		ports:             make(core.PortsType),
+		etaT:              etaT,
+		precision:         precision,
+		lambdaOut:         lambdaOut,
+		leakMassRateFunc:  leakMassRateFunc,
+		coolMasRateRel:    coolMasRateRel,
+		inflowMassRateRel: inflowMassRateRel,
 	}
 
 	result.ports[nodes.PowerInput] = core.NewPort()
@@ -121,7 +128,7 @@ func (node *blockedTurbineNode) Process() error {
 	var piTStag = node.piTStag(gasState.TStag)
 	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), gasState.TStag, nodes.DefaultN))
 	gasState.PStag = node.pStagIn() / (piTStag * pi)
-	gasState.MassRateRel *= 1 + node.massRateRelFunc(node)
+	gasState.MassRateRel *= node.massRateRel()
 
 	node.gasOutput().SetState(gasState)
 	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
@@ -131,6 +138,34 @@ func (node *blockedTurbineNode) Process() error {
 
 func (node *blockedTurbineNode) LambdaOut() float64 {
 	return node.lambdaOut
+}
+
+func (node *blockedTurbineNode) Eta() float64 {
+	return node.etaT
+}
+
+func (node *blockedTurbineNode) LSpecific() float64 {
+	return node.turbineLabour()
+}
+
+func (node *blockedTurbineNode) PStatOut() float64 {
+	return node.pStatOut()
+}
+
+func (node *blockedTurbineNode) TStatOut() float64 {
+	return node.tStatOut()
+}
+
+func (node *blockedTurbineNode) MassRateRel() float64 {
+	return node.massRateRel()
+}
+
+func (node *blockedTurbineNode) LeakMassRateRel() float64 {
+	return node.leakMassRateFunc(node)
+}
+
+func (node *blockedTurbineNode) CoolMassRateRel() float64 {
+	return node.coolMasRateRel(node)
 }
 
 func (node *blockedTurbineNode) InputGas() gases.Gas {
@@ -221,6 +256,23 @@ func (node *blockedTurbineNode) getPiTStag(k, cp, turbineLabour float64) float64
 
 func (node *blockedTurbineNode) turbineLabour() float64 {
 	return -node.powerInput().GetState().(states.PowerPortState).LSpecific
+}
+
+func (node *blockedTurbineNode) tStatOut() float64 {
+	var tStagOut = node.tStagOut()
+	var k = gases.K(node.inputGas(), tStagOut)
+	return tStagOut * gdf.Tau(node.lambdaOut, k)
+}
+
+func (node *blockedTurbineNode) pStatOut() float64 {
+	var pStagOut = node.pStagOut()
+	var tStagOut = node.tStagOut()
+	var k = gases.K(node.inputGas(), tStagOut)
+	return pStagOut * gdf.Tau(node.lambdaOut, k)
+}
+
+func (node *blockedTurbineNode) massRateRel() float64 {
+	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
 }
 
 func (node *blockedTurbineNode) tStagIn() float64 {

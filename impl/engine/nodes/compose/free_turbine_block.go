@@ -14,13 +14,17 @@ import (
 
 func NewFreeTurbineBlock(
 	pAtm float64,
-	etaT, lambdaOut, precision float64, massRateRelFunc func(node constructive.TurbineNode) float64,
+	etaT, lambdaOut, precision float64,
+	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(node constructive.TurbineNode) float64,
 	pressureLossSigma float64,
 ) FreeTurbineBlockNode {
 	var result = &freeTurbineBlockNode{
 		ports:        make(core.PortsType),
 		atmNode:      source.NewComplexGasSourceNode(nil, 0, pAtm), // first two arguments are not used cos they will be sent to sinks
-		turbine:      constructive.NewFreeTurbineNode(etaT, lambdaOut, precision, massRateRelFunc),
+		turbine:      constructive.NewFreeTurbineNode(
+			etaT, lambdaOut, precision,
+			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
+		),
 		pressureLoss: constructive.NewPressureLossNode(pressureLossSigma),
 		assembler:    helper.NewGasStateAssemblerNode(),
 		disassembler: helper.NewGasStateDisassemblerNode(),

@@ -14,13 +14,18 @@ import (
 func NewGasGeneratorNode(
 	compressorEtaAd, piStag float64,
 	fuel fuel.GasFuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0 float64,
-	etaT, lambdaOut float64, turbineMassRateRelFunc func(constructive.TurbineNode) float64,
+	etaT, lambdaOut float64,
+	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(constructive.TurbineNode) float64,
 	etaM float64,
 	precision float64,
 ) GasGeneratorNode {
 	var result = &gasGeneratorNode{
 		ports:        make(core.PortsType),
-		turboCascade: NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
+		turboCascade: NewTurboCascadeNode(
+			compressorEtaAd, piStag, etaT, lambdaOut,
+			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
+			etaM, precision,
+		),
 		burner:       constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
 	}
 

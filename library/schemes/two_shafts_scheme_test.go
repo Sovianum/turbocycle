@@ -22,6 +22,12 @@ func TestTwoShaftsScheme_GetNetwork_Smoke(t *testing.T) {
 		0.9, 0.3, func(node constructive.TurbineNode) float64 {
 			return 0
 		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
 		0.99, 0.05,
 	)
 	var compressorTurbinePipe = constructive.NewPressureLossNode(0.98)
@@ -29,7 +35,13 @@ func TestTwoShaftsScheme_GetNetwork_Smoke(t *testing.T) {
 		1e5,
 		0.92, 0.3, 0.05, func(node constructive.TurbineNode) float64 {
 			return 0
-		}, 0.9,
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},0.9,
 	)
 
 	var scheme = NewTwoShaftsScheme(gasSource, inletPressureDrop, gasGenerator, compressorTurbinePipe, freeTurbineBlock)

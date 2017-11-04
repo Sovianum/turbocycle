@@ -53,11 +53,23 @@ func TestNetwork_Solve_OK(t *testing.T) {
 	nodes["compressor"] = compressor
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
 	})
 	nodes["turbine"] = turbine
 	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
 	nodes["burner"] = burner
 	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
 		return 0
 	})
 	nodes["freeTurbine"] = freeTurbine
@@ -125,11 +137,23 @@ func TestNetwork_Solve_FreePorts(t *testing.T) {
 	nodes["compressor"] = compressor
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
-	})
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},)
 	nodes["turbine"] = turbine
 	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
 	nodes["burner"] = burner
 	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
 		return 0
 	})
 	nodes["freeTurbine"] = freeTurbine
@@ -231,11 +255,23 @@ func TestNetwork_Solve_Cycled(t *testing.T) {
 	nodes["compressor"] = compressor
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
 	})
 	nodes["turbine"] = turbine
 	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
 	nodes["burner"] = burner
 	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
 		return 0
 	})
 	nodes["freeTurbine"] = freeTurbine
@@ -310,13 +346,26 @@ func TestNetwork_Solve_NoCycle(t *testing.T) {
 	nodes["compressor"] = compressor
 	var turbine = constructive.NewBlockedTurbineNode(etaTBlocked, lambdaOut, precision, func(constructive.TurbineNode) float64 {
 		return 0
-	})
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},)
 	nodes["turbine"] = turbine
 	var burner = constructive.NewBurnerNode(fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision)
 	nodes["burner"] = burner
-	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision, func(constructive.TurbineNode) float64 {
+	var freeTurbine = constructive.NewFreeTurbineNode(etaFreeT, lambdaOut, precision,
+		func(constructive.TurbineNode) float64 {
 		return 0
-	})
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},
+	func(node constructive.TurbineNode) float64 {
+		return 0
+	},)
 	nodes["freeTurbine"] = freeTurbine
 	var powerSink1 = sink.NewPowerSinkNode()
 	nodes["powerSink1"] = powerSink1
@@ -373,7 +422,7 @@ func TestNetwork_Solve_NoCycle(t *testing.T) {
 	core.Link(freeTurbine.PowerOutput(), powerSink2.PowerInput())
 
 	var network = core.NewNetwork(nodes)
-	var converged, err = network.Solve(1, 100, 0.0)
+	var converged, err = network.Solve(1, 100, 0.0001)
 
 	assert.Nil(t, err)
 	assert.True(t, converged)

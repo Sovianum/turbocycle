@@ -12,14 +12,18 @@ import (
 
 func NewTurboCascadeNode(
 	compressorEtaAd, piStag float64,
-	etaT, lambdaOut float64, turbineMassRateRelFunc func(constructive.TurbineNode) float64,
+	etaT, lambdaOut float64,
+	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(constructive.TurbineNode) float64,
 	etaM float64,
 	precision float64,
 ) TurboCascadeNode {
 	var result = &turboCascadeNode{
 		ports:        make(core.PortsType),
 		compressor:   constructive.NewCompressorNode(compressorEtaAd, piStag, precision),
-		turbine:      constructive.NewBlockedTurbineNode(etaT, lambdaOut, precision, turbineMassRateRelFunc),
+		turbine:      constructive.NewBlockedTurbineNode(
+			etaT, lambdaOut, precision,
+			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
+		),
 		transmission: constructive.NewTransmissionNode(etaM),
 		powerSink:    sink.NewPowerSinkNode(),
 	}

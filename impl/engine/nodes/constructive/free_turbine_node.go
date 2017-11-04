@@ -19,7 +19,6 @@ type FreeTurbineNode interface {
 	nodes.TemperatureSource
 	nodes.MassRateRelSource
 	nodes.GasSource
-	LSpecific() float64
 }
 
 type freeTurbineNode struct {
@@ -27,16 +26,23 @@ type freeTurbineNode struct {
 	etaT            float64
 	precision       float64
 	lambdaOut       float64
-	massRateRelFunc func(TurbineNode) float64
+	leakMassRateFunc  func(TurbineNode) float64
+	coolMasRateRel    func(TurbineNode) float64
+	inflowMassRateRel func(TurbineNode) float64
 }
 
-func NewFreeTurbineNode(etaT, lambdaOut, precision float64, massRateRelFunc func(TurbineNode) float64) FreeTurbineNode {
+func NewFreeTurbineNode(
+	etaT, lambdaOut, precision float64,
+	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(TurbineNode) float64,
+) FreeTurbineNode {
 	var result = &freeTurbineNode{
 		ports:           make(core.PortsType),
 		etaT:            etaT,
 		precision:       precision,
 		lambdaOut:       lambdaOut,
-		massRateRelFunc: massRateRelFunc,
+		leakMassRateFunc:  leakMassRateFunc,
+		coolMasRateRel:    coolMasRateRel,
+		inflowMassRateRel: inflowMassRateRel,
 	}
 
 	result.ports[nodes.ComplexGasInput] = core.NewPort()
@@ -137,6 +143,30 @@ func (node *freeTurbineNode) LambdaOut() float64 {
 	return node.lambdaOut
 }
 
+func (node *freeTurbineNode) Eta() float64 {
+	return node.etaT
+}
+
+func (node *freeTurbineNode) PStatOut() float64 {
+	return node.pStatOut()
+}
+
+func (node *freeTurbineNode) TStatOut() float64 {
+	return node.tStatOut()
+}
+
+func (node *freeTurbineNode) MassRateRel() float64 {
+	return node.massRateRel()
+}
+
+func (node *freeTurbineNode) LeakMassRateRel() float64 {
+	return node.leakMassRateFunc(node)
+}
+
+func (node *freeTurbineNode) CoolMassRateRel() float64 {
+	return node.coolMasRateRel(node)
+}
+
 func (node *freeTurbineNode) GetPorts() core.PortsType {
 	return node.ports
 }
@@ -177,7 +207,7 @@ func (node *freeTurbineNode) Process() error {
 	node.pressureOutput().SetState(states.NewPressurePortState(node.pStagOut()))
 	node.gasOutput().SetState(states.NewGasPortState(gasState.Gas))
 	node.massRateRelOutput().SetState(
-		states.NewMassRateRelPortState(gasState.MassRateRel * (1 + node.massRateRelFunc(node))),
+		states.NewMassRateRelPortState(gasState.MassRateRel * (node.massRateRel())),
 	)
 
 	node.powerOutput().SetState(
@@ -209,6 +239,23 @@ func (node *freeTurbineNode) GasOutput() core.Port {
 
 func (node *freeTurbineNode) lSpecific() float64 {
 	return gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN) * (node.tStagIn() - node.tStagOut())
+}
+
+func (node *freeTurbineNode) tStatOut() float64 {
+	var tStagOut = node.tStagOut()
+	var k = gases.K(node.inputGas(), tStagOut)
+	return tStagOut * gdf.Tau(node.lambdaOut, k)
+}
+
+func (node *freeTurbineNode) pStatOut() float64 {
+	var pStagOut = node.pStagOut()
+	var tStagOut = node.tStagOut()
+	var k = gases.K(node.inputGas(), tStagOut)
+	return pStagOut * gdf.Tau(node.lambdaOut, k)
+}
+
+func (node *freeTurbineNode) massRateRel() float64 {
+	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
 }
 
 func (node *freeTurbineNode) getTStagOut() (float64, error) {

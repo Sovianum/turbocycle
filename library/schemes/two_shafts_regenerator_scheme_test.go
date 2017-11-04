@@ -19,7 +19,13 @@ func TestTwoShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	var turboCascade = compose.NewTurboCascadeNode(
 		0.86, 6, 0.9, 0.3, func(node constructive.TurbineNode) float64 {
 			return 0
-		}, 0.99, 0.05,
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},0.99, 0.05,
 	)
 	var burner = constructive.NewBurnerNode(fuel.GetCH4(), 1400, 300, 0.99, 0.99, 3, 300, 0.05)
 	var compressorTurbinePipe = constructive.NewPressureLossNode(0.98)
@@ -27,7 +33,13 @@ func TestTwoShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 		1e5,
 		0.92, 0.3, 0.05, func(node constructive.TurbineNode) float64 {
 			return 0
-		}, 0.9,
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},0.9,
 	)
 	var regenerator = constructive.NewRegeneratorNode(0.8, 0.05, constructive.SigmaByColdSide)
 

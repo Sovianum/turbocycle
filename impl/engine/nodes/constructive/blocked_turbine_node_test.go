@@ -62,7 +62,16 @@ func TestBlockedTurbineNode_Process(t *testing.T) {
 }
 
 func getTestBlockedTurbine() BlockedTurbineNode {
-	return NewBlockedTurbineNode(etaT, lambdaOut, 0.05, func(node TurbineNode) float64 {
-		return 0
-	})
+	return NewBlockedTurbineNode(
+		etaT, lambdaOut, 0.05,
+		func(node TurbineNode) float64 {
+			return 0
+		},
+		func(node TurbineNode) float64 {
+			return 0
+		},
+		func(node TurbineNode) float64 {
+			return 0
+		},
+	)
 }

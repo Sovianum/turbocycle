@@ -14,7 +14,8 @@ import (
 func NewRegenerativeGasGeneratorNode(
 	compressorEtaAd, piStag float64,
 	fuel fuel.GasFuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0 float64,
-	etaT, lambdaOut float64, turbineMassRateRelFunc func(constructive.TurbineNode) float64,
+	etaT, lambdaOut float64,
+	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(constructive.TurbineNode) float64,
 	sigmaRegenerator float64,
 	sigmaRegeneratorPipe float64,
 	etaM float64,
@@ -22,7 +23,11 @@ func NewRegenerativeGasGeneratorNode(
 ) RegenerativeGasGeneratorNode {
 	var result = &regenerativeGasGeneratorNode{
 		ports:                   make(core.PortsType),
-		turboCascade:            NewTurboCascadeNode(compressorEtaAd, piStag, etaT, lambdaOut, turbineMassRateRelFunc, etaM, precision),
+		turboCascade:            NewTurboCascadeNode(
+			compressorEtaAd, piStag, etaT, lambdaOut,
+			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
+			etaM, precision,
+		),
 		burner:                  constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
 		regenerator:             constructive.NewRegeneratorNode(sigmaRegenerator, precision, constructive.SigmaByColdSide),
 		regeneratorPressureDrop: constructive.NewPressureLossNode(sigmaRegeneratorPipe),

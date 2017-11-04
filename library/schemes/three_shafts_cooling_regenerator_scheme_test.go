@@ -21,15 +21,30 @@ func TestThreeShaftsCoolingRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	var inletPressureDrop = constructive.NewPressureLossNode(0.98)
 	var middlePressureCascade = compose.NewTurboCascadeNode(
 		0.86, 5,
-		0.92, 0.3, func(node constructive.TurbineNode) float64 {
+		0.92, 0.3,
+		func(node constructive.TurbineNode) float64 {
 			return 0
-		}, 0.99, 0.05,
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		0.99, 0.05,
 	)
 
 	var regenerativeGasGenerator = compose.NewRegenerativeGasGeneratorNode(
 		0.86, 6, fuel.GetCH4(),
 		1400, 300, 0.99, 0.99, 3, 300,
-		0.9, 0.3, func(node constructive.TurbineNode) float64 {
+		0.9, 0.3,
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
 			return 0
 		},
 		0.8, 0.99, 0.99, 0.05,
@@ -40,9 +55,17 @@ func TestThreeShaftsCoolingRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	var middlePressureTurbinePipe = constructive.NewPressureLossNode(0.98)
 	var freeTurbineBlock = compose.NewFreeTurbineBlock(
 		1e5,
-		0.92, 0.3, 0.05, func(node constructive.TurbineNode) float64 {
+		0.92, 0.3, 0.05,
+		func(node constructive.TurbineNode) float64 {
 			return 0
-		}, 0.9,
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		func(node constructive.TurbineNode) float64 {
+			return 0
+		},
+		0.9,
 	)
 	freeTurbineBlock.FreeTurbine().TemperatureOutput().SetState(states.NewTemperaturePortState(900))
 
