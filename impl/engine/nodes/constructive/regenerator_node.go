@@ -21,6 +21,7 @@ type RegeneratorNode interface {
 	ColdOutput() core.Port
 	HotInput() core.Port
 	HotOutput() core.Port
+	Sigma() float64
 }
 
 type regeneratorNode struct {
@@ -95,6 +96,10 @@ func (node *regeneratorNode) HotInput() core.Port {
 
 func (node *regeneratorNode) HotOutput() core.Port {
 	return node.hotOutput()
+}
+
+func (node *regeneratorNode) Sigma() float64 {
+	return node.sigma
 }
 
 func (node *regeneratorNode) Process() error {
