@@ -12,6 +12,7 @@ import (
 type TransmissionNode interface {
 	core.Node
 	nodes.PowerChannel
+	Eta() float64
 }
 
 type transmissionNode struct {
@@ -79,6 +80,10 @@ func (node *transmissionNode) GetPortTags() []string {
 
 func (node *transmissionNode) GetPorts() core.PortsType {
 	return node.ports
+}
+
+func (node *transmissionNode) Eta() float64 {
+	return node.etaM
 }
 
 func (node *transmissionNode) PowerInput() core.Port {
