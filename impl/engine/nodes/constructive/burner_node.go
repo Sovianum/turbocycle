@@ -24,6 +24,10 @@ type BurnerNode interface {
 	Alpha() float64
 	GetFuelRateRel() float64
 	Fuel() fuel.GasFuel
+	Eta() float64
+	Sigma() float64
+	T0() float64
+	TFuel() float64
 }
 
 type burnerNode struct {
@@ -68,6 +72,22 @@ func NewBurnerNode(
 
 func (node *burnerNode) Fuel() fuel.GasFuel {
 	return node.fuel
+}
+
+func (node *burnerNode) Eta() float64 {
+	return node.etaBurn
+}
+
+func (node *burnerNode) Sigma() float64 {
+	return node.sigma
+}
+
+func (node *burnerNode) T0() float64 {
+	return node.t0
+}
+
+func (node *burnerNode) TFuel() float64 {
+	return node.tFuel
 }
 
 func (node *burnerNode) MarshalJSON() ([]byte, error) {
