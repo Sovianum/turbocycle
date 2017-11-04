@@ -22,6 +22,7 @@ type CompressorNode interface {
 	nodes.TemperatureOut
 	LSpecific() float64
 	PiStag() float64
+	Eta() float64
 	SetPiStag(piStag float64)
 }
 
@@ -164,6 +165,10 @@ func (node *compressorNode) LSpecific() float64 {
 
 func (node *compressorNode) PiStag() float64 {
 	return node.piStag
+}
+
+func (node *compressorNode) Eta() float64 {
+	return node.etaAd
 }
 
 func (node *compressorNode) SetPiStag(piStag float64) {
