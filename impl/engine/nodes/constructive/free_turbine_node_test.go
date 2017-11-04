@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+	"github.com/Sovianum/turbocycle/helpers/gdf"
 )
 
 const (
@@ -28,11 +29,13 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 
 	turbine.Process()
 
-	var expectedPit = turbine.PStagIn() / turbine.PStagOut()
-	assert.Equal(t, expectedPit, turbine.PiTStag())
+	var expectedPitStag = turbine.PStagIn() / turbine.PStagOut()
+	assert.Equal(t, expectedPitStag, turbine.PiTStag())
+
+	var expectedPit = expectedPitStag / gdf.Pi(lambdaOut, kAir)
 
 	var k = gases.KMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
-	var expectedTtStag = turbine.TStagIn() * (1 - (1-math.Pow(turbine.PiTStag(), (1-k)/k))*etaT)
+	var expectedTtStag = turbine.TStagIn() * (1 - (1-math.Pow(expectedPit, (1-k)/k))*etaT)
 	assert.True(
 		t,
 		common.ApproxEqual(expectedTtStag, turbine.TStagOut(), 0.01),

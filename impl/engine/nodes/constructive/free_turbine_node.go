@@ -10,6 +10,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"math"
+	"github.com/Sovianum/turbocycle/helpers/gdf"
 )
 
 type FreeTurbineNode interface {
@@ -233,7 +234,8 @@ func (node *freeTurbineNode) getTStagOut() (float64, error) {
 
 func (node *freeTurbineNode) tStagOutNext(pStagIn, pStagOut, tStagIn, tStagOutCurr float64) float64 {
 	var k = gases.KMean(node.inputGas(), tStagIn, tStagOutCurr, nodes.DefaultN)
-	var piT = pStagIn / pStagOut
+	var piTStag = pStagIn / pStagOut
+	var piT = piTStag / gdf.Pi(node.lambdaOut, gases.K(node.InputGas(), tStagOutCurr))
 	var x = math.Pow(piT, (1-k)/k)
 
 	return tStagIn * (1 - (1-x)*node.etaT)
