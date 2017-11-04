@@ -21,6 +21,11 @@ const (
 type PressureLossNode interface {
 	core.Node
 	nodes.ComplexGasChannel
+	nodes.PressureIn
+	nodes.PressureOut
+	nodes.TemperatureIn
+	nodes.TemperatureOut
+	Sigma() float64
 }
 
 type pressureLossNode struct {
@@ -230,6 +235,10 @@ func (node *pressureLossNode) TStagIn() float64 {
 
 func (node *pressureLossNode) PStagIn() float64 {
 	return node.pStagIn()
+}
+
+func (node *pressureLossNode) Sigma() float64 {
+	return node.sigma
 }
 
 func (node *pressureLossNode) gasInput() core.Port {
