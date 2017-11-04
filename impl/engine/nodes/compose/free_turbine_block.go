@@ -55,6 +55,7 @@ type FreeTurbineBlockNode interface {
 	nodes.ComplexGasChannel
 	nodes.PowerSource
 	FreeTurbine() constructive.FreeTurbineNode
+	OutletPressureLoss() constructive.PressureLossNode
 }
 
 type freeTurbineBlockNode struct {
@@ -72,6 +73,10 @@ type freeTurbineBlockNode struct {
 
 func (node *freeTurbineBlockNode) FreeTurbine() constructive.FreeTurbineNode {
 	return node.turbine
+}
+
+func (node *freeTurbineBlockNode) OutletPressureLoss() constructive.PressureLossNode {
+	return node.pressureLoss
 }
 
 func (node *freeTurbineBlockNode) MarshalJSON() ([]byte, error) {
