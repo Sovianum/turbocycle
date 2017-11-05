@@ -44,7 +44,7 @@ const (
 
 type StageNodeTestSuite struct {
 	suite.Suite
-	pack *dataPack
+	pack *DataPack
 	node *turbineStageNode
 	gen geometry.StageGeometryGenerator
 }
@@ -69,7 +69,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 	suite.node.PressureInput().SetState(states.NewPressurePortState(pg))
 	suite.node.MassRateInput().SetState(states2.NewMassRatePortState(massRate))
 
-	suite.pack = new(dataPack)
+	suite.pack = new(DataPack)
 }
 
 func (suite *StageNodeTestSuite) TestCalc() {

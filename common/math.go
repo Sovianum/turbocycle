@@ -95,5 +95,5 @@ func ToDegrees(x float64) float64 {
 }
 
 func ToRadians(x float64) float64 {
-	return x / math.Pi / 180
+	return x * math.Pi / 180
 }
