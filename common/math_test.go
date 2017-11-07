@@ -26,3 +26,22 @@ func TestAngleTransforms(t *testing.T) {
 
 	assert.InDelta(t, x, xRad, 1e-8)
 }
+
+func TestRoundInt(t *testing.T) {
+	var tc = []struct {
+		x         float64
+		expectedI int
+	}{
+		//{0.25, 0},
+		//{0.75, 1},
+		{-0.25, 0},
+		{-0.75, -1},
+		{0, 0},
+		{1, 1},
+		{-1, -1},
+	}
+
+	for i, tc := range tc {
+		assert.Equal(t, tc.expectedI, RoundInt(tc.x), "Test case %d (%f)", i, tc.x)
+	}
+}

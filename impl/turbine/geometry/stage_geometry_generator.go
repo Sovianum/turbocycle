@@ -9,7 +9,11 @@ type StageGeometryGenerator interface {
 	RotorGenerator() BladingGeometryGenerator
 }
 
-func NewStageGeometryGenerator(lRelOut float64, statorIncompleteGen, rotorIncompleteGen IncompleteBladingGeometryGenerator) StageGeometryGenerator {
+func NewStageGeometryGenerator(
+	lRelOut float64,
+	statorIncompleteGen,
+	rotorIncompleteGen IncompleteBladingGeometryGenerator,
+) StageGeometryGenerator {
 	var getFactor = func(lRelOut float64) float64 {
 		var gammaIn, gammaOut = statorIncompleteGen.GammaIn(), statorIncompleteGen.GammaOut()
 		var _, gammaMean = GetTotalAndMeanLineAngles(gammaIn, gammaOut)

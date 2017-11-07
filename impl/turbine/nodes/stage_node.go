@@ -26,7 +26,7 @@ type TurbineStageNode interface {
 	StageGeomGen() geometry.StageGeometryGenerator
 	Ht() float64
 	Reactivity() float64
-	GetDataPack() DataPack
+	GetDataPack() (DataPack, error)
 }
 
 func NewTurbineStageNode(
@@ -165,11 +165,11 @@ type turbineStageNode struct {
 	alpha1FirstStage float64
 
 	stageGeomGen  geometry.StageGeometryGenerator
-	stageGeometry geometry.StageGeometry
 
 	precision float64
 
 	isFirstStageNode bool
+	pack *DataPack
 }
 
 func (node *turbineStageNode) MarshalJSON() ([]byte, error) {
@@ -181,15 +181,15 @@ func (node *turbineStageNode) GetPorts() core.PortsType {
 }
 
 func (node *turbineStageNode) Process() error {
-	var pack = node.getDataPack()
-	if pack.Err != nil {
-		return pack.Err
+	node.pack = node.getDataPack()
+	if node.pack.Err != nil {
+		return node.pack.Err
 	}
 
-	node.temperatureOutput().SetState(states.NewTemperaturePortState(pack.T2Stag))
-	node.pressureOutput().SetState(states.NewPressurePortState(pack.P2Stag))
+	node.temperatureOutput().SetState(states.NewTemperaturePortState(node.pack.T2Stag))
+	node.pressureOutput().SetState(states.NewPressurePortState(node.pack.P2Stag))
 	node.massRateOutput().SetState(states2.NewMassRatePortState(node.massRate())) // mass rate is constant
-	node.velocityOutput().SetState(states2.NewVelocityPortState(pack.RotorOutletTriangle, states2.OutletTriangleType))
+	node.velocityOutput().SetState(states2.NewVelocityPortState(node.pack.RotorOutletTriangle, states2.OutletTriangleType))
 	return nil
 }
 
@@ -254,8 +254,12 @@ func (node *turbineStageNode) ContextDefined() bool {
 	return true
 }
 
-func (node *turbineStageNode) GetDataPack() DataPack {
-	return *node.getDataPack()
+func (node *turbineStageNode) GetDataPack() (DataPack, error) {
+	if node.pack != nil {
+		return *node.pack, nil
+	}
+	var pack = *node.getDataPack()
+	return pack, pack.Err
 }
 
 func (node *turbineStageNode) SetFirstStageMode(isFirstStageNode bool) {

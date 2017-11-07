@@ -97,3 +97,20 @@ func ToDegrees(x float64) float64 {
 func ToRadians(x float64) float64 {
 	return x * math.Pi / 180
 }
+
+func RoundInt(x float64) int {
+	var deltaFloor = math.Abs(x - float64(int(x)))
+	var deltaCeil = 1 - deltaFloor
+
+	if x >= 0 {
+		if deltaCeil >= deltaFloor {
+			return int(x)
+		}
+		return int(x) + 1
+	} else {
+		if deltaCeil >= deltaFloor {
+			return int(x)
+		}
+		return int(x) - 1
+	}
+}
