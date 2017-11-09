@@ -26,7 +26,7 @@ type TurbineStageNode interface {
 	StageGeomGen() geometry.StageGeometryGenerator
 	Ht() float64
 	Reactivity() float64
-	GetDataPack() (DataPack, error)
+	GetDataPack() DataPack
 }
 
 func NewTurbineStageNode(
@@ -254,12 +254,11 @@ func (node *turbineStageNode) ContextDefined() bool {
 	return true
 }
 
-func (node *turbineStageNode) GetDataPack() (DataPack, error) {
-	if node.pack != nil {
-		return *node.pack, nil
+func (node *turbineStageNode) GetDataPack() DataPack {
+	if node.pack == nil {
+		node.pack = node.getDataPack()
 	}
-	var pack = *node.getDataPack()
-	return pack, pack.Err
+	return *node.pack
 }
 
 func (node *turbineStageNode) SetFirstStageMode(isFirstStageNode bool) {

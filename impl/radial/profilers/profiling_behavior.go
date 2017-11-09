@@ -1,7 +1,6 @@
 package profilers
 
 import (
-	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
 )
 
