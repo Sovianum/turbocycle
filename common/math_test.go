@@ -60,3 +60,16 @@ func TestFactorial(t *testing.T) {
 		assert.Equal(t, tc.expectedI, Factorial(tc.x), "Test case %d (%f)", i, tc.x)
 	}
 }
+
+func TestLinspace(t *testing.T) {
+	var x1 = 0.
+	var x2 = 1.
+	var n = 3
+
+	var linspace = Linspace(x1, x2, n)
+
+	assert.Equal(t, n, len(linspace))
+	assert.InDelta(t, x1, linspace[0], 1e-8)
+	assert.InDelta(t, x2, linspace[2], 1e-8)
+	assert.InDelta(t, 0.5, linspace[1], 1e-8)
+}

@@ -17,14 +17,6 @@ type bezierCurve struct {
 	controlPoints []*mat.VecDense
 }
 
-func (curve *bezierCurve) Points(tArr []float64) []*mat.VecDense {
-	var result = make([]*mat.VecDense, 0)
-	for _, t := range tArr {
-		result = append(result, curve.point(t))
-	}
-	return result
-}
-
 func (curve *bezierCurve) Point(t float64) *mat.VecDense {
 	return curve.point(t)
 }

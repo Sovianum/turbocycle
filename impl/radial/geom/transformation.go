@@ -17,6 +17,18 @@ func ApplyAll(t Transformation, points []*mat.VecDense) []*mat.VecDense {
 	return result
 }
 
+func Unit() Transformation {
+	return unit{}
+}
+
+type unit struct {}
+
+func (unit) Apply(vec *mat.VecDense) *mat.VecDense {
+	var result = newPoint()
+	result.CloneVec(vec)
+	return result
+}
+
 func Scale(factor float64) Transformation {
 	return scale{factor: factor}
 }

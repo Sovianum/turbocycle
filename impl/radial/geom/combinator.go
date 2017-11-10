@@ -22,7 +22,7 @@ func (c combinator) Combine(t Transformation) Combinator {
 
 func (c combinator) Build() Transformation {
 	var transFunc = func(vec *mat.VecDense) *mat.VecDense {
-		var result = newPoint()
+		var result = vec
 		for _, trans := range c.transformations {
 			result = trans.Apply(result)
 		}

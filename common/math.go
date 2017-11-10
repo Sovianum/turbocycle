@@ -122,3 +122,14 @@ func Factorial(x int) int {
 	}
 	return result
 }
+
+func Linspace(x1, x2 float64, n int) []float64 {
+	var step = (x2 - x1) / float64(n - 1)
+	var result = make([]float64, n)
+
+	for i := 0; i != n; i++ {
+		result[i] = x1 + step * float64(i)
+	}
+
+	return result
+}
