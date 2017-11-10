@@ -479,7 +479,7 @@ func (node *turbineStageNode) airGapSpecificLoss(pack *DataPack) {
 		pack.StageGeometry.RotorGeometry().XBladeOut(),
 		pack.StageGeometry.RotorGeometry(),
 	)
-	pack.AirGapSpecificLoss = 1.37 * (1 + 1.6*node.reactivity) * (1 + lRel) * node.airGapRel
+	pack.AirGapSpecificLoss = 1.37 * (1 + 1.6*node.reactivity) * (1 + lRel) * node.airGapRel * pack.MeanRadiusLabour
 }
 
 func (node *turbineStageNode) outletVelocitySpecificLoss(pack *DataPack) {
