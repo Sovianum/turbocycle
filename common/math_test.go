@@ -32,8 +32,6 @@ func TestRoundInt(t *testing.T) {
 		x         float64
 		expectedI int
 	}{
-		//{0.25, 0},
-		//{0.75, 1},
 		{-0.25, 0},
 		{-0.75, -1},
 		{0, 0},
@@ -42,6 +40,23 @@ func TestRoundInt(t *testing.T) {
 	}
 
 	for i, tc := range tc {
-		assert.Equal(t, tc.expectedI, RoundInt(tc.x), "Test case %d (%f)", i, tc.x)
+		assert.Equal(t, tc.expectedI, RoundInt(tc.x), "Test case %d (%d)", i, tc.x)
+	}
+}
+
+func TestFactorial(t *testing.T) {
+	var tc = []struct {
+		x         int
+		expectedI int
+	}{
+		{0, 1},
+		{-1, 1},
+		{1, 1},
+		{2, 2},
+		{5, 120},
+	}
+
+	for i, tc := range tc {
+		assert.Equal(t, tc.expectedI, Factorial(tc.x), "Test case %d (%f)", i, tc.x)
 	}
 }

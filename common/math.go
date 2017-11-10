@@ -114,3 +114,11 @@ func RoundInt(x float64) int {
 		return int(x) - 1
 	}
 }
+
+func Factorial(x int) int {
+	var result = 1
+	for i := 2; i <= x; i++ {
+		result *= i
+	}
+	return result
+}
