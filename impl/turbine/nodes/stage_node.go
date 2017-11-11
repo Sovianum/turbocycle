@@ -6,11 +6,11 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	states2 "github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/go-errors/errors"
 )
 
@@ -164,12 +164,12 @@ type turbineStageNode struct {
 	airGapRel        float64
 	alpha1FirstStage float64
 
-	stageGeomGen  geometry.StageGeometryGenerator
+	stageGeomGen geometry.StageGeometryGenerator
 
 	precision float64
 
 	isFirstStageNode bool
-	pack *DataPack
+	pack             *DataPack
 }
 
 func (node *turbineStageNode) MarshalJSON() ([]byte, error) {

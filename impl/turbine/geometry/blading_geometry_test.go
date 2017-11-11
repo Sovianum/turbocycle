@@ -18,7 +18,6 @@ const (
 	dIn        = 1.
 	dMeanIn    = 1.1
 	dOut       = 1.2
-
 )
 
 type BladingGeometryTestSuite struct {
@@ -41,7 +40,7 @@ func (suite *BladingGeometryTestSuite) TestFreeFunctions() {
 		suite.T(),
 		common.ApproxEqual(
 			Height(x, suite.geom),
-			(suite.geom.OuterProfile().Diameter(x) - suite.geom.InnerProfile().Diameter(x)) / 2,
+			(suite.geom.OuterProfile().Diameter(x)-suite.geom.InnerProfile().Diameter(x))/2,
 			0.000001,
 		),
 	)
@@ -73,7 +72,7 @@ func (suite *BladingGeometryTestSuite) TestMeanLine() {
 	assert.True(suite.T(), common.ApproxEqual(dMeanIn, suite.geom.MeanProfile().Diameter(0), 0.00001))
 
 	var xOut = suite.geom.XGapOut()
-	var dOut = dMeanIn + 2 * math.Tan(meanAngle) * xOut
+	var dOut = dMeanIn + 2*math.Tan(meanAngle)*xOut
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(dOut, suite.geom.MeanProfile().Diameter(xOut), 0.000001),
@@ -82,7 +81,7 @@ func (suite *BladingGeometryTestSuite) TestMeanLine() {
 }
 
 func (suite *BladingGeometryTestSuite) TestExpansionAngle() {
-	assert.True(suite.T(), common.ApproxEqual(gammaOut - gammaIn, ExpansionAngle(suite.geom), 0.00001))
+	assert.True(suite.T(), common.ApproxEqual(gammaOut-gammaIn, ExpansionAngle(suite.geom), 0.00001))
 }
 
 func TestBladingGeometryTestSuite(t *testing.T) {
@@ -92,4 +91,3 @@ func TestBladingGeometryTestSuite(t *testing.T) {
 func testMessage(x0, x float64) string {
 	return fmt.Sprintf("expected: %v; got %v", x0, x)
 }
-

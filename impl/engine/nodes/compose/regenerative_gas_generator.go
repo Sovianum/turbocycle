@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/fuel"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/fuel"
 )
 
 func NewRegenerativeGasGeneratorNode(
@@ -22,8 +22,8 @@ func NewRegenerativeGasGeneratorNode(
 	precision float64,
 ) RegenerativeGasGeneratorNode {
 	var result = &regenerativeGasGeneratorNode{
-		ports:                   make(core.PortsType),
-		turboCascade:            NewTurboCascadeNode(
+		ports: make(core.PortsType),
+		turboCascade: NewTurboCascadeNode(
 			compressorEtaAd, piStag, etaT, lambdaOut,
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 			etaM, precision,

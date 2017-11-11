@@ -3,11 +3,11 @@ package schemes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Sovianum/turbocycle/helpers/fuel"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
+	"github.com/Sovianum/turbocycle/material/fuel"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -41,7 +41,7 @@ func TestTwoShaftsScheme_GetNetwork_Smoke(t *testing.T) {
 		},
 		func(node constructive.TurbineNode) float64 {
 			return 0
-		},0.9,
+		}, 0.9,
 	)
 
 	var scheme = NewTwoShaftsScheme(gasSource, inletPressureDrop, gasGenerator, compressorTurbinePipe, freeTurbineBlock)

@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	states2 "github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -24,19 +24,19 @@ const (
 	airGapRel     = 0.001
 	precision     = 0.05
 
-	c0 = 50.
-	tg = 1200.
-	pg = 1e6
+	c0       = 50.
+	tg       = 1200.
+	pg       = 1e6
 	massRate = 100.
 
-	gammaIn = -0.09
+	gammaIn  = -0.09
 	gammaOut = 0.09
-	baRel = 4
-	lRelOut = 0.15
+	baRel    = 4
+	lRelOut  = 0.15
 	deltaRel = 0.1
 
-	t0 = 1130.
-	p0 = 7.8e5
+	t0       = 1130.
+	p0       = 7.8e5
 	density0 = 2.405
 
 	alpha = 0.5
@@ -46,7 +46,7 @@ type StageNodeTestSuite struct {
 	suite.Suite
 	pack *DataPack
 	node *turbineStageNode
-	gen geometry.StageGeometryGenerator
+	gen  geometry.StageGeometryGenerator
 }
 
 func (suite *StageNodeTestSuite) SetupTest() {
@@ -62,7 +62,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 	suite.node.GasInput().SetState(states.NewGasPortState(gases.GetAir()))
 
 	suite.node.VelocityInput().SetState(states2.NewVelocityPortState(
-		states2.NewInletTriangle(0, c0, math.Pi / 2),
+		states2.NewInletTriangle(0, c0, math.Pi/2),
 		states2.InletTriangleType,
 	))
 	suite.node.TemperatureInput().SetState(states.NewTemperaturePortState(tg))
@@ -74,7 +74,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 
 func (suite *StageNodeTestSuite) TestCalc() {
 	suite.node.VelocityInput().SetState(states2.NewVelocityPortState(
-		states2.NewInletTriangle(0, 10, math.Pi / 2),
+		states2.NewInletTriangle(0, 10, math.Pi/2),
 		states2.InletTriangleType,
 	))
 	var pack = suite.node.getDataPack()
@@ -161,7 +161,7 @@ func (suite *StageNodeTestSuite) TestInitCalcFirstStage() {
 
 func (suite *StageNodeTestSuite) TestInitCalc() {
 	suite.node.VelocityInput().SetState(states2.NewVelocityPortState(
-		states2.NewInletTriangle(0, 10, math.Pi / 2),
+		states2.NewInletTriangle(0, 10, math.Pi/2),
 		states2.InletTriangleType,
 	))
 	suite.node.initCalc(suite.pack)
@@ -188,7 +188,7 @@ func (suite *StageNodeTestSuite) TestStatorHeatDrop() {
 	suite.node.statorHeatDrop(suite.pack)
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(stageHeatDrop * (1 - reactivity), suite.pack.StatorHeatDrop, 0.00001),
+		common.ApproxEqual(stageHeatDrop*(1-reactivity), suite.pack.StatorHeatDrop, 0.00001),
 	)
 }
 
@@ -200,8 +200,8 @@ func (suite *StageNodeTestSuite) TestGetStatorMeanInletDiameter() {
 		gammaIn, gammaOut,
 	)
 
-	var enom = baRel - (1 + deltaRel) * (math.Tan(gammaOut) - math.Tan(gammaIn))
-	var denom = baRel - 2 * (1 + deltaRel) * lRelOut * math.Tan(gammaMean)
+	var enom = baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
+	var denom = baRel - 2*(1+deltaRel)*lRelOut*math.Tan(gammaMean)
 	var lRelIn = enom / denom
 	var expectedDMean = math.Sqrt(massRate / (math.Pi * c0 * density0 * lRelIn))
 
@@ -225,7 +225,7 @@ func (suite *StageNodeTestSuite) TestDensity0() {
 
 func (suite *StageNodeTestSuite) TestP0() {
 	var k = gases.K(getGas(), tg)
-	var expectedP0= pg * math.Pow(tg / t0, -k/(k-1))
+	var expectedP0 = pg * math.Pow(tg/t0, -k/(k-1))
 
 	suite.pack.T0 = t0
 	suite.node.p0(suite.pack)
@@ -242,7 +242,7 @@ func (suite *StageNodeTestSuite) TestT0() {
 	suite.node.t0(suite.pack)
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(tg - c0 * c0 / (2 * cp), suite.pack.T0, 0.0001),
+		common.ApproxEqual(tg-c0*c0/(2*cp), suite.pack.T0, 0.0001),
 	)
 }
 
@@ -257,5 +257,3 @@ func getGas() gases.Gas {
 func testMessage(x0, x float64) string {
 	return fmt.Sprintf("expected: %v; got %v", x0, x)
 }
-
-

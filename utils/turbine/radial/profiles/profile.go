@@ -3,8 +3,8 @@ package profiles
 import (
 	"math"
 
-	"github.com/Sovianum/turbocycle/impl/radial/geom"
-	"github.com/Sovianum/turbocycle/impl/radial/profilers"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/profilers"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -109,7 +109,7 @@ func (b *bladeProfile) OutletEdge() Line {
 }
 
 func radialPoint(startPoint *mat.VecDense, angle float64, radius float64) *mat.VecDense {
-	var x = startPoint.At(0, 0) - radius * math.Sin(angle)
-	var y = startPoint.At(1, 0) + radius * math.Cos(angle)
+	var x = startPoint.At(0, 0) - radius*math.Sin(angle)
+	var y = startPoint.At(1, 0) + radius*math.Cos(angle)
 	return mat.NewVecDense(2, []float64{x, y})
 }

@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/impl/radial/geom"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
 	"gonum.org/v1/gonum/mat"
 )
 

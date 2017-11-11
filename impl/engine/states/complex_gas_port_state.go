@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/gases"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"math"
 )
 

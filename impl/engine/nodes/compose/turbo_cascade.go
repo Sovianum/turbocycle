@@ -18,9 +18,9 @@ func NewTurboCascadeNode(
 	precision float64,
 ) TurboCascadeNode {
 	var result = &turboCascadeNode{
-		ports:        make(core.PortsType),
-		compressor:   constructive.NewCompressorNode(compressorEtaAd, piStag, precision),
-		turbine:      constructive.NewBlockedTurbineNode(
+		ports:      make(core.PortsType),
+		compressor: constructive.NewCompressorNode(compressorEtaAd, piStag, precision),
+		turbine: constructive.NewBlockedTurbineNode(
 			etaT, lambdaOut, precision,
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 		),

@@ -14,16 +14,16 @@ func TestCombinator(t *testing.T) {
 
 	var expected = mat.NewVecDense(2, []float64{-1, -1})
 	var got = combinator.
-	Combine(
-		Translation(mat.NewVecDense(2, []float64{0, 1})),
-	).
-	Combine(
-		Reflection(math.Pi / 2),
-	).
-	Combine(
-		Rotation(-math.Pi / 2),
-	).
-	Build().Apply(vec)
+		Combine(
+			Translation(mat.NewVecDense(2, []float64{0, 1})),
+		).
+		Combine(
+			Reflection(math.Pi / 2),
+		).
+		Combine(
+			Rotation(-math.Pi / 2),
+		).
+		Build().Apply(vec)
 
 	assert.True(
 		t,

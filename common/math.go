@@ -84,8 +84,8 @@ func Average(f func(float64) float64, x0 float64, x1 float64, n int) float64 {
 }
 
 func ApproxEqual(expected, got, precision float64) bool {
-	var min = expected - math.Abs(expected) * precision/2
-	var max = expected + math.Abs(expected) * precision/2
+	var min = expected - math.Abs(expected)*precision/2
+	var max = expected + math.Abs(expected)*precision/2
 
 	return min <= got && got <= max
 }
@@ -124,11 +124,11 @@ func Factorial(x int) int {
 }
 
 func Linspace(x1, x2 float64, n int) []float64 {
-	var step = (x2 - x1) / float64(n - 1)
+	var step = (x2 - x1) / float64(n-1)
 	var result = make([]float64, n)
 
 	for i := 0; i != n; i++ {
-		result[i] = x1 + step * float64(i)
+		result[i] = x1 + step*float64(i)
 	}
 
 	return result

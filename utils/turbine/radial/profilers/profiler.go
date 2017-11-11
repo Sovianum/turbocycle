@@ -4,9 +4,9 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/impl/radial"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial"
 )
 
 func NewProfiler(

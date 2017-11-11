@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

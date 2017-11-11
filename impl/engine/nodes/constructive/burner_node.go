@@ -7,10 +7,10 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/fuel"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/fuel"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/go-errors/errors"
 )
 

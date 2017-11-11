@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gonum.org/v1/gonum/mat"
 )
+
 const (
 	precision = 1e8
 )

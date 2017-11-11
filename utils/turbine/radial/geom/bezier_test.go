@@ -11,7 +11,7 @@ import (
 
 type BezierTestSuite struct {
 	suite.Suite
-	curve *bezierCurve
+	curve  *bezierCurve
 	points []*mat.VecDense
 }
 
@@ -25,8 +25,8 @@ func (suite *BezierTestSuite) SetupTest() {
 }
 
 func (suite *BezierTestSuite) TestPoint() {
-	var testCases = []struct{
-		t float64
+	var testCases = []struct {
+		t        float64
 		expected *mat.VecDense
 	}{
 		{0, suite.points[0]},
@@ -43,9 +43,9 @@ func (suite *BezierTestSuite) TestPoint() {
 }
 
 func (suite *BezierTestSuite) TestTermBasis() {
-	var testCases = []struct{
-		i int
-		t float64
+	var testCases = []struct {
+		i        int
+		t        float64
 		expected float64
 	}{
 		{0, 0, 1},
@@ -61,8 +61,8 @@ func (suite *BezierTestSuite) TestTermBasis() {
 }
 
 func (suite *BezierTestSuite) TestTermFactor() {
-	var testCases = []struct{
-		i int
+	var testCases = []struct {
+		i        int
 		expected float64
 	}{
 		{0, 1},

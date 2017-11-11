@@ -21,7 +21,7 @@ func Unit() Transformation {
 	return unit{}
 }
 
-type unit struct {}
+type unit struct{}
 
 func (unit) Apply(vec *mat.VecDense) *mat.VecDense {
 	var result = newPoint()

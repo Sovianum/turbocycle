@@ -44,7 +44,7 @@ func GetInnerAndOuterAngles(totalAngle, meanLineAngle float64) (float64, float64
 	var tanGammaM = math.Tan(meanLineAngle)
 	var tanGamma = math.Tan(totalAngle)
 
-	var tanGammaIn = tanGammaM + 1/tanGamma - math.Sqrt(1 + tanGammaM*tanGammaM + 1/(tanGamma*tanGamma))
+	var tanGammaIn = tanGammaM + 1/tanGamma - math.Sqrt(1+tanGammaM*tanGammaM+1/(tanGamma*tanGamma))
 
 	var gammaIn = math.Atan(tanGammaIn)
 	var gammaOut = totalAngle + gammaIn
@@ -64,7 +64,7 @@ func (gen *bladingGeometryGenerator) GenerateFromInlet(dMeanIn float64) BladingG
 	var _, gammaMean = GetTotalAndMeanLineAngles(gen.gammaIn, gen.gammaOut)
 
 	var elongationRel = gen.lRelOut / gen.elongation
-	var dMeanOut = 1 / (1 - 2*elongationRel*(1 + gen.deltaRel)*math.Tan(gammaMean)) * dMeanIn
+	var dMeanOut = 1 / (1 - 2*elongationRel*(1+gen.deltaRel)*math.Tan(gammaMean)) * dMeanIn
 	var bladeWidth = dMeanOut * elongationRel
 	var gapWidth = bladeWidth * gen.deltaRel
 	var bladingWidth = bladeWidth + gapWidth

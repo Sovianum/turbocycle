@@ -55,7 +55,7 @@ func Area(x float64, geom BladingGeometry) float64 {
 func AxisDistance(x, hRel float64, geom BladingGeometry) float64 {
 	var dIn = geom.InnerProfile().Diameter(x)
 	var length = Height(x, geom)
-	return dIn / 2 + length * hRel
+	return dIn/2 + length*hRel
 }
 
 type bladingGeometry struct {

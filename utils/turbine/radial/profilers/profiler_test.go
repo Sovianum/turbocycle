@@ -2,12 +2,12 @@ package profilers
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/impl/radial"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

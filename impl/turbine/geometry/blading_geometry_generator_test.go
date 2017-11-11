@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	lRelOut = 0.2
+	lRelOut    = 0.2
 	elongation = 4.
-	deltaRel = 0.1
+	deltaRel   = 0.1
 )
 
 type BladingGeometryGeneratorTestSuite struct {
@@ -91,7 +91,7 @@ func (suite *BladingGeometryGeneratorTestSuite) TestDiameterContinuity() {
 	var statorGeom = suite.gen.GenerateFromInlet(dMeanIn)
 
 	var lRotorIn = Height(statorGeom.XGapOut(), statorGeom)
-	var lRotorOut = 1 / (1 - (math.Tan(gammaOut) - math.Tan(gammaIn)) / elongation * (1 + deltaRel)) * lRotorIn
+	var lRotorOut = 1 / (1 - (math.Tan(gammaOut)-math.Tan(gammaIn))/elongation*(1+deltaRel)) * lRotorIn
 	var bladeWidth = lRotorOut / elongation
 	var bladingWidth = bladeWidth * (1 + deltaRel)
 	var dMeanOut = statorGeom.MeanProfile().Diameter(statorGeom.XGapOut() + bladingWidth)
@@ -105,14 +105,14 @@ func (suite *BladingGeometryGeneratorTestSuite) TestDiameterContinuity() {
 
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(Height(statorGeom.XGapOut() + bladingWidth, statorGeom), lRotorOut, 0.000001),
-		testMessage(Height(statorGeom.XGapOut() + bladingWidth, statorGeom), lRotorOut),
+		common.ApproxEqual(Height(statorGeom.XGapOut()+bladingWidth, statorGeom), lRotorOut, 0.000001),
+		testMessage(Height(statorGeom.XGapOut()+bladingWidth, statorGeom), lRotorOut),
 	)
 
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(RelativeHeight(statorGeom.XGapOut() + bladingWidth, statorGeom), lRelOut, 0.000001),
-		testMessage(RelativeHeight(statorGeom.XGapOut() + bladingWidth, statorGeom), lRelOut),
+		common.ApproxEqual(RelativeHeight(statorGeom.XGapOut()+bladingWidth, statorGeom), lRelOut, 0.000001),
+		testMessage(RelativeHeight(statorGeom.XGapOut()+bladingWidth, statorGeom), lRelOut),
 	)
 
 	var rotorGeomGen = NewGeneratorFromProfileAngles(

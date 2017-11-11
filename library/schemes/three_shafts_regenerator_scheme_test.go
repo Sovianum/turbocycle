@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Sovianum/turbocycle/helpers/fuel"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/fuel"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +28,7 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 		},
 		func(node constructive.TurbineNode) float64 {
 			return 0
-		},0.99, 0.05,
+		}, 0.99, 0.05,
 	)
 	var regenerativeGasGenerator = compose.NewRegenerativeGasGeneratorNode(
 		0.86, 6, fuel.GetCH4(),

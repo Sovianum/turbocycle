@@ -12,7 +12,7 @@ type VelocityLaw interface {
 }
 
 func NewPowerVelocityLaw(powerCoef float64) VelocityLaw {
-	return powerVelocityLaw{powerCoef:powerCoef}
+	return powerVelocityLaw{powerCoef: powerCoef}
 }
 
 func NewConstantCirculationVelocityLaw() VelocityLaw {
@@ -41,7 +41,7 @@ func (law powerVelocityLaw) getVelocities(triangle0 states.VelocityTriangle, hRe
 	cu = law.getCU(triangle0, hRel, lRel)
 	ca = law.getCA(triangle0, hRel, lRel)
 	u = triangle0.U() * rRel
-	return 
+	return
 }
 
 func (law powerVelocityLaw) getCU(triangle0 states.VelocityTriangle, hRel, lRel float64) float64 {
@@ -56,7 +56,7 @@ func (law powerVelocityLaw) getCA(triangle0 states.VelocityTriangle, hRel, lRel 
 	var rRel = getRRel(hRel, lRel)
 
 	var term1 = caMean * caMean
-	var term2 = cuMean * cuMean * (1 - math.Pow(rRel, -2)) * (1 - 1 / law.powerCoef)
+	var term2 = cuMean * cuMean * (1 - math.Pow(rRel, -2)) * (1 - 1/law.powerCoef)
 
 	return math.Sqrt(term1 + term2)
 }
@@ -95,7 +95,7 @@ func (law constantAngleLaw) getVelocities(triangle0 states.VelocityTriangle, hRe
 }
 
 func (law constantAngleLaw) getCU(triangle0 states.VelocityTriangle, hRel, lRel float64) float64 {
-	var cuMean = triangle0.CU()		// here you ALWAYS need absolute velocity projection
+	var cuMean = triangle0.CU() // here you ALWAYS need absolute velocity projection
 	var alpha = triangle0.Alpha()
 	var rRel = getRRel(hRel, lRel)
 	return cuMean / math.Pow(rRel, math.Pow(math.Cos(alpha), 2))
@@ -110,5 +110,5 @@ func (law constantAngleLaw) getCA(triangle0 states.VelocityTriangle, hRel, lRel 
 }
 
 func getRRel(hRel, lRel float64) float64 {
-	return hRel * (1 + lRel) + (1 - hRel) * (1 - lRel)
+	return hRel*(1+lRel) + (1-hRel)*(1-lRel)
 }

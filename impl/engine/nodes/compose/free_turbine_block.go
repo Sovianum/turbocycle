@@ -19,9 +19,9 @@ func NewFreeTurbineBlock(
 	pressureLossSigma float64,
 ) FreeTurbineBlockNode {
 	var result = &freeTurbineBlockNode{
-		ports:        make(core.PortsType),
-		atmNode:      source.NewComplexGasSourceNode(nil, 0, pAtm), // first two arguments are not used cos they will be sent to sinks
-		turbine:      constructive.NewFreeTurbineNode(
+		ports:   make(core.PortsType),
+		atmNode: source.NewComplexGasSourceNode(nil, 0, pAtm), // first two arguments are not used cos they will be sent to sinks
+		turbine: constructive.NewFreeTurbineNode(
 			etaT, lambdaOut, precision,
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 		),

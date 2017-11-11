@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/gases"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/gases"
 	"math"
-	"github.com/Sovianum/turbocycle/helpers/gdf"
 )
 
 type FreeTurbineNode interface {
@@ -22,10 +22,10 @@ type FreeTurbineNode interface {
 }
 
 type freeTurbineNode struct {
-	ports           core.PortsType
-	etaT            float64
-	precision       float64
-	lambdaOut       float64
+	ports             core.PortsType
+	etaT              float64
+	precision         float64
+	lambdaOut         float64
 	leakMassRateFunc  func(TurbineNode) float64
 	coolMasRateRel    func(TurbineNode) float64
 	inflowMassRateRel func(TurbineNode) float64
@@ -36,10 +36,10 @@ func NewFreeTurbineNode(
 	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(TurbineNode) float64,
 ) FreeTurbineNode {
 	var result = &freeTurbineNode{
-		ports:           make(core.PortsType),
-		etaT:            etaT,
-		precision:       precision,
-		lambdaOut:       lambdaOut,
+		ports:             make(core.PortsType),
+		etaT:              etaT,
+		precision:         precision,
+		lambdaOut:         lambdaOut,
 		leakMassRateFunc:  leakMassRateFunc,
 		coolMasRateRel:    coolMasRateRel,
 		inflowMassRateRel: inflowMassRateRel,

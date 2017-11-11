@@ -9,7 +9,7 @@ import (
 
 func NewBezierCurve(points []*mat.VecDense) ParametricCurve {
 	return &bezierCurve{
-		controlPoints:points,
+		controlPoints: points,
 	}
 }
 
@@ -36,12 +36,12 @@ func (curve *bezierCurve) term(t float64, i int) *mat.VecDense {
 }
 
 func (curve *bezierCurve) termBasis(t float64, i int) float64 {
-	return curve.termFactor(i) * math.Pow(t, float64(i)) * math.Pow(1 - t, float64(curve.order() - i))
+	return curve.termFactor(i) * math.Pow(t, float64(i)) * math.Pow(1-t, float64(curve.order()-i))
 }
 
 func (curve *bezierCurve) termFactor(i int) float64 {
 	var numer = float64(common.Factorial(curve.order()))
-	var denom = float64(common.Factorial(i) * common.Factorial(curve.order() - i))
+	var denom = float64(common.Factorial(i) * common.Factorial(curve.order()-i))
 	return numer / denom
 }
 
@@ -52,4 +52,3 @@ func (curve *bezierCurve) order() int {
 func newPoint() *mat.VecDense {
 	return mat.NewVecDense(2, nil)
 }
-

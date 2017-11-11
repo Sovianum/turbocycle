@@ -3,22 +3,22 @@ package geometry
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-	"github.com/stretchr/testify/assert"
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
-	rotorLRelOut = 0.2
+	rotorLRelOut    = 0.2
 	rotorElongation = 2
-	rotorDeltaRel = 0.1
-	rotorGammaIn = -0.09
-	rotorGammaOut = 0.09
+	rotorDeltaRel   = 0.1
+	rotorGammaIn    = -0.09
+	rotorGammaOut   = 0.09
 
 	statorElongation = 2
-	statorDeltaRel = 0.1
-	statorGammaIn = -0.09
-	statorGammaOut = 0.09
+	statorDeltaRel   = 0.1
+	statorGammaIn    = -0.09
+	statorGammaOut   = 0.09
 
 	statorDMeanIn = 1.
 )
@@ -75,7 +75,6 @@ func (suite *StageGeometryGeneratorTestSuite) TestDiameterContinuity() {
 		testMessage(dOuterStatorOut, dOuterRotorIn),
 	)
 }
-
 
 func TestStageGeometryGeneratorTestSuite(t *testing.T) {
 	suite.Run(t, new(StageGeometryGeneratorTestSuite))

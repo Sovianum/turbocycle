@@ -7,11 +7,11 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/helpers/gases"
-	"github.com/Sovianum/turbocycle/helpers/gdf"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 type BlockedTurbineNode interface {

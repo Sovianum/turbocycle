@@ -46,7 +46,7 @@ type LineTestSuite struct {
 	outletPoint *mat.VecDense
 	inletAngle  float64
 	outletAngle float64
-	line Line
+	line        Line
 }
 
 func (suite *LineTestSuite) SetupTest() {
