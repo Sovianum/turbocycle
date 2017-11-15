@@ -8,6 +8,10 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+const (
+	defaultN = 100
+)
+
 type BladeProfile interface {
 	PSLine() Line
 	SSLine() Line
@@ -32,6 +36,13 @@ func NewBladeProfile(
 		inletEdge:  NewLine(inletPSPoint, inletSSPoint, -inletPSAngle, -inletSSAngle),
 		outletEdge: NewLine(outletPSPoint, outletSSPoint, -outletPSAngle, -outletSSAngle),
 	}
+}
+
+func Perimeter(profile BladeProfile) float64 {
+	return ApproxLength(profile.InletEdge(), defaultN) +
+		ApproxLength(profile.OutletEdge(), defaultN) +
+		ApproxLength(profile.PSLine(), defaultN) +
+		ApproxLength(profile.SSLine(), defaultN)
 }
 
 func NewBladeProfileWithRadiuses(

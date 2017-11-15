@@ -50,13 +50,16 @@ type temperatureSystem struct {
 
 func (system temperatureSystem) Solve(x0, theta0, xMax, maxStep float64) TemperatureSolution {
 	var xArr, tAirArr = system.solver.Solution(system.dThetaDX, x0, theta0, xMax, maxStep).Build()
+
 	var wallTempArr = make([]float64, len(xArr))
 	for i := 0; i != len(xArr); i++ {
 		wallTempArr[i] = system.wallTemp(xArr[i], tAirArr[i])
 	}
 
 	return TemperatureSolution{
-		X: xArr, AirTemperature: tAirArr, WallTemperature: wallTempArr,
+		X:               xArr,
+		AirTemperature:  tAirArr,
+		WallTemperature: wallTempArr,
 	}
 }
 

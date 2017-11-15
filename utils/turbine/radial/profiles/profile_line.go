@@ -24,6 +24,18 @@ type Line interface {
 	Transform(t geom.Transformation)
 }
 
+func ApproxLength(curve Line, segmentNum int) float64 {
+	var points = curve.GetPoints(segmentNum+1)
+	var delta = mat.NewVecDense(2, nil)
+	var result float64
+
+	for i := 1; i != segmentNum+1; i++ {
+		delta.SubVec(points[i], points[i-1])
+		result += mat.Norm(delta, 2)
+	}
+	return result
+}
+
 type line struct {
 	startPoint *mat.VecDense
 	endPoint   *mat.VecDense

@@ -16,15 +16,3 @@ func Points(curve ParametricCurve, tArr []float64) []*mat.VecDense {
 	}
 	return result
 }
-
-func ApproxLength(curve ParametricCurve, segmentNum int) float64 {
-	var points = Points(curve, common.Linspace(0, 1, segmentNum+1))
-	var delta = newPoint()
-	var result float64
-
-	for i := 1; i != segmentNum+1; i++ {
-		delta.SubVec(points[i], points[i-1])
-		result += mat.Norm(delta, 2)
-	}
-	return result
-}
