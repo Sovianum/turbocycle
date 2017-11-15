@@ -5,6 +5,8 @@ import "github.com/Sovianum/turbocycle/common"
 type Gas interface {
 	Cp(t float64) float64
 	R() float64
+	Mu(t float64) float64
+	Lambda(t float64) float64
 }
 
 func Density(gas Gas, t float64, p float64) float64 {
