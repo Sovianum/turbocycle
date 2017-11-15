@@ -39,6 +39,24 @@ func (m mixture) Cp(t float64) float64 {
 	return result
 }
 
+func (m mixture) Mu(t float64) float64 {
+	var result float64 = 0
+	for i := range m.fractions {
+		result += m.gases[i].Mu(t) * m.fractions[i]
+	}
+
+	return result
+}
+
+func (m mixture) Lambda(t float64) float64 {
+	var result float64 = 0
+	for i := range m.fractions {
+		result += m.gases[i].Lambda(t) * m.fractions[i]
+	}
+
+	return result
+}
+
 func (m mixture) R() float64 {
 	var result float64 = 0
 	for i := range m.fractions {

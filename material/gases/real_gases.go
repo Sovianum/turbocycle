@@ -55,6 +55,7 @@ func (air) Mu(t float64) float64 {
 		305.8e-7, 322.5e-7, 338.8e-7, 354.6e-7, 369.8e-8,
 		384.3e-7, 398.1e-7, 411.3e-7, 424.4e-7, 449.0e-7,
 		473.0e-7, 496.0e-7, 530.0e-7, 557.0e-7, 584.0e-7,
+		611e-7, 637e-7, 663e-7, 689e-7, 715e-7,
 	}
 	return common.InterpTolerate(t, tArr, muArr)
 }
@@ -74,6 +75,7 @@ func (air) Lambda(t float64) float64 {
 		46.9e-3, 49.7e-3, 52.4e-3, 54.9e-3, 57.3e-3,
 		59.6e-3, 62.0e-3, 64.3e-3, 66.7e-3, 71.5e-3,
 		76.3e-3, 82.0e-3, 91.0e-3, 100e-3, 106e-3,
+		113e-3, 120e-3, 128e-3, 137e-3, 147e-3,
 	}
 	return common.InterpTolerate(t, tArr, kArr)
 }

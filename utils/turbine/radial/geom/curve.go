@@ -1,7 +1,6 @@
 package geom
 
 import (
-	"github.com/Sovianum/turbocycle/common"
 	"gonum.org/v1/gonum/mat"
 )
 
