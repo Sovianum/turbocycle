@@ -21,6 +21,48 @@ type BladeProfile interface {
 	Transform(t geom.Transformation)
 }
 
+func NewBladeProfileFromProfiler(
+	hRel, unitInletRadius, unitOutletRadius float64,
+	profiler profilers.Profiler,
+) BladeProfile {
+	var inletMeanPoint = mat.NewVecDense(2, []float64{0, 0})
+	var outletMeanPoint = mat.NewVecDense(2, []float64{1, 0})
+	return NewBladeProfileWithRadii(
+		inletMeanPoint, outletMeanPoint,
+		profilers.InletPSAngle(hRel, profiler),
+		profilers.OutletPSAngle(hRel, profiler),
+		profilers.InletSSAngle(hRel, profiler),
+		profilers.OutletSSAngle(hRel, profiler),
+		profiler.InletProfileAngle(hRel),
+		profiler.OutletProfileAngle(hRel),
+		unitInletRadius,
+		unitOutletRadius,
+	)
+}
+
+func NewBladeProfileWithRadii(
+	inletMeanPoint, outletMeanPoint *mat.VecDense,
+	inletPSAngle, outletPSAngle float64,
+	inletSSAngle, outletSSAngle float64,
+	inletMeanAngle, outletMeanAngle float64,
+	unitInletRadius, unitOutletRadius float64,
+) BladeProfile {
+	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius)
+	var outletPSPoint = radialPoint(outletMeanPoint, outletPSAngle, unitOutletRadius)
+
+	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius)
+	var outletSSPoint = radialPoint(outletMeanPoint, outletSSAngle, unitOutletRadius)
+
+	return NewBladeProfile(
+		inletPSPoint, outletPSPoint,
+		inletSSPoint, outletSSPoint,
+		inletMeanPoint, outletMeanPoint,
+		inletPSAngle, outletPSAngle,
+		inletSSAngle, outletSSAngle,
+		inletMeanAngle, outletMeanAngle,
+	)
+}
+
 func NewBladeProfile(
 	inletPSPoint, outletPSPoint *mat.VecDense,
 	inletSSPoint, outletSSPoint *mat.VecDense,
@@ -61,42 +103,45 @@ func Perimeter(profile BladeProfile) float64 {
 		geom.ApproxLength(profile.SSLine(), 0, 1, defaultN)
 }
 
-func NewBladeProfileWithRadiuses(
-	inletMeanPoint, outletMeanPoint *mat.VecDense,
-	inletPSAngle, outletPSAngle float64,
-	inletSSAngle, outletSSAngle float64,
-	inletMeanAngle, outletMeanAngle float64,
-	unitInletRadius, unitOutletRadius float64,
-) BladeProfile {
-	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius)
-	var outletPSPoint = radialPoint(outletMeanPoint, outletPSAngle, unitOutletRadius)
+func PSSegment(profile BladeProfile, inletEdgeFraction float64, outletEdgeFraction float64) geom.Segment {
+	var inletEdgeSegment = geom.NewUnitSegment(profile.InletEdge(), inletEdgeFraction, 0)
+	var inletEdgeSegmentLength = geom.ApproxLength(inletEdgeSegment, 0, 1, defaultN)
 
-	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius)
-	var outletSSPoint = radialPoint(outletMeanPoint, outletSSAngle, unitOutletRadius)
+	var psSegment = geom.NewUnitSegment(profile.PSLine(), 0, 1)
+	var psSegmentLength = geom.ApproxLength(psSegment, 0, 1, defaultN)
 
-	return NewBladeProfile(
-		inletPSPoint, outletPSPoint,
-		inletSSPoint, outletSSPoint,
-		inletMeanPoint, outletMeanPoint,
-		inletPSAngle, outletPSAngle,
-		inletSSAngle, outletSSAngle,
-		inletMeanAngle, outletMeanAngle,
+	var outletEdgeSegment = geom.NewUnitSegment(profile.OutletEdge(), 0, outletEdgeFraction)
+	var outletEdgeSegmentLength = geom.ApproxLength(outletEdgeSegment, 0, 1, defaultN)
+
+	var totalLength = inletEdgeSegmentLength + psSegmentLength + outletEdgeSegmentLength
+
+	return geom.JoinToUnit(
+		[]geom.Segment{inletEdgeSegment, psSegment, outletEdgeSegment},
+		[]float64{
+			inletEdgeSegmentLength / totalLength,
+			(inletEdgeSegmentLength + psSegmentLength) / totalLength,
+		},
 	)
 }
 
-func NewBladeProfileFromProfiler(hRel, unitInletRadius, unitOutletRadius float64, profiler profilers.Profiler) BladeProfile {
-	var inletMeanPoint = mat.NewVecDense(2, []float64{0, 0})
-	var outletMeanPoint = mat.NewVecDense(2, []float64{1, 0})
-	return NewBladeProfileWithRadiuses(
-		inletMeanPoint, outletMeanPoint,
-		profilers.InletPSAngle(hRel, profiler),
-		profilers.OutletPSAngle(hRel, profiler),
-		profilers.InletSSAngle(hRel, profiler),
-		profilers.OutletSSAngle(hRel, profiler),
-		profiler.InletProfileAngle(hRel),
-		profiler.OutletProfileAngle(hRel),
-		unitInletRadius,
-		unitOutletRadius,
+func SSSegment(profile BladeProfile, inletEdgeFraction float64, outletEdgeFraction float64) geom.Segment {
+	var inletEdgeSegment = geom.NewUnitSegment(profile.InletEdge(), inletEdgeFraction, 1)
+	var inletEdgeSegmentLength = geom.ApproxLength(inletEdgeSegment, 0, 1, defaultN)
+
+	var ssSegment = geom.NewUnitSegment(profile.SSLine(), 0, 1)
+	var psSegmentLength = geom.ApproxLength(ssSegment, 0, 1, defaultN)
+
+	var outletEdgeSegment = geom.NewUnitSegment(profile.OutletEdge(), 1, outletEdgeFraction)
+	var outletEdgeSegmentLength = geom.ApproxLength(outletEdgeSegment, 0, 1, defaultN)
+
+	var totalLength = inletEdgeSegmentLength + psSegmentLength + outletEdgeSegmentLength
+
+	return geom.JoinToUnit(
+		[]geom.Segment{inletEdgeSegment, ssSegment, outletEdgeSegment},
+		[]float64{
+			inletEdgeSegmentLength / totalLength,
+			(inletEdgeSegmentLength + psSegmentLength) / totalLength,
+		},
 	)
 }
 

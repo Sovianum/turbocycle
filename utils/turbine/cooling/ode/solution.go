@@ -2,6 +2,7 @@ package ode
 
 type Solution interface {
 	Build() (xArr, yArr []float64)
+	Step() float64
 }
 
 type eulerSolution struct {
@@ -20,6 +21,10 @@ func (e eulerSolution) Build() (xArr, yArr []float64) {
 		x, y = e.nextPoint(x, y)
 	}
 	return xArr, yArr
+}
+
+func (e eulerSolution) Step() float64 {
+	return e.step
 }
 
 func (e eulerSolution) nextPoint(xCurr, yCurr float64) (xNext, yNext float64) {

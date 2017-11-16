@@ -1,8 +1,13 @@
 package cooling
 
-import "github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+import (
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
+	"gonum.org/v1/gonum/mat"
+)
 
 type TemperatureSystem interface {
+	Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution
 	CpAir(theta float64) float64
 	GasTemp(x float64) float64
 	AlphaAir(x, theta float64) float64
@@ -11,9 +16,14 @@ type TemperatureSystem interface {
 }
 
 type TemperatureSolution struct {
-	X               []float64
-	AirTemperature  []float64
-	WallTemperature []float64
+	ParametricCoord  []float64
+	X                []float64
+	Y                []float64
+	LengthCoord      []float64
+	AlphaAir         []float64
+	AirTemperature   []float64
+	WallTemperature  []float64
+	HeatTransferCoef []float64
 }
 
 func NewTemperatureSystem(
@@ -23,17 +33,22 @@ func NewTemperatureSystem(
 	gasTemp func(x float64) float64,
 	alphaAir func(x, theta float64) float64,
 	alphaGas func(x, theta float64) float64,
-	kFunc func(alphaAir, alphaGas float64) float64,
+	wallThk func(x float64) float64,
+	lambdaM func(t float64) float64,
+	segment geom.Segment,
 ) TemperatureSystem {
 	return &temperatureSystem{
 		solver: solver,
 
-		airMassRate: airMassRate,
-		cpAir:       cpAir,
-		gasTemp:     gasTemp,
-		alphaAir:    alphaAir,
-		alphaGas:    alphaGas,
-		kFunc:       kFunc,
+		airMassRate:     airMassRate,
+		cpAir:           cpAir,
+		gasTemp:         gasTemp,
+		alphaAir:        alphaAir,
+		alphaGas:        alphaGas,
+		wallThk:         wallThk,
+		lambdaM:         lambdaM,
+		segment:         segment,
+		lengthParameter: 0,
 	}
 }
 
@@ -43,76 +58,106 @@ type temperatureSystem struct {
 	airMassRate float64
 	cpAir       func(theta float64) float64
 	gasTemp     func(x float64) float64
-	alphaAir    func(x, theta float64) float64
-	alphaGas    func(x, theta float64) float64
-	kFunc       func(alphaAir, alphaGas float64) float64
+	alphaAir    AlphaLaw
+	alphaGas    AlphaLaw
 
 	wallThk func(x float64) float64
 	lambdaM func(t float64) float64
+
+	segment      geom.Segment
+	solutionStep float64
+
+	lengthParameter float64
 }
 
-func (system *temperatureSystem) Solve(x0, theta0, xMax, maxStep float64) TemperatureSolution {
-	var xArr, tAirArr = system.solver.Solution(system.dThetaDX, x0, theta0, xMax, maxStep).Build()
+func (system *temperatureSystem) Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution {
+	var solution = system.solver.Solution(system.dThetaDX, t0, theta0, tMax, maxStep)
+	system.solutionStep = solution.Step()
 
-	var wallTempArr = make([]float64, len(xArr))
-	for i := 0; i != len(xArr); i++ {
-		wallTempArr[i] = system.wallTemp(xArr[i], tAirArr[i])
-	}
+	var tArr, tAirArr = solution.Build()
 
-	return TemperatureSolution{
-		X:               xArr,
-		AirTemperature:  tAirArr,
-		WallTemperature: wallTempArr,
+	var solutionLen = len(tArr)
+	var tSolution = TemperatureSolution{
+		ParametricCoord:  tArr,
+		AirTemperature:   tAirArr,
+		X:                make([]float64, solutionLen),
+		Y:                make([]float64, solutionLen),
+		LengthCoord:      make([]float64, solutionLen),
+		AlphaAir:         make([]float64, solutionLen),
+		WallTemperature:  make([]float64, solutionLen),
+		HeatTransferCoef: make([]float64, solutionLen),
 	}
+	system.extendSolutionArray(&tSolution, t0, system.solutionStep, solutionLen)
+	return tSolution
 }
 
 func (system *temperatureSystem) CpAir(theta float64) float64 {
 	return system.cpAir(theta)
 }
 
-func (system *temperatureSystem) GasTemp(x float64) float64 {
-	return system.gasTemp(x)
+func (system *temperatureSystem) GasTemp(lengthCoord float64) float64 {
+	return system.gasTemp(lengthCoord)
 }
 
-func (system *temperatureSystem) AlphaAir(x, theta float64) float64 {
-	return system.alphaAir(x, theta)
+func (system *temperatureSystem) AlphaAir(lengthCoord, theta float64) float64 {
+	return system.alphaAir(lengthCoord, theta)
 }
 
-func (system *temperatureSystem) AlphaGas(x, theta float64) float64 {
-	return system.alphaGas(x, theta)
+func (system *temperatureSystem) AlphaGas(lengthCoord, theta float64) float64 {
+	return system.alphaGas(lengthCoord, theta)
 }
 
 func (system *temperatureSystem) K(x, theta float64) float64 {
-	return system.kFunc(
-		system.alphaAir(x, theta),
-		system.alphaGas(x, theta),
-	)
+	return system.heatTransferCoef(x, theta)
 }
 
-func (system *temperatureSystem) dThetaDX(x, theta float64) float64 {
-	var factor = 2 / (system.airMassRate * system.cpAir(theta))
-	var k = system.kFunc(
-		system.alphaAir(x, theta),
-		system.alphaGas(x, theta),
-	)
-	var result = factor * k * (system.gasTemp(x) - theta)
+func (system *temperatureSystem) dThetaDX(t, theta float64) float64 {
+	var segmentDerivative = geom.ApproxDerivative1(system.segment, t, system.solutionStep)
+	var geomFactor = mat.Norm(segmentDerivative, 2)
+
+	var massRateFactor = 2 / (system.airMassRate * system.cpAir(theta))
+	var k = system.heatTransferCoef(system.lengthParameter, theta)
+	var result = geomFactor * massRateFactor * k * (system.gasTemp(system.lengthParameter) - theta)
+
+	system.lengthParameter += geomFactor * system.solutionStep // side effect is used to prevent length calculation on each step
 	return result
 }
 
-func (system *temperatureSystem) wallTemp(x, theta float64) float64 {
-	var term1 = system.gasTemp(x)
-	var kFactor = system.heatTransferCoef(x, theta) / system.alphaGas(x, theta)
-	var tFactor = kFactor * (system.gasTemp(x) - theta)
+func (system *temperatureSystem) wallTemp(lengthCoord, theta float64) float64 {
+	var term1 = system.gasTemp(lengthCoord)
+	var kFactor = system.heatTransferCoef(lengthCoord, theta) / system.alphaGas(lengthCoord, theta)
+	var tFactor = system.gasTemp(lengthCoord) - theta
 	return term1 - kFactor*tFactor
 }
 
-func (system *temperatureSystem) heatTransferCoef(x, theta float64) float64 {
-	var alphaAir = system.alphaAir(x, theta)
-	var alphaGas = system.alphaGas(x, theta)
-	var delta = system.wallThk(x)
+func (system *temperatureSystem) heatTransferCoef(lengthCoord, theta float64) float64 {
+	var alphaAir = system.alphaAir(lengthCoord, theta)
+	var alphaGas = system.alphaGas(lengthCoord, theta)
+	var delta = system.wallThk(lengthCoord)
 	var lambdaM = system.lambdaM(theta)
 
 	var enom = alphaAir
-	var denom = 1 + alphaAir * (1 / alphaGas * delta / lambdaM)
+	var denom = 1 + alphaAir*(1/alphaGas+delta/lambdaM)
 	return enom / denom
+}
+
+func (system *temperatureSystem) extendSolutionArray(solution *TemperatureSolution, tStart, step float64, pointNum int) {
+	var currLengthCoord float64 = 0
+	var currT float64 = 0
+
+	for i := 0; i != pointNum; i++ {
+		var point = system.segment.Point(currT)
+		solution.X[i] = point.At(0, 0)
+		solution.Y[i] = point.At(1, 0)
+		solution.LengthCoord[i] = currLengthCoord
+		solution.AlphaAir[i] = system.AlphaAir(currLengthCoord, solution.AirTemperature[i])
+		solution.WallTemperature[i] = system.wallTemp(currLengthCoord, solution.AirTemperature[i])
+		solution.HeatTransferCoef[i] = system.heatTransferCoef(currLengthCoord, solution.AirTemperature[i])
+
+		var segmentDerivative = geom.ApproxDerivative1(system.segment, currT, step)
+		var lengthStep = mat.Norm(segmentDerivative, 2) * step
+
+		currT += step
+		currLengthCoord += lengthStep
+	}
 }
