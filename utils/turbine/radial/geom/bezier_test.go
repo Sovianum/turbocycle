@@ -2,12 +2,43 @@ package geom
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gonum.org/v1/gonum/mat"
 )
+
+func TestIntersectionPoint(t *testing.T) {
+	var testCases = []struct {
+		point1   *mat.VecDense
+		point2   *mat.VecDense
+		angle1   float64
+		angle2   float64
+		expected *mat.VecDense
+	}{
+		{
+			point1:   mat.NewVecDense(2, []float64{0, 0}),
+			point2:   mat.NewVecDense(2, []float64{1, 0}),
+			angle1:   math.Pi / 4,
+			angle2:   3 * math.Pi / 4,
+			expected: mat.NewVecDense(2, []float64{0.5, 0.5}),
+		},
+	}
+
+	for i, tc := range testCases {
+		var point = intersectionPoint(
+			tc.point1, tc.point2,
+			tc.angle1, tc.angle2,
+		)
+		assert.True(
+			t,
+			mat.EqualApprox(point, tc.expected, 1e-8),
+			testMessage(i, tc.expected, point),
+		)
+	}
+}
 
 type BezierTestSuite struct {
 	suite.Suite
@@ -21,7 +52,7 @@ func (suite *BezierTestSuite) SetupTest() {
 		mat.NewVecDense(2, []float64{1, 1}),
 		mat.NewVecDense(2, []float64{2, 0}),
 	}
-	suite.curve = NewBezierCurve(suite.points).(*bezierCurve)
+	suite.curve = NewBezier(suite.points).(*bezierCurve)
 }
 
 func (suite *BezierTestSuite) TestPoint() {

@@ -25,7 +25,7 @@ func NewTemperatureSystem(
 	alphaGas func(x, theta float64) float64,
 	kFunc func(alphaAir, alphaGas float64) float64,
 ) TemperatureSystem {
-	return temperatureSystem{
+	return &temperatureSystem{
 		solver: solver,
 
 		airMassRate: airMassRate,
@@ -46,9 +46,12 @@ type temperatureSystem struct {
 	alphaAir    func(x, theta float64) float64
 	alphaGas    func(x, theta float64) float64
 	kFunc       func(alphaAir, alphaGas float64) float64
+
+	wallThk func(x float64) float64
+	lambdaM func(t float64) float64
 }
 
-func (system temperatureSystem) Solve(x0, theta0, xMax, maxStep float64) TemperatureSolution {
+func (system *temperatureSystem) Solve(x0, theta0, xMax, maxStep float64) TemperatureSolution {
 	var xArr, tAirArr = system.solver.Solution(system.dThetaDX, x0, theta0, xMax, maxStep).Build()
 
 	var wallTempArr = make([]float64, len(xArr))
@@ -63,30 +66,30 @@ func (system temperatureSystem) Solve(x0, theta0, xMax, maxStep float64) Tempera
 	}
 }
 
-func (system temperatureSystem) CpAir(theta float64) float64 {
+func (system *temperatureSystem) CpAir(theta float64) float64 {
 	return system.cpAir(theta)
 }
 
-func (system temperatureSystem) GasTemp(x float64) float64 {
+func (system *temperatureSystem) GasTemp(x float64) float64 {
 	return system.gasTemp(x)
 }
 
-func (system temperatureSystem) AlphaAir(x, theta float64) float64 {
+func (system *temperatureSystem) AlphaAir(x, theta float64) float64 {
 	return system.alphaAir(x, theta)
 }
 
-func (system temperatureSystem) AlphaGas(x, theta float64) float64 {
+func (system *temperatureSystem) AlphaGas(x, theta float64) float64 {
 	return system.alphaGas(x, theta)
 }
 
-func (system temperatureSystem) K(x, theta float64) float64 {
+func (system *temperatureSystem) K(x, theta float64) float64 {
 	return system.kFunc(
 		system.alphaAir(x, theta),
 		system.alphaGas(x, theta),
 	)
 }
 
-func (system temperatureSystem) dThetaDX(x, theta float64) float64 {
+func (system *temperatureSystem) dThetaDX(x, theta float64) float64 {
 	var factor = 2 / (system.airMassRate * system.cpAir(theta))
 	var k = system.kFunc(
 		system.alphaAir(x, theta),
@@ -96,9 +99,20 @@ func (system temperatureSystem) dThetaDX(x, theta float64) float64 {
 	return result
 }
 
-func (system temperatureSystem) wallTemp(x, theta float64) float64 {
+func (system *temperatureSystem) wallTemp(x, theta float64) float64 {
 	var term1 = system.gasTemp(x)
-	var kFactor = system.kFunc(system.alphaAir(x, theta), system.alphaGas(x, theta)) / system.alphaGas(x, theta)
+	var kFactor = system.heatTransferCoef(x, theta) / system.alphaGas(x, theta)
 	var tFactor = kFactor * (system.gasTemp(x) - theta)
 	return term1 - kFactor*tFactor
+}
+
+func (system *temperatureSystem) heatTransferCoef(x, theta float64) float64 {
+	var alphaAir = system.alphaAir(x, theta)
+	var alphaGas = system.alphaGas(x, theta)
+	var delta = system.wallThk(x)
+	var lambdaM = system.lambdaM(theta)
+
+	var enom = alphaAir
+	var denom = 1 + alphaAir * (1 / alphaGas * delta / lambdaM)
+	return enom / denom
 }

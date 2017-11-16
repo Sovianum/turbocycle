@@ -1,7 +1,6 @@
-package profiles
+package geom
 
 import (
-	"fmt"
 	"math"
 	"testing"
 
@@ -10,43 +9,13 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func TestIntersectionPoint(t *testing.T) {
-	var testCases = []struct {
-		point1   *mat.VecDense
-		point2   *mat.VecDense
-		angle1   float64
-		angle2   float64
-		expected *mat.VecDense
-	}{
-		{
-			point1:   mat.NewVecDense(2, []float64{0, 0}),
-			point2:   mat.NewVecDense(2, []float64{1, 0}),
-			angle1:   math.Pi / 4,
-			angle2:   3 * math.Pi / 4,
-			expected: mat.NewVecDense(2, []float64{0.5, 0.5}),
-		},
-	}
-
-	for i, tc := range testCases {
-		var point = intersectionPoint(
-			tc.point1, tc.point2,
-			tc.angle1, tc.angle2,
-		)
-		assert.True(
-			t,
-			mat.EqualApprox(point, tc.expected, 1e-8),
-			testMessage(i, tc.expected, point),
-		)
-	}
-}
-
 type LineTestSuite struct {
 	suite.Suite
 	inletPoint  *mat.VecDense
 	outletPoint *mat.VecDense
 	inletAngle  float64
 	outletAngle float64
-	line        Line
+	line        TransformableCurve
 }
 
 func (suite *LineTestSuite) SetupTest() {
@@ -54,13 +23,13 @@ func (suite *LineTestSuite) SetupTest() {
 	suite.outletPoint = mat.NewVecDense(2, []float64{1, 0})
 	suite.inletAngle = math.Pi / 4
 	suite.outletAngle = 3 * math.Pi / 4
-	suite.line = NewLine(
+	suite.line = NewTransformableCurve(NewBezier2FromOrientedPoints(
 		suite.inletPoint, suite.outletPoint, suite.inletAngle, suite.outletAngle,
-	)
+	))
 }
 
 func (suite *LineTestSuite) TestGetPoints() {
-	var points = suite.line.GetPoints(3)
+	var points = LinPoints(suite.line, 0, 1, 3)
 
 	assert.True(
 		suite.T(),
@@ -84,8 +53,4 @@ func (suite *LineTestSuite) TestGetPoints() {
 
 func TestLineTestSuite(t *testing.T) {
 	suite.Run(t, new(LineTestSuite))
-}
-
-func testMessage(index interface{}, expected interface{}, got interface{}) string {
-	return fmt.Sprintf("Failed %v: expected %v, got %v", index, expected, got)
 }

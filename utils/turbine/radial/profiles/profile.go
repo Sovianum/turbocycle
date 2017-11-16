@@ -13,11 +13,11 @@ const (
 )
 
 type BladeProfile interface {
-	PSLine() Line
-	SSLine() Line
-	MeanLine() Line
-	InletEdge() Line
-	OutletEdge() Line
+	PSLine() geom.TransformableCurve
+	SSLine() geom.TransformableCurve
+	MeanLine() geom.TransformableCurve
+	InletEdge() geom.TransformableCurve
+	OutletEdge() geom.TransformableCurve
 	Transform(t geom.Transformation)
 }
 
@@ -29,20 +29,36 @@ func NewBladeProfile(
 	inletSSAngle, outletSSAngle float64,
 	inletMeanAngle, outletMeanAngle float64,
 ) BladeProfile {
+	var psLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
+		inletPSPoint, outletPSPoint, inletPSAngle, outletPSAngle,
+	))
+	var ssLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
+		inletSSPoint, outletSSPoint, inletSSAngle, outletSSAngle,
+	))
+	var meanLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
+		inletMeanPoint, outletMeanPoint, inletMeanAngle, outletMeanAngle,
+	))
+	var inletEdge = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
+		inletPSPoint, inletSSPoint, -inletPSAngle, -inletSSAngle,
+	))
+	var outletEdge = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
+		outletPSPoint, outletSSPoint, -outletPSAngle, -outletSSAngle,
+	))
+
 	return &bladeProfile{
-		psLine:     NewLine(inletPSPoint, outletPSPoint, inletPSAngle, outletPSAngle),
-		ssLine:     NewLine(inletSSPoint, outletSSPoint, inletSSAngle, outletSSAngle),
-		meanLine:   NewLine(inletMeanPoint, outletMeanPoint, inletMeanAngle, outletMeanAngle),
-		inletEdge:  NewLine(inletPSPoint, inletSSPoint, -inletPSAngle, -inletSSAngle),
-		outletEdge: NewLine(outletPSPoint, outletSSPoint, -outletPSAngle, -outletSSAngle),
+		psLine:     psLine,
+		ssLine:     ssLine,
+		meanLine:   meanLine,
+		inletEdge:  inletEdge,
+		outletEdge: outletEdge,
 	}
 }
 
 func Perimeter(profile BladeProfile) float64 {
-	return ApproxLength(profile.InletEdge(), defaultN) +
-		ApproxLength(profile.OutletEdge(), defaultN) +
-		ApproxLength(profile.PSLine(), defaultN) +
-		ApproxLength(profile.SSLine(), defaultN)
+	return geom.ApproxLength(profile.InletEdge(), 0, 1, defaultN) +
+		geom.ApproxLength(profile.OutletEdge(), 0, 1, defaultN) +
+		geom.ApproxLength(profile.PSLine(), 0, 1, defaultN) +
+		geom.ApproxLength(profile.SSLine(), 0, 1, defaultN)
 }
 
 func NewBladeProfileWithRadiuses(
@@ -58,13 +74,14 @@ func NewBladeProfileWithRadiuses(
 	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius)
 	var outletSSPoint = radialPoint(outletMeanPoint, outletSSAngle, unitOutletRadius)
 
-	return &bladeProfile{
-		psLine:     NewLine(inletPSPoint, outletPSPoint, inletPSAngle, outletPSAngle),
-		ssLine:     NewLine(inletSSPoint, outletSSPoint, inletSSAngle, outletSSAngle),
-		meanLine:   NewLine(inletMeanPoint, outletMeanPoint, inletMeanAngle, outletMeanAngle),
-		inletEdge:  NewLine(inletPSPoint, inletSSPoint, -inletPSAngle, -inletSSAngle),
-		outletEdge: NewLine(outletPSPoint, outletSSPoint, -outletPSAngle, -outletSSAngle),
-	}
+	return NewBladeProfile(
+		inletPSPoint, outletPSPoint,
+		inletSSPoint, outletSSPoint,
+		inletMeanPoint, outletMeanPoint,
+		inletPSAngle, outletPSAngle,
+		inletSSAngle, outletSSAngle,
+		inletMeanAngle, outletMeanAngle,
+	)
 }
 
 func NewBladeProfileFromProfiler(hRel, unitInletRadius, unitOutletRadius float64, profiler profilers.Profiler) BladeProfile {
@@ -84,11 +101,11 @@ func NewBladeProfileFromProfiler(hRel, unitInletRadius, unitOutletRadius float64
 }
 
 type bladeProfile struct {
-	psLine     Line
-	ssLine     Line
-	meanLine   Line
-	inletEdge  Line
-	outletEdge Line
+	psLine     geom.TransformableCurve
+	ssLine     geom.TransformableCurve
+	meanLine   geom.TransformableCurve
+	inletEdge  geom.TransformableCurve
+	outletEdge geom.TransformableCurve
 }
 
 func (b *bladeProfile) Transform(t geom.Transformation) {
@@ -99,23 +116,23 @@ func (b *bladeProfile) Transform(t geom.Transformation) {
 	b.outletEdge.Transform(t)
 }
 
-func (b *bladeProfile) MeanLine() Line {
+func (b *bladeProfile) MeanLine() geom.TransformableCurve {
 	return b.meanLine
 }
 
-func (b *bladeProfile) SSLine() Line {
+func (b *bladeProfile) SSLine() geom.TransformableCurve {
 	return b.ssLine
 }
 
-func (b *bladeProfile) PSLine() Line {
+func (b *bladeProfile) PSLine() geom.TransformableCurve {
 	return b.psLine
 }
 
-func (b *bladeProfile) InletEdge() Line {
+func (b *bladeProfile) InletEdge() geom.TransformableCurve {
 	return b.inletEdge
 }
 
-func (b *bladeProfile) OutletEdge() Line {
+func (b *bladeProfile) OutletEdge() geom.TransformableCurve {
 	return b.outletEdge
 }
 

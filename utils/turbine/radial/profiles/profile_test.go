@@ -1,9 +1,11 @@
 package profiles
 
 import (
+	"fmt"
 	"math"
 	"testing"
 
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gonum.org/v1/gonum/mat"
@@ -60,7 +62,7 @@ func (suite *BladeProfileTestSuite) SetupTest() {
 }
 
 func (suite *BladeProfileTestSuite) TestMeanLine() {
-	var points = suite.profile.MeanLine().GetPoints(3)
+	var points = geom.LinPoints(suite.profile.MeanLine(), 0, 1, 3)
 
 	assert.True(
 		suite.T(),
@@ -84,7 +86,7 @@ func (suite *BladeProfileTestSuite) TestMeanLine() {
 }
 
 func (suite *BladeProfileTestSuite) TestPSLine() {
-	var points = suite.profile.PSLine().GetPoints(3)
+	var points = geom.LinPoints(suite.profile.PSLine(), 0, 1, 3)
 
 	assert.True(
 		suite.T(),
@@ -108,7 +110,7 @@ func (suite *BladeProfileTestSuite) TestPSLine() {
 }
 
 func (suite *BladeProfileTestSuite) TestSSLine() {
-	var points = suite.profile.SSLine().GetPoints(3)
+	var points = geom.LinPoints(suite.profile.SSLine(), 0, 1, 3)
 
 	assert.True(
 		suite.T(),
@@ -132,7 +134,7 @@ func (suite *BladeProfileTestSuite) TestSSLine() {
 }
 
 func (suite *BladeProfileTestSuite) TestInletEdge() {
-	var points = suite.profile.InletEdge().GetPoints(3)
+	var points = geom.LinPoints(suite.profile.InletEdge(), 0, 1, 3)
 
 	assert.True(
 		suite.T(),
@@ -156,7 +158,7 @@ func (suite *BladeProfileTestSuite) TestInletEdge() {
 }
 
 func (suite *BladeProfileTestSuite) TestOutletEdge() {
-	var points = suite.profile.OutletEdge().GetPoints(3)
+	var points = geom.LinPoints(suite.profile.OutletEdge(), 0, 1, 3)
 
 	assert.True(
 		suite.T(),
@@ -181,4 +183,8 @@ func (suite *BladeProfileTestSuite) TestOutletEdge() {
 
 func TestBladeProfileTestSuite(t *testing.T) {
 	suite.Run(t, new(BladeProfileTestSuite))
+}
+
+func testMessage(index interface{}, expected interface{}, got interface{}) string {
+	return fmt.Sprintf("Failed %v: expected %v, got %v", index, expected, got)
 }

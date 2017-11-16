@@ -7,10 +7,18 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func NewBezierCurve(points []*mat.VecDense) ParametricCurve {
+func NewBezier(points []*mat.VecDense) Curve {
 	return &bezierCurve{
 		controlPoints: points,
 	}
+}
+
+func NewBezier2FromOrientedPoints(inletPoint, outletPoint *mat.VecDense, inletAngle, outletAngle float64) Curve {
+	return NewBezier([]*mat.VecDense{
+		inletPoint,
+		intersectionPoint(inletPoint, outletPoint, inletAngle, outletAngle),
+		outletPoint,
+	})
 }
 
 type bezierCurve struct {
@@ -51,4 +59,15 @@ func (curve *bezierCurve) order() int {
 
 func newPoint() *mat.VecDense {
 	return mat.NewVecDense(2, nil)
+}
+
+func intersectionPoint(inletPoint, outletPoint *mat.VecDense, inletAngle, outletAngle float64) *mat.VecDense {
+	var xIn, yIn = inletPoint.At(0, 0), inletPoint.At(1, 0)
+	var xOut, yOut = outletPoint.At(0, 0), outletPoint.At(1, 0)
+
+	var x = (math.Tan(inletAngle)*xIn - math.Tan(outletAngle)*xOut + yOut - yIn) /
+		(math.Tan(inletAngle) - math.Tan(outletAngle))
+	var y = yIn + math.Tan(inletAngle)*(x-xIn)
+
+	return mat.NewVecDense(2, []float64{x, y})
 }
