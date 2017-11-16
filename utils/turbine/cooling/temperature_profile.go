@@ -2,7 +2,7 @@ package cooling
 
 import (
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
-	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
+	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"gonum.org/v1/gonum/mat"
 )
 

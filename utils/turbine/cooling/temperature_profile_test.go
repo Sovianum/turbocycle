@@ -1,12 +1,11 @@
 package cooling
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
-	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
+	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gonum.org/v1/gonum/mat"

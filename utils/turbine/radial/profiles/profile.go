@@ -3,7 +3,7 @@ package profiles
 import (
 	"math"
 
-	"github.com/Sovianum/turbocycle/utils/turbine/radial/geom"
+	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"github.com/Sovianum/turbocycle/utils/turbine/radial/profilers"
 	"gonum.org/v1/gonum/mat"
 )
