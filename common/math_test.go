@@ -66,7 +66,7 @@ func TestLinspace(t *testing.T) {
 	var x2 = 1.
 	var n = 3
 
-	var linspace = Linspace(x1, x2, n)
+	var linspace = LinSpace(x1, x2, n)
 
 	assert.Equal(t, n, len(linspace))
 	assert.InDelta(t, x1, linspace[0], 1e-8)

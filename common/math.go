@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"sort"
+
+	"gonum.org/v1/gonum/mat"
 )
 
 func Converged(x0, x1, precision float64) bool {
@@ -123,7 +125,7 @@ func Factorial(x int) int {
 	return result
 }
 
-func Linspace(x1, x2 float64, n int) []float64 {
+func LinSpace(x1, x2 float64, n int) []float64 {
 	var step = (x2 - x1) / float64(n-1)
 	var result = make([]float64, n)
 
@@ -132,4 +134,19 @@ func Linspace(x1, x2 float64, n int) []float64 {
 	}
 
 	return result
+}
+
+func LinScale(x, xFromStart, xFromEnd, xToStart, xToEnd float64) float64 {
+	return (xToEnd - xToStart) / (xFromEnd - xFromStart) * (x - xFromStart) + xToStart
+}
+
+func Cross2(v1 mat.Vector, v2 mat.Vector) float64 {
+	if v1.Len() != 2 {
+		panic(fmt.Errorf("first argument has len = %d != 2", v1.Len()))
+	}
+	if v2.Len() != 2 {
+		panic(fmt.Errorf("second argument has len = %d != 2", v1.Len()))
+	}
+
+	return v1.At(0, 0) * v2.At(1, 0) - v2.At(0, 0) * v1.At(1, 0)
 }
