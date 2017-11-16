@@ -131,19 +131,6 @@ func (suite *TemperatureProfileTestSuite) TestWallTemperatureQualitative() {
 	}
 }
 
-//func (suite *TemperatureProfileTestSuite) TestSmoke() {
-//	var solution = suite.tSystem.Solve(0, 900, 1, suite.solutionStep)
-//	for i := 0; i < len(solution.WallTemperature); i += 1000 {
-//		fmt.Printf("t:         %f\n", solution.ParametricCoord[i])
-//		fmt.Printf("x:         %f\n", solution.X[i])
-//		fmt.Printf("y:         %f\n", solution.Y[i])
-//		fmt.Printf("l:         %f\n", solution.LengthCoord[i])
-//		fmt.Printf("alpha_air: %f\n", solution.AlphaAir[i])
-//		fmt.Printf("t_air:     %f\n", solution.AirTemperature[i])
-//		fmt.Printf("t_wall:    %f\n\n", solution.WallTemperature[i])
-//	}
-//}
-
 func TestTemperatureProfileTestSuite(t *testing.T) {
 	suite.Run(t, new(TemperatureProfileTestSuite))
 }
