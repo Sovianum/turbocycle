@@ -181,6 +181,76 @@ func (suite *BladeProfileTestSuite) TestOutletEdge() {
 	)
 }
 
+func (suite *BladeProfileTestSuite) TestPressureSegment() {
+	var segment = PSSegment(suite.profile, 0.5, 0.5)
+	var precision = 1e-6
+
+	var inletEdgePoint = suite.profile.InletEdge().Point(0.5)
+	var inletSegmentPoint = segment.Point(0)
+	assert.InDelta(
+		suite.T(),
+		inletEdgePoint.At(0, 0),
+		inletSegmentPoint.At(0, 0),
+		precision,
+	)
+	assert.InDelta(
+		suite.T(),
+		inletEdgePoint.At(1, 0),
+		inletSegmentPoint.At(1, 0),
+		precision,
+	)
+
+	var outletEdgePoint = suite.profile.OutletEdge().Point(0.5)
+	var outletSegmentPoint = segment.Point(1)
+	assert.InDelta(
+		suite.T(),
+		outletEdgePoint.At(0, 0),
+		outletSegmentPoint.At(0, 0),
+		precision,
+	)
+	assert.InDelta(
+		suite.T(),
+		outletEdgePoint.At(1, 0),
+		outletSegmentPoint.At(1, 0),
+		precision,
+	)
+}
+
+func (suite *BladeProfileTestSuite) TestSuctionSegment() {
+	var segment = SSSegment(suite.profile, 0.5, 0.5)
+	var precision = 1e-6
+
+	var inletEdgePoint = suite.profile.InletEdge().Point(0.5)
+	var inletSegmentPoint = segment.Point(0)
+	assert.InDelta(
+		suite.T(),
+		inletEdgePoint.At(0, 0),
+		inletSegmentPoint.At(0, 0),
+		precision,
+	)
+	assert.InDelta(
+		suite.T(),
+		inletEdgePoint.At(1, 0),
+		inletSegmentPoint.At(1, 0),
+		precision,
+	)
+
+	var outletEdgePoint = suite.profile.OutletEdge().Point(0.5)
+	var outletSegmentPoint = segment.Point(1)
+	assert.InDelta(
+		suite.T(),
+		outletEdgePoint.At(0, 0),
+		outletSegmentPoint.At(0, 0),
+		precision,
+	)
+	assert.InDelta(
+		suite.T(),
+		outletEdgePoint.At(1, 0),
+		outletSegmentPoint.At(1, 0),
+		precision,
+	)
+}
+
 func TestBladeProfileTestSuite(t *testing.T) {
 	suite.Run(t, new(BladeProfileTestSuite))
 }

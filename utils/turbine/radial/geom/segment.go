@@ -66,7 +66,7 @@ func (join *segmentJoin) TEnd() float64 {
 
 func (join *segmentJoin) getSegment(t float64) (Segment, float64, float64) {
 	for i, tInner := range join.boundaryPoints[1:] {
-		if t < tInner {
+		if t <= tInner {
 			return join.segments[i], join.boundaryPoints[i], join.boundaryPoints[i + 1]
 		}
 	}
