@@ -413,6 +413,7 @@ func (node *turbineStageNode) initCalcFirstStage(pack *DataPack) {
 	node.dRotorBladeMean(pack)
 	node.getStageGeometryFirstStage(pack)
 	node.u1(pack)
+	node.inletVelocityTriangleFirstStage(pack)
 }
 
 func (node *turbineStageNode) etaTStag(pack *DataPack) {
@@ -716,6 +717,15 @@ func (node *turbineStageNode) alpha1(pack *DataPack) {
 	pack.Alpha1 = alpha1
 }
 
+// function initializes velocity input when using first stage model
+// currently it sets unit velocity in axial direction
+func (node *turbineStageNode) inletVelocityTriangleFirstStage(pack *DataPack) {
+	node.velocityInput().SetState(states2.NewVelocityPortState(
+		states2.NewInletTriangle(0, 1, math.Pi / 2),
+		states2.InletTriangleType,
+	))
+}
+
 func (node *turbineStageNode) u1(pack *DataPack) {
 	if pack.Err != nil {
 		pack.Err = fmt.Errorf("%s: u1", pack.Err.Error())
@@ -928,6 +938,8 @@ func (node *turbineStageNode) t0(pack *DataPack) {
 	var cp = node.gas().Cp(node.t0Stag()) // todo check if correct temperature
 	pack.T0 = node.t0Stag() - c0*c0/(2*cp)
 }
+
+// below are private accessors
 
 func (node *turbineStageNode) massRate() float64 {
 	return node.massRateInput().GetState().(states2.MassRatePortState).MassRate
