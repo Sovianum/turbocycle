@@ -7,27 +7,13 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	states2 "github.com/Sovianum/turbocycle/impl/turbine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/go-errors/errors"
 )
-
-type TurbineStageNode interface {
-	core.Node
-	nodes.GasChannel
-	nodes.PressureChannel
-	nodes.TemperatureChannel
-	VelocityChannel
-	MassRateChannel
-	SetFirstStageMode(isFirstStage bool)
-	SetAlpha1FirstStage(alpha1FirstStage float64)
-	StageGeomGen() geometry.StageGeometryGenerator
-	Ht() float64
-	Reactivity() float64
-	GetDataPack() DataPack
-}
 
 func NewTurbineStageNode(
 	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
@@ -95,6 +81,29 @@ func NewTurbineStageNode(
 	result.ports[MassRateOutput].SetState(states2.NewMassRatePortState(0))
 
 	return result
+}
+
+type TurbineStageNode interface {
+	core.Node
+	nodes.GasChannel
+	nodes.PressureChannel
+	nodes.TemperatureChannel
+	VelocityChannel
+	MassRateChannel
+	SetFirstStageMode(isFirstStage bool)
+	SetAlpha1FirstStage(alpha1FirstStage float64)
+	StageGeomGen() geometry.StageGeometryGenerator
+	Ht() float64
+	Reactivity() float64
+	GetDataPack() DataPack
+}
+
+func InitFromTurbineNode(stage TurbineStageNode, turbine constructive.TurbineNode, massRate, alpha1 float64) {
+	stage.GasInput().SetState(states.NewGasPortState(turbine.InputGas()))
+	stage.TemperatureInput().SetState(states.NewTemperaturePortState(turbine.TStagIn()))
+	stage.PressureInput().SetState(states.NewPressurePortState(turbine.PStagIn()))
+	stage.MassRateInput().SetState(states2.NewMassRatePortState(massRate))
+	stage.SetAlpha1FirstStage(alpha1)
 }
 
 type DataPack struct {
