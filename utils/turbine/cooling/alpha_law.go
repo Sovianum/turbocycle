@@ -33,6 +33,12 @@ func JoinedAlphaLaw(alphaLaws []AlphaLaw, boundaryPoints []float64) AlphaLaw {
 	}
 }
 
+func DefaultAirAlphaLaw(gas gases.Gas, bladeLength, gapWidth, massRate float64) AlphaLaw {
+	return func(lengthParameter, theta float64) float64 {
+		return 0.02 * gas.Lambda(theta) / (2 * gapWidth) * math.Pow(massRate / (bladeLength * gas.Mu(theta)), 0.8)
+	}
+}
+
 func CylinderAlphaLaw(gas gases.Gas, massRateIntensity float64, diameter float64) AlphaLaw {
 	return func(t, theta float64) float64 {
 		var factor1 = 0.74
