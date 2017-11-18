@@ -87,7 +87,7 @@ func (suite *GapCalculatorTestSuite) SetupTest() {
 
 func (suite *GapCalculatorTestSuite) TestSmoke() {
 	var pack = suite.gapCalculator.GetPack(0.05)
-	assert.Nil(suite.T(), pack.err)
+	assert.Nil(suite.T(), pack.Err)
 }
 
 func TestBladeProfileTestSuite(t *testing.T) {

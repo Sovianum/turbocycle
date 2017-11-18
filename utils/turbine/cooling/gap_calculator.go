@@ -48,23 +48,23 @@ func NewGapCalculator(
 }
 
 type DataPack struct {
-	err error
+	Err error
 
-	coolerMassRate float64
+	CoolerMassRate float64
 
-	reGas    float64
-	alphaGas float64
+	ReGas    float64
+	AlphaGas float64
 
-	bladeHeat float64
+	BladeHeat float64
 
-	tDrop      float64
-	tMean      float64
-	tWallInner float64
+	TDrop      float64
+	TMean      float64
+	TWallInner float64
 
-	dComplex   float64
-	epsComplex float64
+	DComplex   float64
+	EpsComplex float64
 
-	airGap float64
+	AirGap float64
 }
 
 type GapCalculator interface {
@@ -95,7 +95,7 @@ type gapCalculator struct {
 
 func (calc *gapCalculator) GetPack(coolerMassRate float64) DataPack {
 	var pack = new(DataPack)
-	pack.coolerMassRate = coolerMassRate
+	pack.CoolerMassRate = coolerMassRate
 
 	calc.reGas(pack)
 	calc.alphaGas(pack)
@@ -110,49 +110,49 @@ func (calc *gapCalculator) GetPack(coolerMassRate float64) DataPack {
 }
 
 func (calc *gapCalculator) airGap(coolerMassRate float64, pack *DataPack) {
-	var airGap = pack.epsComplex * math.Pow(coolerMassRate, 0.8) * (pack.dComplex - calc.bladeArea/(2*calc.cooler.Cp(calc.tCoolerInlet)*coolerMassRate))
+	var airGap = pack.EpsComplex * math.Pow(coolerMassRate, 0.8) * (pack.DComplex - calc.bladeArea/(2*calc.cooler.Cp(calc.tCoolerInlet)*coolerMassRate))
 	if airGap < 0 {
-		pack.err = fmt.Errorf("D complex is less than term3")
+		pack.Err = fmt.Errorf("D complex is less than term3")
 		return
 	}
 	var fComplex = calc.bladeArea / (2 * calc.cooler.Cp(calc.tCoolerInlet) * coolerMassRate)
-	pack.airGap = pack.epsComplex * math.Pow(coolerMassRate, 0.8) * (pack.dComplex - fComplex)
+	pack.AirGap = pack.EpsComplex * math.Pow(coolerMassRate, 0.8) * (pack.DComplex - fComplex)
 }
 
 func (calc *gapCalculator) dComplex(coolerMassRate float64, pack *DataPack) {
-	var term1 = 1 / pack.alphaGas * ((calc.tGas-calc.tCoolerInlet)/(calc.tGas-calc.tWallOuter) - 1)
+	var term1 = 1 / pack.AlphaGas * ((calc.tGas-calc.tCoolerInlet)/(calc.tGas-calc.tWallOuter) - 1)
 	var term2 = -calc.wallThk / calc.lambdaM
 
 	var dComplex = term1 + term2
-	pack.dComplex = dComplex
+	pack.DComplex = dComplex
 }
 
 func (calc *gapCalculator) epsComplex(pack *DataPack) {
 	var mu = calc.cooler.Mu(calc.tCoolerInlet)
 	var lambda = calc.cooler.Lambda(calc.tCoolerInlet)
-	pack.epsComplex = 0.01 * lambda * math.Pow(1/(calc.bladeLength*mu), 0.8) // todo maybe need to abstract out
+	pack.EpsComplex = 0.01 * lambda * math.Pow(1/(calc.bladeLength*mu), 0.8) // todo maybe need to abstract out
 }
 
 func (calc *gapCalculator) tWallInner(pack *DataPack) {
-	pack.tWallInner = calc.tWallOuter - pack.tDrop
+	pack.TWallInner = calc.tWallOuter - pack.TDrop
 }
 
 func (calc *gapCalculator) tMean(pack *DataPack) {
-	pack.tMean = calc.tWallOuter - pack.tDrop/2
+	pack.TMean = calc.tWallOuter - pack.TDrop/2
 }
 
 func (calc *gapCalculator) tDrop(pack *DataPack) {
-	pack.tDrop = pack.bladeHeat * calc.wallThk / (calc.bladeArea * calc.lambdaM)
+	pack.TDrop = pack.BladeHeat * calc.wallThk / (calc.bladeArea * calc.lambdaM)
 }
 
 func (calc *gapCalculator) bladeHeat(pack *DataPack) {
-	pack.bladeHeat = pack.alphaGas * calc.perimeter * calc.bladeLength * (calc.tGas - calc.tWallOuter)
+	pack.BladeHeat = pack.AlphaGas * calc.perimeter * calc.bladeLength * (calc.tGas - calc.tWallOuter)
 }
 
 func (calc *gapCalculator) alphaGas(pack *DataPack) {
-	pack.alphaGas = calc.gas.Lambda(calc.tGas) / calc.ba * calc.nuGasFunc(pack.reGas)
+	pack.AlphaGas = calc.gas.Lambda(calc.tGas) / calc.ba * calc.nuGasFunc(pack.ReGas)
 }
 
 func (calc *gapCalculator) reGas(pack *DataPack) {
-	pack.reGas = calc.ca * calc.ba * gases.Density(calc.gas, calc.tGas, calc.pGas) / calc.gas.Mu(calc.tGas)
+	pack.ReGas = calc.ca * calc.ba * gases.Density(calc.gas, calc.tGas, calc.pGas) / calc.gas.Mu(calc.tGas)
 }
