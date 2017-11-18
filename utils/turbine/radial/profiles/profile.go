@@ -145,6 +145,40 @@ func SSSegment(profile BladeProfile, inletEdgeFraction float64, outletEdgeFracti
 	)
 }
 
+func CircularSegment(profile BladeProfile) geom.Segment {
+	// magic numbers below are used to resolve inlet and outlet edges
+	var partLengths = []float64{
+		geom.ApproxLength(profile.InletEdge(), 0, 1, defaultN) * 5,
+		geom.ApproxLength(profile.SSLine(), 0, 1, defaultN),
+		geom.ApproxLength(profile.OutletEdge(), 0, 1, defaultN) * 5,
+		geom.ApproxLength(profile.PSLine(), 0, 1, defaultN),
+	}
+
+	var totalLength float64 = 0
+	for _, num := range partLengths {
+		totalLength += num
+	}
+
+	var relPartLength = make([]float64, 0)
+	for _, num := range partLengths {
+		relPartLength = append(relPartLength, num / totalLength)
+	}
+
+	var inletSegment = geom.NewUnitSegment(profile.InletEdge(), 0, 1)
+	var ssSegment = geom.NewUnitSegment(profile.SSLine(), 0, 1)
+	var outletSegment = geom.NewUnitSegment(profile.OutletEdge(), 1, 0)
+	var psSegment = geom.NewUnitSegment(profile.PSLine(), 1, 0)
+
+	return geom.JoinToUnit(
+		[]geom.Segment{inletSegment, ssSegment, outletSegment, psSegment},
+		[]float64{
+			relPartLength[0],
+			relPartLength[0] + relPartLength[1],
+			relPartLength[0] + relPartLength[1] + relPartLength[1],
+		},
+	)
+}
+
 type bladeProfile struct {
 	psLine     geom.TransformableCurve
 	ssLine     geom.TransformableCurve
