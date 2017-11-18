@@ -11,6 +11,18 @@ type Curve interface {
 	Point(t float64) *mat.VecDense
 }
 
+func GetCoordinates(tArr []float64, curve Curve) ([]float64, []float64) {
+	var xArr = make([]float64, len(tArr))
+	var yArr = make([]float64, len(tArr))
+
+	for i, t := range tArr {
+		var point = curve.Point(t)
+		xArr[i] = point.At(0, 0)
+		yArr[i] = point.At(1, 0)
+	}
+	return xArr, yArr
+}
+
 // works only for 2d curves
 func CurvRadius2(curve Curve, t, dt float64) float64 {
 	return 1 / Curvature2(curve, t, dt)
@@ -28,25 +40,25 @@ func Curvature2(curve Curve, t, dt float64) float64 {
 }
 
 func ApproxDerivative1(curve Curve, t, dt float64) *mat.VecDense {
-	var leftPoint = curve.Point(t - dt / 2)
-	var rightPoint = curve.Point(t + dt / 2)
+	var leftPoint = curve.Point(t - dt/2)
+	var rightPoint = curve.Point(t + dt/2)
 
 	var result = mat.NewVecDense(leftPoint.Len(), nil)
 	result.SubVec(rightPoint, leftPoint)
-	result.ScaleVec(1 / dt, result)
+	result.ScaleVec(1/dt, result)
 
 	return result
 }
 
 func ApproxDerivative2(curve Curve, t, dt float64) *mat.VecDense {
-	var leftPoint = curve.Point(t - dt / 2)
-	var rightPoint = curve.Point(t + dt / 2)
+	var leftPoint = curve.Point(t - dt/2)
+	var rightPoint = curve.Point(t + dt/2)
 	var centerPoint = curve.Point(t)
 
 	var result = mat.NewVecDense(leftPoint.Len(), nil)
 	result.AddVec(rightPoint, leftPoint)
 	result.AddScaledVec(result, -2, centerPoint)
-	result.ScaleVec(2 / (dt * dt), result)
+	result.ScaleVec(2/(dt*dt), result)
 	return result
 }
 
