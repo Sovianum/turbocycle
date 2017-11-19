@@ -51,7 +51,7 @@ func Interp(x float64, xArr []float64, yArr []float64, breakOutOfRange bool) (fl
 	}
 
 	for i := 0; i != len(xArr)-1; i++ {
-		if x <= xArr[i] && x < xArr[i+1] {
+		if x >= xArr[i] && x < xArr[i+1] {
 			var interpCoef = (x - xArr[i]) / (xArr[i+1] - xArr[i])
 			return Lerp(yArr[i], yArr[i+1], interpCoef), nil
 		}
