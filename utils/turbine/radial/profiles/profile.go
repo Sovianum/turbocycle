@@ -37,8 +37,8 @@ func NewBladeProfileFromProfiler(
 		profilers.OutletPSAngle(hRel, profiler),
 		profilers.InletSSAngle(hRel, profiler),
 		profilers.OutletSSAngle(hRel, profiler),
-		profiler.InletProfileAngle(hRel),
-		profiler.OutletProfileAngle(hRel),
+		profilers.InletBendAngle(hRel, profiler),
+		profilers.OutletBendAngle(hRel, profiler),
 		unitInletRadius, unitOutletRadius,
 		inletCurveFactor, outletCurveFactor,
 	)
@@ -52,11 +52,20 @@ func NewBladeProfileWithRadii(
 	unitInletRadius, unitOutletRadius float64,
 	inletCurveFactor, outletCurveFactor float64,
 ) BladeProfile {
-	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius, negative)
-	var outletPSPoint = radialPoint(outletMeanPoint, -outletPSAngle, unitOutletRadius, negative)
+	var ssDir, psDir float64
+	if bendArrow(inletMeanAngle, -outletMeanAngle) > 0 {
+		ssDir = positive
+		psDir = negative
+	} else {
+		ssDir = negative
+		psDir = positive
+	}
 
-	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius, positive)
-	var outletSSPoint = radialPoint(outletMeanPoint, -outletSSAngle, unitOutletRadius, positive)
+	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius, psDir)
+	var outletPSPoint = radialPoint(outletMeanPoint, -outletPSAngle, unitOutletRadius, -psDir)
+
+	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius, ssDir)
+	var outletSSPoint = radialPoint(outletMeanPoint, -outletSSAngle, unitOutletRadius, -ssDir)
 
 	return NewBladeProfile(
 		inletPSPoint, outletPSPoint,
@@ -220,7 +229,14 @@ func (b *bladeProfile) OutletEdge() geom.TransformableCurve {
 }
 
 func radialPoint(startPoint *mat.VecDense, angle float64, radius float64, direction float64) *mat.VecDense {
+	if math.Sin(angle) < 0 {
+		direction *= -1
+	}
 	var x = startPoint.At(0, 0) - direction * radius*math.Sin(angle)
 	var y = startPoint.At(1, 0) + direction * radius*math.Cos(angle)
 	return mat.NewVecDense(2, []float64{x, y})
+}
+
+func bendArrow(inletAngle, outletAngle float64) float64 {
+	return math.Tan(inletAngle) * math.Tan(outletAngle) / (math.Tan(outletAngle) - math.Tan(inletAngle))
 }

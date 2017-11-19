@@ -78,39 +78,57 @@ type Profiler interface {
 }
 
 func InletBendAngle(hRel float64, profiler Profiler) float64 {
-	return math.Pi - (profiler.InstallationAngle(hRel) + profiler.InletProfileAngle(hRel))
+	var installationAngle = profiler.InstallationAngle(hRel)
+	var inletProfileAngle = profiler.InletProfileAngle(hRel)
+	return math.Pi - (installationAngle + inletProfileAngle)
 }
 
 func OutletBendAngle(hRel float64, profiler Profiler) float64 {
-	return profiler.InstallationAngle(hRel) - profiler.OutletProfileAngle(hRel)
+	var installationAngle = profiler.InstallationAngle(hRel)
+	var outletProfileAngle = profiler.OutletProfileAngle(hRel)
+	return installationAngle - outletProfileAngle
 }
 
 func InletPSExpansionAngle(hRel float64, profiler Profiler) float64 {
-	return profiler.InletPSAngleFraction(hRel) * profiler.InletExpansionAngle(hRel)
+	var psAngleFraction = profiler.InletPSAngleFraction(hRel)
+	var inletExpansionAngle = profiler.InletExpansionAngle(hRel)
+	return psAngleFraction * inletExpansionAngle
 }
 
 func InletSSExpansionAngle(hRel float64, profiler Profiler) float64 {
-	return (1 - profiler.InletPSAngleFraction(hRel)) * profiler.InletExpansionAngle(hRel)
+	var psAngleFraction = profiler.InletPSAngleFraction(hRel)
+	var inletExpansionAngle = profiler.InletExpansionAngle(hRel)
+	return (1 - psAngleFraction) * inletExpansionAngle
 }
 
 func OutletPSExpansionAngle(hRel float64, profiler Profiler) float64 {
-	return profiler.OutletPSAngleFraction(hRel) * profiler.InletExpansionAngle(hRel)
+	var psAngleFraction = profiler.OutletPSAngleFraction(hRel)
+	var expansionAngle = profiler.OutletExpansionAngle(hRel)
+	return psAngleFraction * expansionAngle
 }
 
 func OutletSSExpansionAngle(hRel float64, profiler Profiler) float64 {
-	return (1 - profiler.OutletPSAngleFraction(hRel)) * profiler.InletExpansionAngle(hRel)
+	var psAngleFraction = profiler.OutletPSAngleFraction(hRel)
+	var expansionAngle = profiler.OutletExpansionAngle(hRel)
+	return (1 - psAngleFraction) * expansionAngle
 }
 
 func InletPSAngle(hRel float64, profiler Profiler) float64 {
-	return InletBendAngle(hRel, profiler) - InletPSExpansionAngle(hRel, profiler)
+	var bendAngle = InletBendAngle(hRel, profiler)
+	var psExpansionAngle = InletPSExpansionAngle(hRel, profiler)
+	return bendAngle - psExpansionAngle
 }
 
 func InletSSAngle(hRel float64, profiler Profiler) float64 {
-	return InletBendAngle(hRel, profiler) + InletSSExpansionAngle(hRel, profiler)
+	var bendAngle = InletBendAngle(hRel, profiler)
+	var ssExpansionAngle = InletSSExpansionAngle(hRel, profiler)
+	return bendAngle + ssExpansionAngle
 }
 
 func OutletPSAngle(hRel float64, profiler Profiler) float64 {
-	return OutletBendAngle(hRel, profiler) - OutletPSExpansionAngle(hRel, profiler)
+	var bendAngle = OutletBendAngle(hRel, profiler)
+	var psExpansionAngle = OutletPSExpansionAngle(hRel, profiler)
+	return bendAngle - psExpansionAngle
 }
 
 func OutletSSAngle(hRel float64, profiler Profiler) float64 {
