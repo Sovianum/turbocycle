@@ -3,7 +3,7 @@ package schemes
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
@@ -78,5 +78,5 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	assert.Nil(t, solveErr)
 
 	var b, _ = json.MarshalIndent(network, "", "    ")
-	os.Stdout.Write(b)
+	ioutil.Discard.Write(b)
 }

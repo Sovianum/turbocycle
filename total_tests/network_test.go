@@ -3,6 +3,10 @@ package total_tests
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"strings"
+	"testing"
+
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
@@ -12,9 +16,6 @@ import (
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"strings"
-	"testing"
 )
 
 const (
@@ -431,5 +432,5 @@ func TestNetwork_Solve_NoCycle(t *testing.T) {
 	assert.Nil(t, err1)
 	fmt.Println(callOrder)
 	var b, _ = json.MarshalIndent(network, "", "    ")
-	os.Stdout.Write(b)
+	ioutil.Discard.Write(b)
 }

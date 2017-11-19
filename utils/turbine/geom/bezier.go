@@ -13,6 +13,19 @@ func NewBezier(points []*mat.VecDense) Curve {
 	}
 }
 
+func NewBezier3FromOrientedPoints(
+	inletPoint, outletPoint *mat.VecDense,
+	inletAngle, outletAngle float64,
+	curveFactor float64,
+) Curve {
+	var interPoint0 = intersectionPoint(inletPoint, outletPoint, inletAngle, outletAngle)
+	var interPoint1 = interpPoint(inletPoint, interPoint0, curveFactor)
+	var interPoint2 = interpPoint(outletPoint, interPoint0, curveFactor)
+	return NewBezier([]*mat.VecDense{
+		inletPoint, interPoint1, interPoint2, outletPoint,
+	})
+}
+
 func NewBezier2FromOrientedPoints(inletPoint, outletPoint *mat.VecDense, inletAngle, outletAngle float64) Curve {
 	return NewBezier([]*mat.VecDense{
 		inletPoint,
@@ -70,4 +83,13 @@ func intersectionPoint(inletPoint, outletPoint *mat.VecDense, inletAngle, outlet
 	var y = yIn + math.Tan(inletAngle)*(x-xIn)
 
 	return mat.NewVecDense(2, []float64{x, y})
+}
+
+func interpPoint(point1, point2 *mat.VecDense, interpFactor float64) *mat.VecDense {
+	var diff = mat.NewVecDense(point1.Len(), nil)
+	diff.SubVec(point2, point1)
+
+	var result = mat.NewVecDense(point1.Len(), nil)
+	result.AddScaledVec(point1, interpFactor, diff)
+	return result
 }

@@ -24,7 +24,9 @@ type BladeProfile interface {
 }
 
 func NewBladeProfileFromProfiler(
-	hRel, unitInletRadius, unitOutletRadius float64,
+	hRel float64,
+	unitInletRadius, unitOutletRadius float64,
+	inletCurveFactor, outletCurveFactor float64,
 	profiler profilers.Profiler,
 ) BladeProfile {
 	var inletMeanPoint = mat.NewVecDense(2, []float64{0, 0})
@@ -37,8 +39,8 @@ func NewBladeProfileFromProfiler(
 		profilers.OutletSSAngle(hRel, profiler),
 		profiler.InletProfileAngle(hRel),
 		profiler.OutletProfileAngle(hRel),
-		unitInletRadius,
-		unitOutletRadius,
+		unitInletRadius, unitOutletRadius,
+		inletCurveFactor, outletCurveFactor,
 	)
 }
 
@@ -48,6 +50,7 @@ func NewBladeProfileWithRadii(
 	inletSSAngle, outletSSAngle float64,
 	inletMeanAngle, outletMeanAngle float64,
 	unitInletRadius, unitOutletRadius float64,
+	inletCurveFactor, outletCurveFactor float64,
 ) BladeProfile {
 	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius, negative)
 	var outletPSPoint = radialPoint(outletMeanPoint, outletPSAngle, unitOutletRadius, negative)
@@ -62,6 +65,7 @@ func NewBladeProfileWithRadii(
 		inletPSAngle, outletPSAngle,
 		inletSSAngle, outletSSAngle,
 		inletMeanAngle, outletMeanAngle,
+		inletCurveFactor, outletCurveFactor,
 	)
 }
 
@@ -72,6 +76,7 @@ func NewBladeProfile(
 	inletPSAngle, outletPSAngle float64,
 	inletSSAngle, outletSSAngle float64,
 	inletMeanAngle, outletMeanAngle float64,
+	inletCurveFactor, outletCurveFactor float64,
 ) BladeProfile {
 	var psLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
 		inletPSPoint, outletPSPoint, inletPSAngle, math.Pi - outletPSAngle,
@@ -82,11 +87,11 @@ func NewBladeProfile(
 	var meanLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
 		inletMeanPoint, outletMeanPoint, inletMeanAngle, math.Pi - outletMeanAngle,
 	))
-	var inletEdge = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletPSPoint, inletSSPoint, math.Pi + inletPSAngle, inletSSAngle,
+	var inletEdge = geom.NewTransformableCurve(geom.NewBezier3FromOrientedPoints(
+		inletPSPoint, inletSSPoint, math.Pi + inletPSAngle, inletSSAngle, inletCurveFactor,
 	))
-	var outletEdge = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		outletPSPoint, outletSSPoint, math.Pi - outletPSAngle, -outletSSAngle,	// TODO check angle correctness
+	var outletEdge = geom.NewTransformableCurve(geom.NewBezier3FromOrientedPoints(
+		outletPSPoint, outletSSPoint, math.Pi - outletPSAngle, -outletSSAngle, outletCurveFactor,
 	))
 
 	return &bladeProfile{

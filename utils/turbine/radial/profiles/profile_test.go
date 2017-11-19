@@ -77,17 +77,17 @@ func (suite *BladeProfileTestSuite) SetupTest() {
 	suite.inletPSPoint = mat.NewVecDense(2, []float64{0, 1})
 	suite.outletPSPoint = mat.NewVecDense(2, []float64{1, 1})
 	suite.inletPSAngle = math.Pi / 4
-	suite.outletPSAngle = 3 * math.Pi / 4
+	suite.outletPSAngle = math.Pi / 4
 
 	suite.inletSSPoint = mat.NewVecDense(2, []float64{0, -1})
 	suite.outletSSPoint = mat.NewVecDense(2, []float64{1, -1})
 	suite.inletSSAngle = 3 * math.Pi / 4
-	suite.outletSSAngle = math.Pi / 4
+	suite.outletSSAngle = 3 * math.Pi / 4
 
 	suite.inletMeanPoint = mat.NewVecDense(2, []float64{0, 0})
 	suite.outletMeanPoint = mat.NewVecDense(2, []float64{1, 0})
-	suite.inletMeanAngle = 0.0001
-	suite.outletMeanAngle = math.Pi - 0.0001
+	suite.inletMeanAngle = 0.1
+	suite.outletMeanAngle = 0.1
 
 	suite.profile = NewBladeProfile(
 		suite.inletPSPoint, suite.outletPSPoint,
@@ -96,6 +96,7 @@ func (suite *BladeProfileTestSuite) SetupTest() {
 		suite.inletPSAngle, suite.outletPSAngle,
 		suite.inletSSAngle, suite.outletSSAngle,
 		suite.inletMeanAngle, suite.outletMeanAngle,
+		1, 1,
 	)
 }
 

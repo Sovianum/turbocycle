@@ -10,6 +10,43 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+func TestInterpPoint(t *testing.T) {
+	var testCases = []struct{
+		point1 *mat.VecDense
+		point2 *mat.VecDense
+		interpFactor float64
+		expectedPoint *mat.VecDense
+	}{
+		{
+			point1:   mat.NewVecDense(2, []float64{0, 0}),
+			point2:   mat.NewVecDense(2, []float64{1, 1}),
+			interpFactor:0,
+			expectedPoint:mat.NewVecDense(2, []float64{0, 0}),
+		},
+		{
+			point1:   mat.NewVecDense(2, []float64{0, 0}),
+			point2:   mat.NewVecDense(2, []float64{1, 1}),
+			interpFactor:1,
+			expectedPoint:mat.NewVecDense(2, []float64{1, 1}),
+		},
+		{
+			point1:   mat.NewVecDense(2, []float64{0, 0}),
+			point2:   mat.NewVecDense(2, []float64{1, 1}),
+			interpFactor:0.5,
+			expectedPoint:mat.NewVecDense(2, []float64{0.5, 0.5}),
+		},
+	}
+
+	for i, tc := range testCases {
+		var point = interpPoint(tc.point1, tc.point2, tc.interpFactor)
+		assert.True(
+			t,
+			mat.EqualApprox(point, tc.expectedPoint, 1e-8),
+			testMessage(i, tc.expectedPoint, point),
+		)
+	}
+}
+
 func TestIntersectionPoint(t *testing.T) {
 	var testCases = []struct {
 		point1   *mat.VecDense

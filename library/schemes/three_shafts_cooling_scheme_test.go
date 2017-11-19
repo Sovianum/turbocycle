@@ -3,14 +3,15 @@ package schemes
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"testing"
+
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 func TestThreeShaftsCoolingScheme_GetNetwork_Smoke(t *testing.T) {
@@ -69,5 +70,5 @@ func TestThreeShaftsCoolingScheme_GetNetwork_Smoke(t *testing.T) {
 	fmt.Println(callOrder)
 	network.Solve(0.2, 100, 0.05)
 	var b, _ = json.MarshalIndent(network, "", "    ")
-	os.Stdout.Write(b)
+	ioutil.Discard.Write(b)
 }
