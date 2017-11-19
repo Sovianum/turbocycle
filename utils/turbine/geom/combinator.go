@@ -3,7 +3,7 @@ package geom
 import "gonum.org/v1/gonum/mat"
 
 func NewCombinator() Combinator {
-	return combinator{make([]Transformation, 0)}
+	return &combinator{make([]Transformation, 0)}
 }
 
 type Combinator interface {
@@ -15,12 +15,12 @@ type combinator struct {
 	transformations []Transformation
 }
 
-func (c combinator) Combine(t Transformation) Combinator {
+func (c *combinator) Combine(t Transformation) Combinator {
 	c.transformations = append(c.transformations, t)
 	return c
 }
 
-func (c combinator) Build() Transformation {
+func (c *combinator) Build() Transformation {
 	var transFunc = func(vec *mat.VecDense) *mat.VecDense {
 		var result = vec
 		for _, trans := range c.transformations {

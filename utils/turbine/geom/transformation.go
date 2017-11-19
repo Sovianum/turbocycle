@@ -81,12 +81,12 @@ func (r reflection) Apply(vec *mat.VecDense) *mat.VecDense {
 }
 
 func Rotation(angle float64) Transformation {
-	return reflection{
-		reflectionMatrix: mat.NewDense(
+	return rotation{
+		rotationMatrix: mat.NewDense(
 			2, 2,
 			[]float64{
 				math.Cos(angle), -math.Sin(angle),
-				math.Sin(angle), -math.Cos(angle),
+				math.Sin(angle), math.Cos(angle),
 			},
 		),
 	}
