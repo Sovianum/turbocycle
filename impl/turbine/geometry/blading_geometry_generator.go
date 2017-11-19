@@ -1,18 +1,23 @@
 package geometry
 
-import "math"
+import (
+	"math"
 
-func NewGeneratorFromProfileAngles(lRelOut, elongation, deltaRel, gammaIn, gammaOut float64) BladingGeometryGenerator {
+	"github.com/Sovianum/turbocycle/common"
+)
+
+func NewGeneratorFromProfileAngles(lRelOut, elongation, deltaRel, gammaIn, gammaOut, approxTRel float64) BladingGeometryGenerator {
 	return &bladingGeometryGenerator{
 		lRelOut:    lRelOut,
 		elongation: elongation,
 		deltaRel:   deltaRel,
 		gammaIn:    gammaIn,
 		gammaOut:   gammaOut,
+		approxTRel: approxTRel,
 	}
 }
 
-func NewGeneratorFromTotalAndMeanAngles(lRelOut, elongation, deltaRel, totalAngle, meanAngle float64) BladingGeometryGenerator {
+func NewGeneratorFromTotalAndMeanAngles(lRelOut, elongation, deltaRel, totalAngle, meanAngle, approxTRel float64) BladingGeometryGenerator {
 	var gammaIn, gammaOut = GetInnerAndOuterAngles(totalAngle, meanAngle)
 	return &bladingGeometryGenerator{
 		lRelOut:    lRelOut,
@@ -20,6 +25,7 @@ func NewGeneratorFromTotalAndMeanAngles(lRelOut, elongation, deltaRel, totalAngl
 		deltaRel:   deltaRel,
 		gammaIn:    gammaIn,
 		gammaOut:   gammaOut,
+		approxTRel:approxTRel,
 	}
 }
 
@@ -31,6 +37,7 @@ type BladingGeometryGenerator interface {
 	DeltaRel() float64
 	GammaIn() float64
 	GammaOut() float64
+	BladeNumber() int
 }
 
 func GetTotalAndMeanLineAngles(gammaIn, gammaOut float64) (float64, float64) {
@@ -58,6 +65,7 @@ type bladingGeometryGenerator struct {
 	deltaRel   float64
 	gammaIn    float64
 	gammaOut   float64
+	approxTRel float64
 }
 
 func (gen *bladingGeometryGenerator) GenerateFromInlet(dMeanIn float64) BladingGeometry {
@@ -112,4 +120,11 @@ func (gen *bladingGeometryGenerator) GammaIn() float64 {
 
 func (gen *bladingGeometryGenerator) GammaOut() float64 {
 	return gen.gammaOut
+}
+
+func (gen *bladingGeometryGenerator) BladeNumber() int {
+	var baRel = gen.elongation
+	var lRelOut = gen.lRelOut
+
+	return common.RoundInt(math.Pi * baRel / lRelOut * 1 / gen.approxTRel)
 }

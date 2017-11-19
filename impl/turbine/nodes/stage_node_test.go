@@ -39,6 +39,9 @@ const (
 	p0       = 7.8e5
 	density0 = 2.405
 
+	statorApproxTRel = 0.7
+	rotorApproxTRel = 0.7
+
 	alpha = 0.5
 )
 
@@ -52,8 +55,8 @@ type StageNodeTestSuite struct {
 func (suite *StageNodeTestSuite) SetupTest() {
 	suite.gen = geometry.NewStageGeometryGenerator(
 		lRelOut,
-		geometry.NewIncompleteGeneratorFromProfileAngles(baRel, deltaRel, gammaIn, gammaOut),
-		geometry.NewIncompleteGeneratorFromProfileAngles(baRel, deltaRel, gammaIn, gammaOut),
+		geometry.NewIncompleteGeneratorFromProfileAngles(baRel, deltaRel, gammaIn, gammaOut, statorApproxTRel),
+		geometry.NewIncompleteGeneratorFromProfileAngles(baRel, deltaRel, gammaIn, gammaOut, rotorApproxTRel),
 	)
 
 	suite.node = NewTurbineStageNode(

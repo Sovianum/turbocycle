@@ -14,11 +14,13 @@ const (
 	rotorDeltaRel   = 0.1
 	rotorGammaIn    = -0.09
 	rotorGammaOut   = 0.09
+	rotorApproxTRel = 0.7
 
 	statorElongation = 2
 	statorDeltaRel   = 0.1
 	statorGammaIn    = -0.09
 	statorGammaOut   = 0.09
+	statorApproxTRel = 0.7
 
 	statorDMeanIn = 1.
 )
@@ -30,10 +32,10 @@ type StageGeometryGeneratorTestSuite struct {
 
 func (suite *StageGeometryGeneratorTestSuite) SetupTest() {
 	var rotorIncompleteGen = NewIncompleteGeneratorFromProfileAngles(
-		rotorElongation, rotorDeltaRel, rotorGammaIn, rotorGammaOut,
+		rotorElongation, rotorDeltaRel, rotorGammaIn, rotorGammaOut, rotorApproxTRel,
 	)
 	var statorIncompleteGen = NewIncompleteGeneratorFromProfileAngles(
-		statorElongation, statorDeltaRel, statorGammaIn, statorGammaOut,
+		statorElongation, statorDeltaRel, statorGammaIn, statorGammaOut, statorApproxTRel,
 	)
 	suite.gen = NewStageGeometryGenerator(
 		rotorLRelOut, statorIncompleteGen, rotorIncompleteGen,

@@ -13,6 +13,7 @@ const (
 	lRelOut    = 0.2
 	elongation = 4.
 	deltaRel   = 0.1
+	approxTRel = 0.7
 )
 
 type BladingGeometryGeneratorTestSuite struct {
@@ -22,7 +23,7 @@ type BladingGeometryGeneratorTestSuite struct {
 
 func (suite *BladingGeometryGeneratorTestSuite) SetupTest() {
 	suite.gen = NewGeneratorFromProfileAngles(
-		lRelOut, elongation, deltaRel, gammaIn, gammaOut,
+		lRelOut, elongation, deltaRel, gammaIn, gammaOut, approxTRel,
 	)
 }
 
@@ -116,7 +117,7 @@ func (suite *BladingGeometryGeneratorTestSuite) TestDiameterContinuity() {
 	)
 
 	var rotorGeomGen = NewGeneratorFromProfileAngles(
-		lRelOut, elongation, deltaRel, gammaIn, gammaOut,
+		lRelOut, elongation, deltaRel, gammaIn, gammaOut, approxTRel,
 	)
 	var rotorGeom = rotorGeomGen.GenerateFromInlet(statorGeom.MeanProfile().Diameter(statorGeom.XGapOut()))
 
@@ -173,6 +174,10 @@ func (suite *BladingGeometryGeneratorTestSuite) TestGenerateFromOutlet() {
 	var expectedLOut = lRelOut * dMeanOut
 	var lOut = Height(geom.XGapOut(), geom)
 	assert.InDelta(suite.T(), expectedLOut, lOut, 0.0000001, testMessage(expectedLOut, lOut))
+}
+
+func (suite *BladingGeometryGeneratorTestSuite) TestBladeNumber() {
+	assert.Equal(suite.T(), 90, suite.gen.BladeNumber())
 }
 
 func TestBladingGeometryGeneratorTestSuite(t *testing.T) {

@@ -3,7 +3,6 @@ package profilers
 import (
 	"math"
 
-	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
 	"github.com/Sovianum/turbocycle/utils/turbine/radial"
@@ -73,8 +72,6 @@ type Profiler interface {
 
 	InletPSAngleFraction(hRel float64) float64
 	OutletPSAngleFraction(hRel float64) float64
-
-	BladeNumber() int
 }
 
 func InletBendAngle(hRel float64, profiler Profiler) float64 {
@@ -201,13 +198,6 @@ func (profiler *profiler) InletPSAngleFraction(hRel float64) float64 {
 
 func (profiler *profiler) OutletPSAngleFraction(hRel float64) float64 {
 	return profiler.outletPSAngleFractionFunc(hRel)
-}
-
-func (profiler *profiler) BladeNumber() int {
-	var baRel = profiler.geomGen.Elongation()
-	var lRelOut = profiler.geomGen.LRelOut()
-
-	return common.RoundInt(math.Pi * baRel / lRelOut * 1 / profiler.approxTRel)
 }
 
 func (profiler *profiler) inletTriangle(hRel float64) states.VelocityTriangle {

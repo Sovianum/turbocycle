@@ -60,7 +60,7 @@ func (suite *ProfilerTestSuite) SetupTest() {
 	suite.behavior = NewStatorProfilingBehavior()
 	suite.geomGen = geometry.NewGeneratorFromProfileAngles(
 		lRelOut, bRel, deltaRel,
-		common.ToRadians(gammaIn), common.ToRadians(gammaOut),
+		common.ToRadians(gammaIn), common.ToRadians(gammaOut), approxTRel,
 	)
 	suite.meanInletTriangle = states.NewInletTriangleFromProjections(
 		cUIn, cAIn, u,
@@ -120,11 +120,6 @@ func (suite *ProfilerTestSuite) TestSmoke() {
 	suite.profiler.OutletExpansionAngle(0)
 	suite.profiler.InletPSAngleFraction(0)
 	suite.profiler.OutletPSAngleFraction(0)
-	suite.profiler.BladeNumber()
-}
-
-func (suite *ProfilerTestSuite) TestBladeNumber() {
-	assert.Equal(suite.T(), 67, suite.profiler.BladeNumber())
 }
 
 func TestProfilerTestSuite(t *testing.T) {
