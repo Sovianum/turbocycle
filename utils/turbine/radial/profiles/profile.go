@@ -53,10 +53,10 @@ func NewBladeProfileWithRadii(
 	inletCurveFactor, outletCurveFactor float64,
 ) BladeProfile {
 	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius, negative)
-	var outletPSPoint = radialPoint(outletMeanPoint, outletPSAngle, unitOutletRadius, negative)
+	var outletPSPoint = radialPoint(outletMeanPoint, -outletPSAngle, unitOutletRadius, negative)
 
 	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius, positive)
-	var outletSSPoint = radialPoint(outletMeanPoint, outletSSAngle, unitOutletRadius, positive)
+	var outletSSPoint = radialPoint(outletMeanPoint, -outletSSAngle, unitOutletRadius, positive)
 
 	return NewBladeProfile(
 		inletPSPoint, outletPSPoint,
