@@ -11,6 +11,44 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+func TestRadialPoint(t *testing.T) {
+	var testCases = []struct{
+		startPoint *mat.VecDense
+		angle float64
+		direction float64
+		radius float64
+		expectedPoint *mat.VecDense
+	}{
+		{
+			startPoint:mat.NewVecDense(2, []float64{0, 0}),
+			angle:0,
+			direction:positive,
+			radius:1,
+			expectedPoint:mat.NewVecDense(2, []float64{0, 1}),
+		},
+		{
+			startPoint:mat.NewVecDense(2, []float64{0, 0}),
+			angle:0,
+			direction:negative,
+			radius:1,
+			expectedPoint:mat.NewVecDense(2, []float64{0, -1}),
+		},
+		{
+			startPoint:mat.NewVecDense(2, []float64{1, 1}),
+			angle:math.Pi / 4,
+			direction:positive,
+			radius:1,
+			expectedPoint:mat.NewVecDense(2, []float64{1 - math.Sqrt2 / 2, 1 + math.Sqrt2 / 2}),
+		},
+	}
+
+	for i, tc := range testCases {
+		var point = radialPoint(tc.startPoint, tc.angle, tc.radius, tc.direction)
+		assert.InDelta(t, tc.expectedPoint.At(0, 0), point.At(0, 0), 1e-8, "x at i = %d", i)
+		assert.InDelta(t, tc.expectedPoint.At(1, 0), point.At(1, 0), 1e-8, "y at i = %d", i)
+	}
+}
+
 type BladeProfileTestSuite struct {
 	suite.Suite
 

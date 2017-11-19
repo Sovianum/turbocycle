@@ -11,16 +11,18 @@ type Curve interface {
 	Point(t float64) *mat.VecDense
 }
 
-func GetCoordinates(tArr []float64, curve Curve) ([]float64, []float64) {
-	var xArr = make([]float64, len(tArr))
-	var yArr = make([]float64, len(tArr))
+func GetCoordinates(tArr []float64, curve Curve) [][]float64 {
+	var result = make([][]float64, len(tArr))
 
 	for i, t := range tArr {
 		var point = curve.Point(t)
-		xArr[i] = point.At(0, 0)
-		yArr[i] = point.At(1, 0)
+		result[i] = make([]float64, point.Len())
+
+		for j := 0; j != point.Len(); j++ {
+			result[i][j] = point.At(j, 0)
+		}
 	}
-	return xArr, yArr
+	return result
 }
 
 // works only for 2d curves

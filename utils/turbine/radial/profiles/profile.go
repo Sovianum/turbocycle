@@ -10,6 +10,8 @@ import (
 
 const (
 	defaultN = 100
+	positive = 1
+	negative = -1
 )
 
 type BladeProfile interface {
@@ -47,11 +49,11 @@ func NewBladeProfileWithRadii(
 	inletMeanAngle, outletMeanAngle float64,
 	unitInletRadius, unitOutletRadius float64,
 ) BladeProfile {
-	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius)
-	var outletPSPoint = radialPoint(outletMeanPoint, outletPSAngle, unitOutletRadius)
+	var inletPSPoint = radialPoint(inletMeanPoint, inletPSAngle, unitInletRadius, negative)
+	var outletPSPoint = radialPoint(outletMeanPoint, outletPSAngle, unitOutletRadius, negative)
 
-	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius)
-	var outletSSPoint = radialPoint(outletMeanPoint, outletSSAngle, unitOutletRadius)
+	var inletSSPoint = radialPoint(inletMeanPoint, inletSSAngle, unitInletRadius, positive)
+	var outletSSPoint = radialPoint(outletMeanPoint, outletSSAngle, unitOutletRadius, positive)
 
 	return NewBladeProfile(
 		inletPSPoint, outletPSPoint,
@@ -72,19 +74,19 @@ func NewBladeProfile(
 	inletMeanAngle, outletMeanAngle float64,
 ) BladeProfile {
 	var psLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletPSPoint, outletPSPoint, inletPSAngle, outletPSAngle,
+		inletPSPoint, outletPSPoint, inletPSAngle, math.Pi - outletPSAngle,
 	))
 	var ssLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletSSPoint, outletSSPoint, inletSSAngle, outletSSAngle,
+		inletSSPoint, outletSSPoint, inletSSAngle, math.Pi - outletSSAngle,
 	))
 	var meanLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletMeanPoint, outletMeanPoint, inletMeanAngle, outletMeanAngle,
+		inletMeanPoint, outletMeanPoint, inletMeanAngle, math.Pi - outletMeanAngle,
 	))
 	var inletEdge = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletPSPoint, inletSSPoint, -inletPSAngle, -inletSSAngle,
+		inletPSPoint, inletSSPoint, math.Pi + inletPSAngle, inletSSAngle,
 	))
 	var outletEdge = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		outletPSPoint, outletSSPoint, -outletPSAngle, -outletSSAngle,
+		outletPSPoint, outletSSPoint, math.Pi - outletPSAngle, -outletSSAngle,	// TODO check angle correctness
 	))
 
 	return &bladeProfile{
@@ -146,37 +148,32 @@ func SSSegment(profile BladeProfile, inletEdgeFraction float64, outletEdgeFracti
 }
 
 func CircularSegment(profile BladeProfile) geom.Segment {
-	// magic numbers below are used to resolve inlet and outlet edges
-	var partLengths = []float64{
-		geom.ApproxLength(profile.InletEdge(), 0, 1, defaultN) * 5,
-		geom.ApproxLength(profile.SSLine(), 0, 1, defaultN),
-		geom.ApproxLength(profile.OutletEdge(), 0, 1, defaultN) * 5,
-		geom.ApproxLength(profile.PSLine(), 0, 1, defaultN),
+	var segments = []geom.Segment{
+		geom.NewUnitSegment(profile.InletEdge(), 0, 1),
+		geom.NewUnitSegment(profile.SSLine(), 0, 1),
+		geom.NewUnitSegment(profile.OutletEdge(), 1, 0),
+		geom.NewUnitSegment(profile.PSLine(), 1, 0),
+	}
+	var weights = []float64{5, 1, 5, 1}
+
+	var weightedLength = make([]float64, len(segments))
+	for i := 0; i != len(segments); i++ {
+		weightedLength[i] = geom.ApproxLength(segments[i], 0, 1, defaultN) * weights[i]
 	}
 
 	var totalLength float64 = 0
-	for _, num := range partLengths {
+	for _, num := range weightedLength {
 		totalLength += num
 	}
 
-	var relPartLength = make([]float64, 0)
-	for _, num := range partLengths {
-		relPartLength = append(relPartLength, num / totalLength)
+	var partialSum float64 = 0
+	var partialSums = make([]float64, len(weightedLength) - 1)
+	for i, length := range weightedLength[:len(weightedLength) - 1] {
+		partialSum += length
+		partialSums[i] = partialSum / totalLength
 	}
 
-	var inletSegment = geom.NewUnitSegment(profile.InletEdge(), 0, 1)
-	var ssSegment = geom.NewUnitSegment(profile.SSLine(), 0, 1)
-	var outletSegment = geom.NewUnitSegment(profile.OutletEdge(), 1, 0)
-	var psSegment = geom.NewUnitSegment(profile.PSLine(), 1, 0)
-
-	return geom.JoinToUnit(
-		[]geom.Segment{inletSegment, ssSegment, outletSegment, psSegment},
-		[]float64{
-			relPartLength[0],
-			relPartLength[0] + relPartLength[1],
-			relPartLength[0] + relPartLength[1] + relPartLength[1],
-		},
-	)
+	return geom.JoinToUnit(segments, partialSums)
 }
 
 type bladeProfile struct {
@@ -215,8 +212,8 @@ func (b *bladeProfile) OutletEdge() geom.TransformableCurve {
 	return b.outletEdge
 }
 
-func radialPoint(startPoint *mat.VecDense, angle float64, radius float64) *mat.VecDense {
-	var x = startPoint.At(0, 0) - radius*math.Sin(angle)
-	var y = startPoint.At(1, 0) + radius*math.Cos(angle)
+func radialPoint(startPoint *mat.VecDense, angle float64, radius float64, direction float64) *mat.VecDense {
+	var x = startPoint.At(0, 0) - direction * radius*math.Sin(angle)
+	var y = startPoint.At(1, 0) + direction * radius*math.Cos(angle)
 	return mat.NewVecDense(2, []float64{x, y})
 }
