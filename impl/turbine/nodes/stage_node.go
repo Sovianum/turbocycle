@@ -718,10 +718,14 @@ func (node *turbineStageNode) alpha1(pack *DataPack) {
 }
 
 // function initializes velocity input when using first stage model
-// currently it sets unit velocity in axial direction
+// currently it sets velocity in axial direction
 func (node *turbineStageNode) inletVelocityTriangleFirstStage(pack *DataPack) {
+	var massRate = node.massRate()
+	var area = geometry.Area(0, pack.StageGeometry.StatorGeometry())
+	var density = node.p0Stag() / (node.gas().R() * node.t0Stag())	// todo use static density instead of stag
+	var ca = massRate / (area * density)
 	node.velocityInput().SetState(states2.NewVelocityPortState(
-		states2.NewInletTriangle(0, 1, math.Pi / 2),
+		states2.NewInletTriangle(0, ca, math.Pi / 2),
 		states2.InletTriangleType,
 	))
 }

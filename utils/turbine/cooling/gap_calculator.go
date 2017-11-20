@@ -50,16 +50,35 @@ func NewGapCalculator(
 type DataPack struct {
 	Err error
 
-	CoolerMassRate float64
+	BladeLength     float64
+	ChordProjection float64
+	BladeArea       float64
+	Perimeter       float64
+	WallThk         float64
+
+	TGas       float64
+	CaGas      float64
+	DensityGas float64
+	MuGas      float64
+	LambdaGas  float64
+
+	MassRateCooler float64
 
 	ReGas    float64
+	NuGas float64
+	NuCoef float64
 	AlphaGas float64
 
 	BladeHeat float64
 
+	TAir0 float64
+
 	TDrop      float64
 	TMean      float64
 	TWallInner float64
+	TWallOuter float64
+
+	LambdaM float64
 
 	DComplex   float64
 	EpsComplex float64
@@ -95,7 +114,8 @@ type gapCalculator struct {
 
 func (calc *gapCalculator) GetPack(coolerMassRate float64) DataPack {
 	var pack = new(DataPack)
-	pack.CoolerMassRate = coolerMassRate
+	pack.MassRateCooler = coolerMassRate
+	calc.initPack(pack)
 
 	calc.reGas(pack)
 	calc.alphaGas(pack)
@@ -112,7 +132,7 @@ func (calc *gapCalculator) GetPack(coolerMassRate float64) DataPack {
 func (calc *gapCalculator) airGap(coolerMassRate float64, pack *DataPack) {
 	var airGap = pack.EpsComplex * math.Pow(coolerMassRate, 0.8) * (pack.DComplex - calc.bladeArea/(2*calc.cooler.Cp(calc.tCoolerInlet)*coolerMassRate))
 	if airGap < 0 {
-		pack.Err = fmt.Errorf("D complex is less than term3")
+		pack.Err = fmt.Errorf("D complex is less than term3 (mass rate = %f)", coolerMassRate)
 		return
 	}
 	var fComplex = calc.bladeArea / (2 * calc.cooler.Cp(calc.tCoolerInlet) * coolerMassRate)
@@ -150,9 +170,31 @@ func (calc *gapCalculator) bladeHeat(pack *DataPack) {
 }
 
 func (calc *gapCalculator) alphaGas(pack *DataPack) {
-	pack.AlphaGas = calc.gas.Lambda(calc.tGas) / calc.ba * calc.nuGasFunc(pack.ReGas)
+	var lambda = calc.gas.Lambda(calc.tGas)
+	pack.LambdaGas = lambda
+	var nu = calc.nuGasFunc(pack.ReGas)
+	pack.NuGas = nu
+	pack.AlphaGas = lambda / calc.ba * nu
 }
 
 func (calc *gapCalculator) reGas(pack *DataPack) {
-	pack.ReGas = calc.ca * calc.ba * gases.Density(calc.gas, calc.tGas, calc.pGas) / calc.gas.Mu(calc.tGas)
+	var density = gases.Density(calc.gas, calc.tGas, calc.pGas)
+	pack.DensityGas = density
+	var mu = calc.gas.Mu(calc.tGas)
+	pack.MuGas = mu
+	pack.ReGas = calc.ca * calc.ba * density / mu
+}
+
+func (calc *gapCalculator) initPack(pack *DataPack) {
+	pack.BladeLength = calc.bladeLength
+	pack.ChordProjection = calc.ba
+	pack.BladeArea = calc.bladeArea
+	pack.Perimeter = calc.perimeter
+	pack.WallThk = calc.wallThk
+
+	pack.TGas = calc.tGas
+	pack.CaGas = calc.ca
+	pack.TAir0 = calc.tCoolerInlet
+	pack.LambdaM = calc.lambdaM
+	pack.TWallOuter = calc.tWallOuter
 }
