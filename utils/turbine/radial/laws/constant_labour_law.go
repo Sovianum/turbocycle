@@ -4,9 +4,16 @@ import (
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
 )
 
+func NewConstantLabourLaw(law InletVelocityLaw, inletTriangle states.VelocityTriangle) OutletVelocityLaw {
+	return constantLabourLaw{
+		inletLaw:          law,
+		inletMeanTriangle: inletTriangle,
+	}
+}
+
 type constantLabourLaw struct {
-	inletLaw           InletVelocityLaw
-	inletMeanTriangle  states.VelocityTriangle
+	inletLaw          InletVelocityLaw
+	inletMeanTriangle states.VelocityTriangle
 }
 
 func (law constantLabourLaw) OutletTriangle(triangle0 states.VelocityTriangle, hRel, lRel float64) states.VelocityTriangle {
@@ -30,12 +37,11 @@ func (law constantLabourLaw) getCU(triangle0 states.VelocityTriangle, hRel, lRel
 	var lu = law.meanLabour(triangle0)
 	var u = law.inletMeanTriangle.U()
 	var cu = law.inletMeanTriangle.CU()
-	return lu / u - cu
+	return lu/u - cu
 }
 
 func (law constantLabourLaw) meanLabour(triangle0 states.VelocityTriangle) float64 {
 	var term1 = law.inletMeanTriangle.U() * law.inletMeanTriangle.CU()
-	var term2 = triangle0.U() *triangle0.CU()
+	var term2 = triangle0.U() * triangle0.CU()
 	return term1 + term2
 }
-
