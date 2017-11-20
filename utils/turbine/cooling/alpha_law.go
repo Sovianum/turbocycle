@@ -24,12 +24,19 @@ func JoinedAlphaLaw(alphaLaws []AlphaLaw, boundaryPoints []float64) AlphaLaw {
 				return alphaLaws[i](localLengthParameter, theta)
 			}
 		}
+		return alphaLaws[len(alphaLaws) - 1](lengthParameter - boundaryPoints[len(boundaryPoints) - 1], theta)
 		panic(fmt.Errorf(
 			"out of range: t = %f, t_min = %f, t_max = %f",
 			lengthParameter,
 			boundaryPoints[0],
 			boundaryPoints[len(boundaryPoints) - 1],
 		))
+	}
+}
+
+func ConstantAlphaLaw(alpha float64) AlphaLaw {
+	return func(lengthParameter, theta float64) float64 {
+		return alpha
 	}
 }
 
@@ -61,7 +68,7 @@ func InletSSAlphaLaw(meanAlpha float64) AlphaLaw {
 	}
 }
 
-func OutletSSAlpha(meanAlpha float64) AlphaLaw {
+func OutletSSAlphaLaw(meanAlpha float64) AlphaLaw {
 	return func(t, theta float64) float64 {
 		return 1.5 * meanAlpha
 	}

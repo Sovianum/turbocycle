@@ -21,6 +21,7 @@ type TemperatureSolution struct {
 	Y                []float64
 	LengthCoord      []float64
 	AlphaAir         []float64
+	AlphaGas         []float64
 	AirTemperature   []float64
 	WallTemperature  []float64
 	HeatTransferCoef []float64
@@ -84,6 +85,7 @@ func (system *temperatureSystem) Solve(t0, theta0, tMax, maxStep float64) Temper
 		Y:                make([]float64, solutionLen),
 		LengthCoord:      make([]float64, solutionLen),
 		AlphaAir:         make([]float64, solutionLen),
+		AlphaGas:         make([]float64, solutionLen),
 		WallTemperature:  make([]float64, solutionLen),
 		HeatTransferCoef: make([]float64, solutionLen),
 	}
@@ -151,6 +153,7 @@ func (system *temperatureSystem) extendSolutionArray(solution *TemperatureSoluti
 		solution.Y[i] = point.At(1, 0)
 		solution.LengthCoord[i] = currLengthCoord
 		solution.AlphaAir[i] = system.AlphaAir(currLengthCoord, solution.AirTemperature[i])
+		solution.AlphaGas[i] = system.alphaGas(currLengthCoord, solution.AirTemperature[i])
 		solution.WallTemperature[i] = system.wallTemp(currLengthCoord, solution.AirTemperature[i])
 		solution.HeatTransferCoef[i] = system.heatTransferCoef(currLengthCoord, solution.AirTemperature[i])
 
