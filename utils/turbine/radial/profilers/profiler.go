@@ -5,7 +5,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
-	"github.com/Sovianum/turbocycle/utils/turbine/radial"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/laws"
 )
 
 func NewProfiler(
@@ -18,8 +18,8 @@ func NewProfiler(
 	meanInletTriangle states.VelocityTriangle,
 	meanOutletTriangle states.VelocityTriangle,
 
-	inletVelocityLaw radial.VelocityLaw,
-	outletVelocityLaw radial.VelocityLaw,
+	inletVelocityLaw laws.InletVelocityLaw,
+	outletVelocityLaw laws.OutletVelocityLaw,
 
 	inletProfileAngleFunc func(characteristicAngle, hRel float64) float64,
 	outletProfileAngleFunc func(characteristicAngle, hRel float64) float64,
@@ -140,8 +140,8 @@ type profiler struct {
 	meanInletTriangle  states.VelocityTriangle
 	meanOutletTriangle states.VelocityTriangle
 
-	inletVelocityLaw  radial.VelocityLaw
-	outletVelocityLaw radial.VelocityLaw
+	inletVelocityLaw  laws.InletVelocityLaw
+	outletVelocityLaw laws.OutletVelocityLaw
 
 	inletProfileAngleFunc  func(characteristicAngle, hRel float64) float64
 	outletProfileAngleFunc func(characteristicAngle, hRel float64) float64

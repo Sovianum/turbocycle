@@ -4,7 +4,7 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
 	"github.com/Sovianum/turbocycle/impl/turbine/states"
-	"github.com/Sovianum/turbocycle/utils/turbine/radial"
+	"github.com/Sovianum/turbocycle/utils/turbine/radial/laws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -44,8 +44,8 @@ type ProfilerTestSuite struct {
 	geomGen                  geometry.BladingGeometryGenerator
 	meanInletTriangle        states.VelocityTriangle
 	meanOutletTriangle       states.VelocityTriangle
-	inletVelocityLaw         radial.VelocityLaw
-	outletVelocityLaw        radial.VelocityLaw
+	inletVelocityLaw         laws.VelocityLaw
+	outletVelocityLaw        laws.VelocityLaw
 	profiler                 Profiler
 	inletProfileAngleFunc    func(characteristicAngle, hRel float64) float64
 	outletProfileAngleFunc   func(characteristicAngle, hRel float64) float64
@@ -68,8 +68,8 @@ func (suite *ProfilerTestSuite) SetupTest() {
 	suite.meanOutletTriangle = states.NewOutletTriangleFromProjections(
 		cUOut, cAOut, u,
 	)
-	suite.inletVelocityLaw = radial.NewConstantCirculationVelocityLaw()
-	suite.outletVelocityLaw = radial.NewConstantAbsoluteAngleLaw()
+	suite.inletVelocityLaw = laws.NewConstantCirculationVelocityLaw()
+	suite.outletVelocityLaw = laws.NewConstantAbsoluteAngleLaw()
 	suite.inletProfileAngleFunc = func(characteristicAngle, hRel float64) float64 {
 		return characteristicAngle
 	}
