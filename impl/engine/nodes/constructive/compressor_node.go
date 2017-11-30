@@ -23,6 +23,7 @@ type CompressorNode interface {
 	LSpecific() float64
 	PiStag() float64
 	Eta() float64
+	EtaPol() float64
 	SetPiStag(piStag float64)
 }
 
@@ -214,6 +215,7 @@ func (node *compressorNode) tStagOutNewFunc(piCStag, tStagIn, tStagOutCurr float
 
 	return tStagIn * (1 + (x-1)/etaAd)
 }
+
 func (node *compressorNode) etaAd(piCStag, tStagIn, tStagOut float64) float64 {
 	var k = gases.KMean(node.gas(), tStagIn, tStagOut, nodes.DefaultN)
 
@@ -222,12 +224,11 @@ func (node *compressorNode) etaAd(piCStag, tStagIn, tStagOut float64) float64 {
 
 	return enom / denom
 }
+
 func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
 	var k = gases.KMean(node.gas(), tStagIn, tStagOut, nodes.DefaultN)
 	return math.Pow(piCStag, (k-1)/k)
 }
-
-
 
 func (node *compressorNode) tStagIn() float64 {
 	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
