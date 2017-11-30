@@ -35,7 +35,7 @@ func CompressorLabour(node CompressorNode) float64 {
 // TODO add collector port
 type compressorNode struct {
 	ports     core.PortsType
-	etaAd     float64
+	etaPol    float64	// politropic efficiency
 	precision float64
 	piStag    float64
 }
@@ -52,7 +52,7 @@ func (node *compressorNode) MarshalJSON() ([]byte, error) {
 		GasInputState:    node.gasInput().GetState(),
 		GasOutputState:   node.gasOutput().GetState(),
 		PowerOutputState: node.powerOutput().GetState(),
-		EtaAd:            node.etaAd,
+		EtaAd:            node.etaPol,
 		PiStag:           node.piStag,
 		MassRateRel:      node.gasInput().GetState().(states.ComplexGasPortState).MassRateRel,
 	})
@@ -61,7 +61,7 @@ func (node *compressorNode) MarshalJSON() ([]byte, error) {
 func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	var result = &compressorNode{
 		ports:     make(core.PortsType),
-		etaAd:     etaAd,
+		etaPol:    etaAd,
 		precision: precision,
 		piStag:    piStag,
 	}
@@ -174,7 +174,11 @@ func (node *compressorNode) PiStag() float64 {
 }
 
 func (node *compressorNode) Eta() float64 {
-	return node.etaAd
+	return node.etaAd(node.piStag, node.tStagIn(), node.tStagOut())
+}
+
+func (node *compressorNode) EtaPol() float64 {
+	return node.etaPol
 }
 
 func (node *compressorNode) SetPiStag(piStag float64) {
@@ -190,7 +194,7 @@ func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) 
 	var k = gases.K(node.gas(), tStagIn)
 	var x = math.Pow(piCStag, (k-1)/k)
 
-	var tOutCurr = tStagIn * (1 + (x-1)/node.etaAd)
+	var tOutCurr = tStagIn * (1 + (x-1)/node.etaPol)
 	var tOutNext = node.tStagOutNewFunc(piCStag, tStagIn, tStagOutInit)
 
 	for !common.Converged(tOutCurr, tOutNext, node.precision) {
@@ -206,13 +210,24 @@ func (node *compressorNode) getTStagOut(piCStag, tStagIn, tStagOutInit float64) 
 
 func (node *compressorNode) tStagOutNewFunc(piCStag, tStagIn, tStagOutCurr float64) float64 {
 	var x = node.xFunc(piCStag, tStagIn, tStagOutCurr)
-	return tStagIn * (1 + (x-1)/node.etaAd)
-}
+	var etaAd = node.etaAd(piCStag, tStagIn, tStagOutCurr)
 
+	return tStagIn * (1 + (x-1)/etaAd)
+}
+func (node *compressorNode) etaAd(piCStag, tStagIn, tStagOut float64) float64 {
+	var k = gases.KMean(node.gas(), tStagIn, tStagOut, nodes.DefaultN)
+
+	var enom = math.Pow(piCStag, (k-1)/k) - 1
+	var denom = math.Pow(piCStag, (k-1)/(k * node.etaPol)) - 1
+
+	return enom / denom
+}
 func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
 	var k = gases.KMean(node.gas(), tStagIn, tStagOut, nodes.DefaultN)
 	return math.Pow(piCStag, (k-1)/k)
 }
+
+
 
 func (node *compressorNode) tStagIn() float64 {
 	return node.gasInput().GetState().(states.ComplexGasPortState).TStag

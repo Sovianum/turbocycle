@@ -42,6 +42,7 @@ type ThreeShaftsScheme interface {
 	MainBurner() constructive.BurnerNode
 	HighPressureTurbine() constructive.TurbineNode
 	LowPressureTurbine() constructive.TurbineNode
+	FreeTurbine() constructive.TurbineNode
 	FreeTurbineBlock() compose.FreeTurbineBlockNode
 	MiddlePressureTurbinePipe() constructive.PressureLossNode
 	HighPressureTurbinePipe() constructive.PressureLossNode
@@ -76,6 +77,10 @@ func (scheme *threeShaftsScheme) HighPressureTurbine() constructive.TurbineNode 
 
 func (scheme *threeShaftsScheme) LowPressureTurbine() constructive.TurbineNode {
 	return scheme.middlePressureCascade.Turbine()
+}
+
+func (scheme *threeShaftsScheme) FreeTurbine() constructive.TurbineNode {
+	return scheme.freeTurbineBlock.FreeTurbine()
 }
 
 func (scheme *threeShaftsScheme) FreeTurbineBlock() compose.FreeTurbineBlockNode {

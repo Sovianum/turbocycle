@@ -119,7 +119,6 @@ func Perimeter(profile BladeProfile) float64 {
 		geom.ApproxLength(profile.SSLine(), 0, 1, defaultN)
 }
 
-// todo fix angles
 func PSSegment(profile BladeProfile, inletEdgeFraction float64, outletEdgeFraction float64) geom.Segment {
 	var inletEdgeSegment = geom.NewUnitSegment(profile.InletEdge(), inletEdgeFraction, 0)
 	var inletEdgeSegmentLength = geom.ApproxLength(inletEdgeSegment, 0, 1, defaultN)
