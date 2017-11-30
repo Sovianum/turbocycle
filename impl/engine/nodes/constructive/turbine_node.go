@@ -28,6 +28,10 @@ type TurbineNode interface {
 	CoolMassRateRel() float64
 }
 
+func TurbineLabour(node TurbineNode) float64 {
+	return node.MassRateRel() * node.LSpecific()
+}
+
 type GasBiPole interface {
 	core.Node
 }

@@ -39,6 +39,9 @@ func NewThreeShaftsScheme(
 type ThreeShaftsScheme interface {
 	Scheme
 	DoubleCompressor
+	MainBurner() constructive.BurnerNode
+	HighPressureTurbine() constructive.TurbineNode
+	LowPressureTurbine() constructive.TurbineNode
 	FreeTurbineBlock() compose.FreeTurbineBlockNode
 	MiddlePressureTurbinePipe() constructive.PressureLossNode
 	HighPressureTurbinePipe() constructive.PressureLossNode
@@ -61,6 +64,18 @@ type threeShaftsScheme struct {
 	gasSink                      sink.ComplexGasSinkNode
 	powerSink                    nodes.PowerSink
 	breaker                      helper.CycleBreakNode
+}
+
+func (scheme *threeShaftsScheme) MainBurner() constructive.BurnerNode {
+	return scheme.gasGenerator.Burner()
+}
+
+func (scheme *threeShaftsScheme) HighPressureTurbine() constructive.TurbineNode {
+	return scheme.gasGenerator.TurboCascade().Turbine()
+}
+
+func (scheme *threeShaftsScheme) LowPressureTurbine() constructive.TurbineNode {
+	return scheme.middlePressureCascade.Turbine()
 }
 
 func (scheme *threeShaftsScheme) FreeTurbineBlock() compose.FreeTurbineBlockNode {

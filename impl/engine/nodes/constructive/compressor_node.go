@@ -26,6 +26,12 @@ type CompressorNode interface {
 	SetPiStag(piStag float64)
 }
 
+// while calculating labour function takes massRateRel into account
+func CompressorLabour(node CompressorNode) float64 {
+	var massRateRel = node.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return node.LSpecific() * massRateRel
+}
+
 // TODO add collector port
 type compressorNode struct {
 	ports     core.PortsType

@@ -30,6 +30,12 @@ type BurnerNode interface {
 	TFuel() float64
 }
 
+// while calculating labour function takes massRateRel into account
+func FuelMassRate(node BurnerNode) float64 {
+	var massRateRel = node.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return node.GetFuelRateRel() * massRateRel
+}
+
 type burnerNode struct {
 	ports     core.PortsType
 	fuel      fuel.GasFuel
