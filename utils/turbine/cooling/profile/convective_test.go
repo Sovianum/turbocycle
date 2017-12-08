@@ -11,7 +11,7 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-type TemperatureProfileTestSuite struct {
+type ConvectiveTestSuite struct {
 	suite.Suite
 
 	solver      ode.Solver
@@ -30,7 +30,7 @@ type TemperatureProfileTestSuite struct {
 	tSystem      TemperatureSystem
 }
 
-func (suite *TemperatureProfileTestSuite) SetupTest() {
+func (suite *ConvectiveTestSuite) SetupTest() {
 	suite.solver = ode.NewEulerSolver()
 	suite.airMassRate = 0.05
 	suite.cpAir = gases.GetAir().Cp
@@ -64,7 +64,7 @@ func (suite *TemperatureProfileTestSuite) SetupTest() {
 	suite.setTSystem()
 }
 
-func (suite *TemperatureProfileTestSuite) TestHeatTransferQualitative() {
+func (suite *ConvectiveTestSuite) TestHeatTransferQualitative() {
 	var step = 1e-1
 	var t0 float64 = 900
 
@@ -109,7 +109,7 @@ func (suite *TemperatureProfileTestSuite) TestHeatTransferQualitative() {
 	}
 }
 
-func (suite *TemperatureProfileTestSuite) TestWallTemperatureQualitative() {
+func (suite *ConvectiveTestSuite) TestWallTemperatureQualitative() {
 	var step = 1e-1
 	var t0 float64 = 900
 
@@ -132,10 +132,10 @@ func (suite *TemperatureProfileTestSuite) TestWallTemperatureQualitative() {
 }
 
 func TestTemperatureProfileTestSuite(t *testing.T) {
-	suite.Run(t, new(TemperatureProfileTestSuite))
+	suite.Run(t, new(ConvectiveTestSuite))
 }
 
-func (suite *TemperatureProfileTestSuite) setTSystem() {
+func (suite *ConvectiveTestSuite) setTSystem() {
 	suite.tSystem = NewConvectiveTemperatureSystem(
 		suite.solver, suite.airMassRate, suite.cpAir,
 		suite.gasTemp, suite.alphaAir, suite.alphaGas,

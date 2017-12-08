@@ -9,6 +9,14 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+func Product(xArr []float64) float64 {
+	var result float64 = 1
+	for _, x := range xArr {
+		result *= x
+	}
+	return result
+}
+
 func Converged(x0, x1, precision float64) bool {
 	return math.Abs(x0-x1)/math.Abs(x0) <= precision
 }
