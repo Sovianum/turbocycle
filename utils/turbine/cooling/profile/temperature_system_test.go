@@ -1,4 +1,4 @@
-package cooling
+package profile
 
 import (
 	"testing"
@@ -136,7 +136,7 @@ func TestTemperatureProfileTestSuite(t *testing.T) {
 }
 
 func (suite *TemperatureProfileTestSuite) setTSystem() {
-	suite.tSystem = NewTemperatureSystem(
+	suite.tSystem = NewConvectiveTemperatureSystem(
 		suite.solver, suite.airMassRate, suite.cpAir,
 		suite.gasTemp, suite.alphaAir, suite.alphaGas,
 		suite.wallThk, suite.lambdaM, suite.segment,

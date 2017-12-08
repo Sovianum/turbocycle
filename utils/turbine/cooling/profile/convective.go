@@ -1,33 +1,13 @@
-package cooling
+package profile
 
 import (
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling"
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"gonum.org/v1/gonum/mat"
 )
 
-type TemperatureSystem interface {
-	Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution
-	CpAir(theta float64) float64
-	GasTemp(x float64) float64
-	AlphaAir(x, theta float64) float64
-	AlphaGas(x, theta float64) float64
-	K(x, theta float64) float64
-}
-
-type TemperatureSolution struct {
-	ParametricCoord  []float64
-	X                []float64
-	Y                []float64
-	LengthCoord      []float64
-	AlphaAir         []float64
-	AlphaGas         []float64
-	AirTemperature   []float64
-	WallTemperature  []float64
-	HeatTransferCoef []float64
-}
-
-func NewTemperatureSystem(
+func NewConvectiveTemperatureSystem(
 	solver ode.Solver,
 	airMassRate float64,
 	cpAir func(theta float64) float64,
@@ -38,7 +18,7 @@ func NewTemperatureSystem(
 	lambdaM func(t float64) float64,
 	segment geom.Segment,
 ) TemperatureSystem {
-	return &temperatureSystem{
+	return &convectiveTemperatureSystem{
 		solver: solver,
 
 		airMassRate:     airMassRate,
@@ -53,14 +33,14 @@ func NewTemperatureSystem(
 	}
 }
 
-type temperatureSystem struct {
+type convectiveTemperatureSystem struct {
 	solver ode.Solver
 
 	airMassRate float64
 	cpAir       func(theta float64) float64
 	gasTemp     func(x float64) float64
-	alphaAir    AlphaLaw
-	alphaGas    AlphaLaw
+	alphaAir    cooling.AlphaLaw
+	alphaGas    cooling.AlphaLaw
 
 	wallThk func(x float64) float64
 	lambdaM func(t float64) float64
@@ -71,7 +51,7 @@ type temperatureSystem struct {
 	lengthParameter float64
 }
 
-func (system *temperatureSystem) Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution {
+func (system *convectiveTemperatureSystem) Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution {
 	var solution = system.solver.Solution(system.dThetaDX, t0, theta0, tMax, maxStep)
 	system.solutionStep = solution.Step()
 
@@ -93,27 +73,27 @@ func (system *temperatureSystem) Solve(t0, theta0, tMax, maxStep float64) Temper
 	return tSolution
 }
 
-func (system *temperatureSystem) CpAir(theta float64) float64 {
+func (system *convectiveTemperatureSystem) CpAir(theta float64) float64 {
 	return system.cpAir(theta)
 }
 
-func (system *temperatureSystem) GasTemp(lengthCoord float64) float64 {
+func (system *convectiveTemperatureSystem) GasTemp(lengthCoord float64) float64 {
 	return system.gasTemp(lengthCoord)
 }
 
-func (system *temperatureSystem) AlphaAir(lengthCoord, theta float64) float64 {
+func (system *convectiveTemperatureSystem) AlphaAir(lengthCoord, theta float64) float64 {
 	return system.alphaAir(lengthCoord, theta)
 }
 
-func (system *temperatureSystem) AlphaGas(lengthCoord, theta float64) float64 {
+func (system *convectiveTemperatureSystem) AlphaGas(lengthCoord, theta float64) float64 {
 	return system.alphaGas(lengthCoord, theta)
 }
 
-func (system *temperatureSystem) K(x, theta float64) float64 {
+func (system *convectiveTemperatureSystem) K(x, theta float64) float64 {
 	return system.heatTransferCoef(x, theta)
 }
 
-func (system *temperatureSystem) dThetaDX(t, theta float64) float64 {
+func (system *convectiveTemperatureSystem) dThetaDX(t, theta float64) float64 {
 	var segmentDerivative = geom.ApproxDerivative1(system.segment, t, system.solutionStep)
 	var geomFactor = mat.Norm(segmentDerivative, 2)
 
@@ -125,14 +105,14 @@ func (system *temperatureSystem) dThetaDX(t, theta float64) float64 {
 	return result
 }
 
-func (system *temperatureSystem) wallTemp(lengthCoord, theta float64) float64 {
+func (system *convectiveTemperatureSystem) wallTemp(lengthCoord, theta float64) float64 {
 	var term1 = system.gasTemp(lengthCoord)
 	var kFactor = system.heatTransferCoef(lengthCoord, theta) / system.alphaGas(lengthCoord, theta)
 	var tFactor = system.gasTemp(lengthCoord) - theta
 	return term1 - kFactor*tFactor
 }
 
-func (system *temperatureSystem) heatTransferCoef(lengthCoord, theta float64) float64 {
+func (system *convectiveTemperatureSystem) heatTransferCoef(lengthCoord, theta float64) float64 {
 	var alphaAir = system.alphaAir(lengthCoord, theta)
 	var alphaGas = system.alphaGas(lengthCoord, theta)
 	var delta = system.wallThk(lengthCoord)
@@ -143,7 +123,7 @@ func (system *temperatureSystem) heatTransferCoef(lengthCoord, theta float64) fl
 	return enom / denom
 }
 
-func (system *temperatureSystem) extendSolutionArray(solution *TemperatureSolution, tStart, step float64, pointNum int) {
+func (system *convectiveTemperatureSystem) extendSolutionArray(solution *TemperatureSolution, tStart, step float64, pointNum int) {
 	var currLengthCoord float64 = 0
 	var currT float64 = 0
 
@@ -164,3 +144,4 @@ func (system *temperatureSystem) extendSolutionArray(solution *TemperatureSoluti
 		currLengthCoord += lengthStep
 	}
 }
+
