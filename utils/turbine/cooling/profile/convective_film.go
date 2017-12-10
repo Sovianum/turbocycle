@@ -16,7 +16,7 @@ const (
 	defaultN = 100
 )
 
-func NewSlitPoint(coord, thickness, area, velocityCoef, massRateCoef float64) SlitInfo {
+func NewSlitInfo(coord, thickness, area, velocityCoef, massRateCoef float64) SlitInfo {
 	return SlitInfo{
 		Coord:        coord,
 		Thickness:    thickness,
@@ -47,6 +47,54 @@ type thermoPoint struct {
 	massRate float64
 }
 
+func NewConvFilmTemperatureSystem(
+	solver ode.Solver,
+	coolerMassRate0 float64,
+	cooler gases.Gas,
+	gas gases.Gas,
+	gasTempStag func(x float64) float64,
+	gasPressureStag func(x float64) float64,
+	coolerPressureStag func(x float64) float64,
+	lambdaFunc func(xRel float64) float64,
+	alphaCoolerConv cooling.AlphaLaw,
+	alphaGasConv cooling.AlphaLaw,
+	slitInfoArray []SlitInfo,
+	wallThk func(x float64) float64,
+	lambdaM func(t float64) float64,
+	segment geom.Segment,
+	solutionStep float64,
+) TemperatureSystem {
+	return &convFilmTemperatureSystem{
+		solver:          solver,
+		coolerMassRate0: coolerMassRate0,
+
+		cooler: cooler,
+		gas:    gas,
+
+		gasTempStag:        gasTempStag,
+		gasPressureStag:    gasPressureStag,
+		coolerPressureStag: coolerPressureStag,
+
+		lambdaFunc: lambdaFunc,
+
+		alphaCoolerConv: alphaCoolerConv,
+		alphaGasConv:    alphaGasConv,
+
+		slitInfoArray: slitInfoArray,
+
+		wallThk: wallThk,
+		lambdaM: lambdaM,
+
+		segment:       segment,
+		segmentLength: geom.ApproxLength(segment, 0, 1, defaultN),
+
+		solutionStep:    solutionStep,
+		lengthParameter: 0,
+		lengthMassRate:  coolerMassRate0,
+	}
+
+}
+
 type convFilmTemperatureSystem struct {
 	solver ode.Solver
 
@@ -75,9 +123,13 @@ type convFilmTemperatureSystem struct {
 	solutionStep float64
 
 	lengthParameter float64
+	lengthMassRate  float64
 }
 
 func (system *convFilmTemperatureSystem) Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution {
+	system.lengthParameter = 0
+	system.lengthMassRate = system.coolerMassRate0
+
 	var solution = system.solver.Solution(system.dThetaDX, t0, theta0, tMax, maxStep)
 	system.solutionStep = solution.Step()
 
@@ -145,6 +197,9 @@ func (system *convFilmTemperatureSystem) extendSolutionArray(
 }
 
 func (system *convFilmTemperatureSystem) dThetaDX(t, theta float64) float64 {
+	// slits are activated when we get cooler temperature at this particular point
+	system.activateSlits(system.lengthParameter, theta, system.gasTempStag(system.lengthParameter))
+
 	var segmentDerivative = geom.ApproxDerivative1(system.segment, t, system.solutionStep)
 	var geomFactor = mat.Norm(segmentDerivative, 2)
 
@@ -153,36 +208,42 @@ func (system *convFilmTemperatureSystem) dThetaDX(t, theta float64) float64 {
 	var massRateFactor = 2 / (coolerMassRate * coolerCp)
 
 	var k = system.heatTransferCoef(system.lengthParameter, theta)
-	var result = geomFactor * massRateFactor * k * (system.gasTempStag(system.lengthParameter) - theta)
+	var filmTemperature = system.multiSlitFilmTemperature(system.lengthParameter, system.slitInfoArray)
 
-	// slits are activated when we get cooler temperature at this particular point
-	system.activateSlits(system.lengthParameter, theta, system.gasTempStag(system.lengthParameter), coolerMassRate)
+	var result = geomFactor * massRateFactor * k * (filmTemperature - theta)
+
 	// side effect is used to prevent length calculation on each step
 	system.lengthParameter += geomFactor * system.solutionStep
 	return result
 }
 
-func (system *convFilmTemperatureSystem) activateSlits(lengthCoord, theta, gasTemp, massRate float64) {
+func (system *convFilmTemperatureSystem) activateSlits(lengthCoord, theta, gasTemp float64) {
 	for i := 0; i != len(system.slitInfoArray); i++ {
 		if !system.slitInfoArray[i].activated && system.slitInfoArray[i].Coord <= lengthCoord {
 			system.slitInfoArray[i].activated = true
+
 			system.slitInfoArray[i].thermoPoint = thermoPoint{
-				theta:    theta,
-				massRate: massRate,
-				coord:    system.slitInfoArray[i].Coord,
-				gasTemp:  gasTemp,
+				theta:   theta,
+				coord:   system.slitInfoArray[i].Coord,
+				gasTemp: gasTemp,
 			}
+			// slit mass rate is calculated after initialization in order to pass correct
+			// parameters to mass rate calculating function
+			var slitMassRate = system.coolerMassRateSlit(system.slitInfoArray[i])
+			system.slitInfoArray[i].thermoPoint.massRate = slitMassRate
+			// decrease cooler mass rate by value which flows to the slit
+			system.lengthMassRate -= slitMassRate
 		}
 	}
 }
 
 func (system *convFilmTemperatureSystem) wallTemp(lengthCoord, theta float64) float64 {
-	var tGas = system.gasTempStag(lengthCoord)
+	var tFilm = system.multiSlitFilmTemperature(lengthCoord, system.slitInfoArray)
 	var alphaFilm = system.alphaFilm(lengthCoord, theta)
 
 	var kFactor = system.heatTransferCoef(lengthCoord, theta) / alphaFilm
-	var tFactor = tGas - theta
-	return tGas - kFactor*tFactor
+	var tFactor = tFilm - theta
+	return tFilm - kFactor*tFactor
 }
 
 func (system *convFilmTemperatureSystem) heatTransferCoef(lengthCoord, theta float64) float64 {
@@ -197,7 +258,9 @@ func (system *convFilmTemperatureSystem) heatTransferCoef(lengthCoord, theta flo
 }
 
 func (system *convFilmTemperatureSystem) alphaFilm(x, theta float64) float64 {
-	return system.alphaGasConv(x, theta) * system.alphaFilmFactor(x, system.slitInfoArray)
+	var alphaConv = system.alphaGasConv(x, theta)
+	var filmFactor = system.alphaFilmFactor(x, system.slitInfoArray)
+	return alphaConv * filmFactor
 }
 
 func (system *convFilmTemperatureSystem) alphaFilmFactor(x float64, slitInfoArray []SlitInfo) float64 {
@@ -242,7 +305,7 @@ func (system *convFilmTemperatureSystem) filmEfficiencyFactor(filmEfficiencyPara
 	if filmEfficiencyParameter < 0 {
 		return 0
 	} else if 0 <= filmEfficiencyParameter && filmEfficiencyParameter < 3 {
-		return 10
+		return 1
 	} else if 3 <= filmEfficiencyParameter && filmEfficiencyParameter < 11 {
 		return math.Pow(filmEfficiencyParameter/3, -0.285)
 	} else {
@@ -287,7 +350,7 @@ func (system *convFilmTemperatureSystem) coolerMassRate(x float64) float64 {
 	return result
 }
 
-func (system *convFilmTemperatureSystem) coolerMassRateFilm(slitInfo SlitInfo) float64 {
+func (system *convFilmTemperatureSystem) coolerMassRateSlit(slitInfo SlitInfo) float64 {
 	var gasPressure = system.gasPressureStat(slitInfo.Coord)
 
 	var coolerK = gases.K(system.cooler, slitInfo.thermoPoint.theta)
@@ -312,7 +375,8 @@ func (system *convFilmTemperatureSystem) slitBlowingParameter(slitCoord, slitThe
 	var coolerVelocity = system.coolerSlitVelocity(slitCoord, slitTheta, velocityCoef)
 	var coolerDensity = system.coolerSlitDensityStat(slitCoord, slitTheta, velocityCoef)
 
-	return coolerDensity * coolerVelocity / (gasDensity * gasVelocity)
+	var result = coolerDensity * coolerVelocity / (gasDensity * gasVelocity)
+	return result
 }
 
 func (system *convFilmTemperatureSystem) coolerSlitDensityStat(slitCoord, slitTheta, velocityCoef float64) float64 {
@@ -324,7 +388,9 @@ func (system *convFilmTemperatureSystem) coolerSlitDensityStat(slitCoord, slitTh
 }
 
 func (system *convFilmTemperatureSystem) airSlitLambda(slitCoord, slitTheta, velocityCoef float64) float64 {
-	return system.coolerSlitVelocity(slitCoord, slitTheta, velocityCoef) / system.coolerCritSpeedSound(slitCoord, slitTheta)
+	var coolerSlitVelocity = system.coolerSlitVelocity(slitCoord, slitTheta, velocityCoef)
+	var coolerCritSpeedSound = system.coolerCritSpeedSound(slitCoord, slitTheta)
+	return coolerSlitVelocity / coolerCritSpeedSound
 }
 
 func (system *convFilmTemperatureSystem) coolerSlitVelocity(slitCoord, slitTheta, velocityCoef float64) float64 {
@@ -338,7 +404,8 @@ func (system *convFilmTemperatureSystem) coolerSlitVelocity(slitCoord, slitTheta
 	var pGas = system.gasPressureStat(slitCoord)
 	var pFactor = 1 - math.Pow(pGas/pAir, (kAir-1)/kAir)
 
-	return velocityCoef * math.Sqrt(kFactor*tempFactor*pFactor)
+	var velocity = velocityCoef * math.Sqrt(kFactor*tempFactor*pFactor)
+	return velocity
 }
 
 func (system *convFilmTemperatureSystem) coolerCritSpeedSound(x, theta float64) float64 {
@@ -352,7 +419,10 @@ func (system *convFilmTemperatureSystem) coolerDensityStag(x float64, theta floa
 }
 
 func (system *convFilmTemperatureSystem) gasDensityStat(x float64) float64 {
-	return gases.Density(system.gas, system.gasTempStat(x), system.gasPressureStat(x))
+	var tStat = system.gasTempStat(x)
+	var pStat = system.gasPressureStat(x)
+	var densityStat = gases.Density(system.gas, tStat, pStat)
+	return densityStat
 }
 
 func (system *convFilmTemperatureSystem) gasPressureStat(x float64) float64 {
@@ -370,11 +440,15 @@ func (system *convFilmTemperatureSystem) gasTempStat(x float64) float64 {
 	var tGas = system.gasTempStag(x)
 	var velocity = system.gasVelocity(x)
 	var cp = system.gas.Cp(tGas)
-	return tGas - velocity*velocity/(2*cp)
+	var tStat = tGas - velocity*velocity/(2*cp)
+	return tStat
 }
 
 func (system *convFilmTemperatureSystem) gasVelocity(x float64) float64 {
-	return system.lambda(x) * system.gasCritSpeedSound(x)
+	var lambda = system.lambda(x)
+	var critSpeedSound = system.gasCritSpeedSound(x)
+	var velocity = lambda * critSpeedSound
+	return velocity
 }
 
 func (system *convFilmTemperatureSystem) gasCritSpeedSound(x float64) float64 {
