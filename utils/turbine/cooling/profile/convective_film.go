@@ -130,17 +130,10 @@ func (system *convFilmTemperatureSystem) Solve(t0, theta0, tMax, maxStep float64
 	var tArr, tAirArr = solution.Build()
 
 	var solutionLen = len(tArr)
-	var tSolution = TemperatureSolution{
-		ParametricCoord:  tArr,
-		AirTemperature:   tAirArr,
-		X:                make([]float64, solutionLen),
-		Y:                make([]float64, solutionLen),
-		LengthCoord:      make([]float64, solutionLen),
-		AlphaAir:         make([]float64, solutionLen),
-		AlphaGas:         make([]float64, solutionLen),
-		WallTemperature:  make([]float64, solutionLen),
-		HeatTransferCoef: make([]float64, solutionLen),
-	}
+	var tSolution = NewTemperatureSolution(solutionLen)
+	tSolution.ParametricCoord = tArr
+	tSolution.AirTemperature = tAirArr
+
 	system.extendSolutionArray(&tSolution, t0, system.solutionStep, solutionLen)
 	return tSolution
 }
@@ -180,6 +173,7 @@ func (system *convFilmTemperatureSystem) extendSolutionArray(
 		solution.AlphaAir[i] = system.AlphaAir(currLengthCoord, solution.AirTemperature[i])
 		solution.AlphaGas[i] = system.AlphaGas(currLengthCoord, solution.AirTemperature[i])
 		solution.WallTemperature[i] = system.wallTemp(currLengthCoord, solution.AirTemperature[i])
+		solution.FilmTemperature[i] = system.multiSlitFilmTemperature(currLengthCoord)
 		solution.HeatTransferCoef[i] = system.heatTransferCoef(currLengthCoord, solution.AirTemperature[i])
 
 		var segmentDerivative = geom.ApproxDerivative1(system.segment, currT, step)
@@ -202,7 +196,7 @@ func (system *convFilmTemperatureSystem) dThetaDX(t, theta float64) float64 {
 	var massRateFactor = 2 / (coolerMassRate * coolerCp)
 
 	var k = system.heatTransferCoef(system.lengthParameter, theta)
-	var filmTemperature = system.multiSlitFilmTemperature(system.lengthParameter, system.slitInfoArray)
+	var filmTemperature = system.multiSlitFilmTemperature(system.lengthParameter)
 
 	var result = geomFactor * massRateFactor * k * (filmTemperature - theta)
 
@@ -232,7 +226,7 @@ func (system *convFilmTemperatureSystem) activateSlits(lengthCoord, theta, gasTe
 }
 
 func (system *convFilmTemperatureSystem) wallTemp(lengthCoord, theta float64) float64 {
-	var tFilm = system.multiSlitFilmTemperature(lengthCoord, system.slitInfoArray)
+	var tFilm = system.multiSlitFilmTemperature(lengthCoord)
 	var alphaFilm = system.alphaFilm(lengthCoord, theta)
 
 	var kFactor = system.heatTransferCoef(lengthCoord, theta) / alphaFilm
@@ -266,14 +260,17 @@ func (system *convFilmTemperatureSystem) alphaFilmFactor(x float64, slitInfoArra
 			result *= 1 + 2*blowParameter/xRel
 		}
 	}
+	if result > 100 {
+		return 100
+	}
 	return result
 }
 
-func (system *convFilmTemperatureSystem) multiSlitFilmTemperature(x float64, slitInfoArray []SlitInfo) float64 {
-	var filmEfficiencyFactors = make([]float64, len(slitInfoArray))
-	var complementaryFactors = make([]float64, len(slitInfoArray))
+func (system *convFilmTemperatureSystem) multiSlitFilmTemperature(x float64) float64 {
+	var filmEfficiencyFactors = make([]float64, len(system.slitInfoArray))
+	var complementaryFactors = make([]float64, len(system.slitInfoArray))
 
-	for i, info := range slitInfoArray {
+	for i, info := range system.slitInfoArray {
 		var parameter = system.filmEfficiencyParameter(x, info)
 		var factor = system.filmEfficiencyFactor(parameter)
 
@@ -285,9 +282,9 @@ func (system *convFilmTemperatureSystem) multiSlitFilmTemperature(x float64, sli
 
 	var term2 float64 = 0
 	for i := range filmEfficiencyFactors {
-		if slitInfoArray[i].activated {
+		if system.slitInfoArray[i].activated {
 			term2 += filmEfficiencyFactors[i] *
-				slitInfoArray[i].thermoPoint.theta *
+				system.slitInfoArray[i].thermoPoint.theta *
 				common.Product(complementaryFactors[i+1:])
 		}
 	}

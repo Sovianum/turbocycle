@@ -58,17 +58,10 @@ func (system *convectiveTemperatureSystem) Solve(t0, theta0, tMax, maxStep float
 	var tArr, tAirArr = solution.Build()
 
 	var solutionLen = len(tArr)
-	var tSolution = TemperatureSolution{
-		ParametricCoord:  tArr,
-		AirTemperature:   tAirArr,
-		X:                make([]float64, solutionLen),
-		Y:                make([]float64, solutionLen),
-		LengthCoord:      make([]float64, solutionLen),
-		AlphaAir:         make([]float64, solutionLen),
-		AlphaGas:         make([]float64, solutionLen),
-		WallTemperature:  make([]float64, solutionLen),
-		HeatTransferCoef: make([]float64, solutionLen),
-	}
+	var tSolution = NewTemperatureSolution(solutionLen)
+	tSolution.ParametricCoord = tArr
+	tSolution.AirTemperature = tAirArr
+
 	system.extendSolutionArray(&tSolution, t0, system.solutionStep, solutionLen)
 	return tSolution
 }
@@ -144,4 +137,3 @@ func (system *convectiveTemperatureSystem) extendSolutionArray(solution *Tempera
 		currLengthCoord += lengthStep
 	}
 }
-

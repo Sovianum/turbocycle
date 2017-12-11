@@ -2,6 +2,21 @@ package profile
 
 import "fmt"
 
+func NewTemperatureSolution(length int) TemperatureSolution {
+	return TemperatureSolution{
+		ParametricCoord:  make([]float64, length),
+		X:                make([]float64, length),
+		Y:                make([]float64, length),
+		LengthCoord:      make([]float64, length),
+		AlphaAir:         make([]float64, length),
+		AlphaGas:         make([]float64, length),
+		FilmTemperature:  make([]float64, length),
+		AirTemperature:   make([]float64, length),
+		WallTemperature:  make([]float64, length),
+		HeatTransferCoef: make([]float64, length),
+	}
+}
+
 type TemperatureSolution struct {
 	ParametricCoord  []float64
 	X                []float64
@@ -9,6 +24,7 @@ type TemperatureSolution struct {
 	LengthCoord      []float64
 	AlphaAir         []float64
 	AlphaGas         []float64
+	FilmTemperature  []float64
 	AirTemperature   []float64
 	WallTemperature  []float64
 	HeatTransferCoef []float64
@@ -26,6 +42,25 @@ func (s TemperatureSolution) String() string {
 			s.AirTemperature[i],
 			s.WallTemperature[i],
 		)
+	}
+	return result
+}
+
+func (s TemperatureSolution) ToMatrix() [][]float64 {
+	var result = make([][]float64, len(s.ParametricCoord))
+	for i := 0; i != len(s.ParametricCoord); i++ {
+		result[i] = []float64{
+			s.ParametricCoord[i],
+			s.X[i],
+			s.Y[i],
+			s.LengthCoord[i],
+			s.AlphaAir[i],
+			s.AlphaGas[i],
+			s.FilmTemperature[i],
+			s.AirTemperature[i],
+			s.WallTemperature[i],
+			s.HeatTransferCoef[i],
+		}
 	}
 	return result
 }
