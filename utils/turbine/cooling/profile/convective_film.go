@@ -52,17 +52,12 @@ func NewConvFilmTemperatureSystem(
 	coolerMassRate0 float64,
 	cooler gases.Gas,
 	gas gases.Gas,
-	gasTempStag func(x float64) float64,
-	gasPressureStag func(x float64) float64,
-	coolerPressureStag func(x float64) float64,
+	gasTStag, gasPStag, coolerPStag func(x float64) float64,
 	lambdaFunc func(xRel float64) float64,
-	alphaCoolerConv cooling.AlphaLaw,
-	alphaGasConv cooling.AlphaLaw,
+	alphaCoolerConv, alphaGasConv cooling.AlphaLaw,
 	slitInfoArray []SlitInfo,
-	wallThk func(x float64) float64,
-	lambdaM func(t float64) float64,
+	wallThk, lambdaM func(t float64) float64,
 	segment geom.Segment,
-	solutionStep float64,
 ) TemperatureSystem {
 	return &convFilmTemperatureSystem{
 		solver:          solver,
@@ -71,9 +66,9 @@ func NewConvFilmTemperatureSystem(
 		cooler: cooler,
 		gas:    gas,
 
-		gasTempStag:        gasTempStag,
-		gasPressureStag:    gasPressureStag,
-		coolerPressureStag: coolerPressureStag,
+		gasTempStag:        gasTStag,
+		gasPressureStag:    gasPStag,
+		coolerPressureStag: coolerPStag,
 
 		lambdaFunc: lambdaFunc,
 
@@ -88,7 +83,6 @@ func NewConvFilmTemperatureSystem(
 		segment:       segment,
 		segmentLength: geom.ApproxLength(segment, 0, 1, defaultN),
 
-		solutionStep:    solutionStep,
 		lengthParameter: 0,
 		lengthMassRate:  coolerMassRate0,
 	}

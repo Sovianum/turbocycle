@@ -150,6 +150,5 @@ func (suite *ConvectiveFilmTestSuite) setTSystem() {
 		suite.wallThk,
 		suite.lambdaM,
 		suite.segment,
-		suite.solutionStep,
 	)
 }
