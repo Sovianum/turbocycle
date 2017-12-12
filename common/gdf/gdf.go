@@ -39,7 +39,7 @@ func Mach(lambda float64, k float64) float64 {
 
 func Lambda(mach float64, k float64) float64 {
 	var num = (k + 1) / 2 * mach * mach
-	var denom = 1 + 2*mach*mach
+	var denom = 1 + (k-1)/2*mach*mach
 
 	return math.Sqrt(num / denom)
 }

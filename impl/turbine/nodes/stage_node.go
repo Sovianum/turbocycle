@@ -332,6 +332,8 @@ func (node *turbineStageNode) Reactivity() float64 {
 
 func (node *turbineStageNode) getDataPack() *DataPack {
 	var pack = new(DataPack)
+	pack.T0 = node.t0Stag()
+	pack.P0 = node.p0Stag()
 	if node.isFirstStageNode {
 		node.initCalc(pack)
 	} else {
@@ -722,10 +724,10 @@ func (node *turbineStageNode) alpha1(pack *DataPack) {
 func (node *turbineStageNode) inletVelocityTriangleFirstStage(pack *DataPack) {
 	var massRate = node.massRate()
 	var area = geometry.Area(0, pack.StageGeometry.StatorGeometry())
-	var density = node.p0Stag() / (node.gas().R() * node.t0Stag())	// todo use static density instead of stag
+	var density = node.p0Stag() / (node.gas().R() * node.t0Stag()) // todo use static density instead of stag
 	var ca = massRate / (area * density)
 	node.velocityInput().SetState(states2.NewVelocityPortState(
-		states2.NewInletTriangle(0, ca, math.Pi / 2),
+		states2.NewInletTriangle(0, ca, math.Pi/2),
 		states2.InletTriangleType,
 	))
 }
