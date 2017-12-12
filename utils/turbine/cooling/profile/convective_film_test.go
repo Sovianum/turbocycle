@@ -102,7 +102,7 @@ func (suite *ConvectiveFilmTestSuite) TestFilmAlphaHole() {
 	var holeCoord = 3e-2
 	suite.slitInfoArray = []SlitInfo{
 		NewSlitInfo(holeCoord, 1e-4, 25e-8, 1, 1),
-		NewSlitInfo(holeCoord*2, 1e-4, 1e-4, 1, 1),
+		NewSlitInfo(holeCoord*2, 1e-4, 25e-8, 1, 1),
 	}
 
 	suite.setTSystem()

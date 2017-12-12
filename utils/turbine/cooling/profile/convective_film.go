@@ -122,7 +122,8 @@ type convFilmTemperatureSystem struct {
 
 func (system *convFilmTemperatureSystem) Solve(t0, theta0, tMax, maxStep float64) TemperatureSolution {
 	system.lengthParameter = 0
-	system.lengthMassRate = system.coolerMassRate0
+	//system.lengthMassRate = system.coolerMassRate0
+	system.lengthMassRate = system.coolerMassRate0 / 2
 
 	var solution = system.solver.Solution(system.dThetaDX, t0, theta0, tMax, maxStep)
 	system.solutionStep = solution.Step()
@@ -175,6 +176,9 @@ func (system *convFilmTemperatureSystem) extendSolutionArray(
 		solution.WallTemperature[i] = system.wallTemp(currLengthCoord, solution.AirTemperature[i])
 		solution.FilmTemperature[i] = system.multiSlitFilmTemperature(currLengthCoord)
 		solution.HeatTransferCoef[i] = system.heatTransferCoef(currLengthCoord, solution.AirTemperature[i])
+		solution.FilmEfficiency[i] =
+			(system.gasTempStag(currLengthCoord) - solution.FilmTemperature[i]) /
+				(system.gasTempStag(currLengthCoord) - solution.AirTemperature[i])
 
 		var segmentDerivative = geom.ApproxDerivative1(system.segment, currT, step)
 		var lengthStep = mat.Norm(segmentDerivative, 2) * step
@@ -191,9 +195,8 @@ func (system *convFilmTemperatureSystem) dThetaDX(t, theta float64) float64 {
 	var segmentDerivative = geom.ApproxDerivative1(system.segment, t, system.solutionStep)
 	var geomFactor = mat.Norm(segmentDerivative, 2)
 
-	var coolerMassRate = system.coolerMassRate(system.lengthParameter)
 	var coolerCp = system.cooler.Cp(theta)
-	var massRateFactor = 2 / (coolerMassRate * coolerCp)
+	var massRateFactor = 1 / (system.lengthMassRate * coolerCp)
 
 	var k = system.heatTransferCoef(system.lengthParameter, theta)
 	var filmTemperature = system.multiSlitFilmTemperature(system.lengthParameter)
@@ -356,7 +359,12 @@ func (system *convFilmTemperatureSystem) coolerMassRateSlit(slitInfo SlitInfo) f
 	var dimFactor = coolerPressure * coolerDensity
 	var piFactor = math.Pow(pi, 2/coolerK) * (1 - math.Pow(pi, (coolerK-1)/coolerK))
 
-	return slitInfo.Area * slitInfo.MassRateCoef * math.Sqrt(kFactor*dimFactor*piFactor)
+	var result = slitInfo.Area * slitInfo.MassRateCoef * math.Sqrt(kFactor*dimFactor*piFactor)
+
+	if result > system.lengthMassRate {
+		panic("not enough mass rate")
+	}
+	return result
 }
 
 func (system *convFilmTemperatureSystem) slitBlowingParameter(slitCoord, slitTheta, velocityCoef float64) float64 {

@@ -14,6 +14,7 @@ func NewTemperatureSolution(length int) TemperatureSolution {
 		AirTemperature:   make([]float64, length),
 		WallTemperature:  make([]float64, length),
 		HeatTransferCoef: make([]float64, length),
+		FilmEfficiency:   make([]float64, length),
 	}
 }
 
@@ -28,6 +29,7 @@ type TemperatureSolution struct {
 	AirTemperature   []float64
 	WallTemperature  []float64
 	HeatTransferCoef []float64
+	FilmEfficiency   []float64
 }
 
 func (s TemperatureSolution) String() string {
@@ -60,6 +62,7 @@ func (s TemperatureSolution) ToMatrix() [][]float64 {
 			s.AirTemperature[i],
 			s.WallTemperature[i],
 			s.HeatTransferCoef[i],
+			s.FilmEfficiency[i],
 		}
 	}
 	return result
