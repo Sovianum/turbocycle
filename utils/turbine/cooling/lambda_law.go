@@ -19,6 +19,6 @@ func powerLambdaLaw(lambdaIn, lambdaOut, power float64) LambdaLaw {
 		return math.Pow(
 			1+(math.Pow(lambdaOut/lambdaIn, 1/power)-1)*xRel,
 			power,
-		)
+		) * lambdaIn
 	}
 }

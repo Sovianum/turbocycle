@@ -186,6 +186,21 @@ func (system *convFilmTemperatureSystem) extendSolutionArray(
 		currT += step
 		currLengthCoord += lengthStep
 	}
+
+	for i, info := range system.slitInfoArray {
+		solution.SlitsSolution = append(
+			solution.SlitsSolution,
+			SlitSolution{
+				Id:                i + 1,
+				SlitInfo:          info,
+				Velocity:          system.coolerSlitVelocity(info.Coord, info.thermoPoint.theta, info.VelocityCoef),
+				BlowingParameter:  system.slitBlowingParameter(info.Coord, info.thermoPoint.theta, info.VelocityCoef),
+				TemperatureFactor: info.thermoPoint.theta / system.gasTempStag(info.Coord),
+				MassRate:          info.thermoPoint.massRate,
+				MassRateRel:       info.thermoPoint.massRate / system.coolerMassRate0,
+			},
+		)
+	}
 }
 
 func (system *convFilmTemperatureSystem) dThetaDX(t, theta float64) float64 {

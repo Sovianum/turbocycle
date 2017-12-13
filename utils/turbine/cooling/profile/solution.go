@@ -18,6 +18,16 @@ func NewTemperatureSolution(length int) TemperatureSolution {
 	}
 }
 
+type SlitSolution struct {
+	Id                int
+	SlitInfo          SlitInfo
+	Velocity          float64
+	BlowingParameter  float64
+	TemperatureFactor float64
+	MassRate          float64
+	MassRateRel       float64
+}
+
 type TemperatureSolution struct {
 	ParametricCoord  []float64
 	X                []float64
@@ -30,6 +40,8 @@ type TemperatureSolution struct {
 	WallTemperature  []float64
 	HeatTransferCoef []float64
 	FilmEfficiency   []float64
+
+	SlitsSolution []SlitSolution
 }
 
 func (s TemperatureSolution) String() string {
