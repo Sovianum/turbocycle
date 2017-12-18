@@ -54,6 +54,14 @@ func (triangle rotorOutletVelocityTriangle) Beta() float64 {
 	return math.Atan2(triangle.WA(), triangle.WU())
 }
 
+func (triangle rotorOutletVelocityTriangle) W() float64 {
+	var term1 = triangle.c * triangle.c
+	var term2 = triangle.u * triangle.u
+	var term3 = 2 * triangle.c * triangle.u * math.Cos(triangle.alpha)
+
+	return math.Sqrt(term1 + term2 + term3)
+}
+
 type rotorInletVelocityTriangle struct {
 	velocityTriangle
 }
@@ -64,6 +72,14 @@ func (triangle rotorInletVelocityTriangle) WU() float64 {
 
 func (triangle rotorInletVelocityTriangle) Beta() float64 {
 	return math.Atan2(triangle.WA(), triangle.WU())
+}
+
+func (triangle rotorInletVelocityTriangle) W() float64 {
+	var term1 = triangle.c * triangle.c
+	var term2 = triangle.u * triangle.u
+	var term3 = -2 * triangle.c * triangle.u * math.Cos(triangle.alpha)
+
+	return math.Sqrt(term1 + term2 + term3)
 }
 
 type velocityTriangle struct {
@@ -82,14 +98,6 @@ func (triangle velocityTriangle) C() float64 {
 
 func (triangle velocityTriangle) U() float64 {
 	return triangle.u
-}
-
-func (triangle velocityTriangle) W() float64 {
-	var term1 = triangle.c * triangle.c
-	var term2 = triangle.u * triangle.u
-	var term3 = -2 * triangle.c * triangle.u * math.Cos(triangle.alpha)
-
-	return math.Sqrt(term1 + term2 + term3)
 }
 
 func (triangle velocityTriangle) CA() float64 {
