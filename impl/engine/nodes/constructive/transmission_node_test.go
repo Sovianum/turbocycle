@@ -1,9 +1,10 @@
 package constructive
 
 import (
+	"testing"
+
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNewTransmissionNode(t *testing.T) {
