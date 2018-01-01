@@ -1,15 +1,19 @@
 package compose
 
 import (
-	"encoding/json"
-	"fmt"
-
+	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
 )
+
+type GasGeneratorNode interface {
+	core.Node
+	nodes.ComplexGasChannel
+	Burner() constructive.BurnerNode
+	TurboCascade() TurboCascadeNode
+}
 
 func NewGasGeneratorNode(
 	compressorEtaAd, piStag float64,
@@ -20,7 +24,6 @@ func NewGasGeneratorNode(
 	precision float64,
 ) GasGeneratorNode {
 	var result = &gasGeneratorNode{
-		ports: make(core.PortsType),
 		turboCascade: NewTurboCascadeNode(
 			compressorEtaAd, piStag, etaT, lambdaOut,
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
@@ -31,28 +34,36 @@ func NewGasGeneratorNode(
 
 	result.linkPorts()
 
-	result.ports[nodes.ComplexGasInput] = core.NewPort()
-	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
-
-	result.ports[nodes.ComplexGasOutput] = core.NewPort()
-	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
+	result.complexGasInput = core.NewAttachedPort(result)
+	result.complexGasOutput = core.NewAttachedPort(result)
 
 	return result
 }
 
-type GasGeneratorNode interface {
-	core.Node
-	nodes.ComplexGasChannel
-	Burner() constructive.BurnerNode
-	TurboCascade() TurboCascadeNode
-}
-
 type gasGeneratorNode struct {
-	ports        core.PortsType
+	core.BaseNode
+
+	complexGasInput  core.Port
+	complexGasOutput core.Port
+
 	burner       constructive.BurnerNode
 	turboCascade TurboCascadeNode
+}
+
+func (node *gasGeneratorNode) GetName() string {
+	return common.EitherString(node.GetInstanceName(), "GasGenerator")
+}
+
+func (node *gasGeneratorNode) GetPorts() []core.Port {
+	return []core.Port{node.complexGasInput, node.complexGasOutput}
+}
+
+func (node *gasGeneratorNode) GetRequirePorts() []core.Port {
+	return []core.Port{node.complexGasInput}
+}
+
+func (node *gasGeneratorNode) GetUpdatePorts() []core.Port {
+	return []core.Port{node.complexGasOutput}
 }
 
 func (node *gasGeneratorNode) Burner() constructive.BurnerNode {
@@ -61,24 +72,6 @@ func (node *gasGeneratorNode) Burner() constructive.BurnerNode {
 
 func (node *gasGeneratorNode) TurboCascade() TurboCascadeNode {
 	return node.turboCascade
-}
-
-func (node *gasGeneratorNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		GasInputState  core.PortState          `json:"gas_input_state"`
-		GasOutputState core.PortState          `json:"gas_output_state"`
-		Burner         constructive.BurnerNode `json:"burner"`
-		TurboCascade   TurboCascadeNode        `json:"turbo_cascade"`
-	}{
-		GasInputState:  node.complexGasInput().GetState(),
-		GasOutputState: node.complexGasOutput().GetState(),
-		Burner:         node.burner,
-		TurboCascade:   node.turboCascade,
-	})
-}
-
-func (node *gasGeneratorNode) GetPorts() core.PortsType {
-	return node.ports
 }
 
 func (node *gasGeneratorNode) Process() error {
@@ -96,58 +89,23 @@ func (node *gasGeneratorNode) Process() error {
 	return nil
 }
 
-func (node *gasGeneratorNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasInput}, nil
-}
-
-func (node *gasGeneratorNode) GetUpdatePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasOutput}, nil
-}
-
-func (node *gasGeneratorNode) GetPortTags() []string {
-	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput}
-}
-
-func (node *gasGeneratorNode) GetPortByTag(tag string) (core.Port, error) {
-	switch tag {
-	case nodes.ComplexGasInput:
-		return node.complexGasInput(), nil
-	case nodes.ComplexGasOutput:
-		return node.complexGasOutput(), nil
-	default:
-		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
-	}
-}
-
-func (node *gasGeneratorNode) ContextDefined() bool {
-	return true
-}
-
 func (node *gasGeneratorNode) ComplexGasInput() core.Port {
-	return node.complexGasInput()
+	return node.complexGasInput
 }
 
 func (node *gasGeneratorNode) ComplexGasOutput() core.Port {
-	return node.complexGasOutput()
+	return node.complexGasOutput
 }
 
 func (node *gasGeneratorNode) readInput() {
-	node.turboCascade.CompressorComplexGasInput().SetState(node.complexGasInput().GetState())
+	node.turboCascade.CompressorComplexGasInput().SetState(node.complexGasInput.GetState())
 }
 
 func (node *gasGeneratorNode) writeOutput() {
-	node.complexGasOutput().SetState(node.turboCascade.TurbineComplexGasOutput().GetState())
+	node.complexGasOutput.SetState(node.turboCascade.TurbineComplexGasOutput().GetState())
 }
 
 func (node *gasGeneratorNode) linkPorts() {
 	core.Link(node.turboCascade.CompressorComplexGasOutput(), node.burner.ComplexGasInput())
 	core.Link(node.burner.ComplexGasOutput(), node.turboCascade.TurbineComplexGasInput())
-}
-
-func (node *gasGeneratorNode) complexGasInput() core.Port {
-	return node.ports[nodes.ComplexGasInput]
-}
-
-func (node *gasGeneratorNode) complexGasOutput() core.Port {
-	return node.ports[nodes.ComplexGasOutput]
 }
