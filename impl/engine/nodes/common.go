@@ -146,18 +146,10 @@ func IsDataSource(port core.Port) (bool, error) {
 		return false, nil
 	}
 
-	var updatePortTags, err = outerNode.GetUpdatePortTags()
-	if err != nil {
-		return false, err
-	}
+	var updatePorts = outerNode.GetUpdatePorts()
 
-	for _, updatePortTag := range updatePortTags {
-		var tagPort, tagErr = outerNode.GetPortByTag(updatePortTag)
-		if tagErr != nil {
-			return false, tagErr
-		}
-
-		if tagPort == linkPort {
+	for _, port := range updatePorts {
+		if port == linkPort {
 			return true, nil
 		}
 	}

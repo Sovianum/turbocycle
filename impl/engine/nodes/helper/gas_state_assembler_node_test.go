@@ -31,12 +31,10 @@ func TestGasStateAssemblerNode_ProcessAssemble(t *testing.T) {
 	core.Link(assembler.MassRateRelPort(), mSource.MassRateRelOutput())
 	core.Link(assembler.ComplexGasPort(), complexSink.ComplexGasInput())
 
-	var require, rErr = assembler.GetRequirePortTags()
-	assert.Nil(t, rErr, rErr)
+	var require = assembler.GetRequirePorts()
 	assert.Equal(t, 4, len(require), len(require))
 
-	var update, uErr = assembler.GetUpdatePortTags()
-	assert.Nil(t, uErr, uErr)
+	var update = assembler.GetUpdatePorts()
 	assert.Equal(t, 1, len(update), len(update))
 
 	gSource.Process()
@@ -70,12 +68,10 @@ func TestGasStateAssemblerNode_ProcessDesemble(t *testing.T) {
 
 	mSink.MassRateRelInput().SetState(states.NewMassRateRelPortState(massRateRel))
 
-	var require, rErr = assembler.GetRequirePortTags()
-	assert.Nil(t, rErr, rErr)
+	var require = assembler.GetRequirePorts()
 	assert.Equal(t, 1, len(require))
 
-	var update, uErr = assembler.GetUpdatePortTags()
-	assert.Nil(t, uErr, uErr)
+	var update = assembler.GetUpdatePorts()
 	assert.Equal(t, 4, len(update))
 
 	complexSource.Process()

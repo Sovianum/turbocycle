@@ -1,10 +1,8 @@
 package helper
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 )
 
 type CycleBreakNode interface {
@@ -13,72 +11,44 @@ type CycleBreakNode interface {
 	DataSourcePort() core.Port
 }
 
-type initializerNode struct {
-	ports core.PortsType
-}
-
-func NewCycleBreakerNode(initialState core.PortState) CycleBreakNode {
-	var result = &initializerNode{ports: make(core.PortsType)}
-
-	result.ports[nodes.UpdatePort] = core.NewPort()
-	result.ports[nodes.UpdatePort].SetInnerNode(result)
-	result.ports[nodes.UpdatePort].SetState(initialState)
-
-	result.ports[nodes.DataSourcePort] = core.NewPort()
-	result.ports[nodes.DataSourcePort].SetInnerNode(result)
-	result.ports[nodes.DataSourcePort].SetState(initialState)
-
+func NewCycleBreakerNode() CycleBreakNode {
+	var result = &cycleBreakNode{}
+	result.updatePort = core.NewAttachedPort(result)
+	result.sourcePort = core.NewAttachedPort(result)
 	return result
 }
 
-func (node *initializerNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		State core.PortState
-	}{
-		State: node.DataSourcePort().GetState(),
-	})
+type cycleBreakNode struct {
+	core.BaseNode
+	updatePort core.Port
+	sourcePort core.Port
 }
 
-func (node *initializerNode) GetPorts() core.PortsType {
-	return node.ports
+func (node *cycleBreakNode) GetName() string {
+	return common.EitherString(node.GetInstanceName(), "CycleBreak")
 }
 
-func (node *initializerNode) Process() error {
-	node.UpdatePort().SetState(node.DataSourcePort().GetState())
+func (node *cycleBreakNode) GetRequirePorts() []core.Port {
+	return make([]core.Port, 0)
+}
+
+func (node *cycleBreakNode) GetUpdatePorts() []core.Port {
+	return []core.Port{node.updatePort}
+}
+
+func (node *cycleBreakNode) GetPorts() []core.Port {
+	return []core.Port{node.sourcePort, node.updatePort}
+}
+
+func (node *cycleBreakNode) Process() error {
+	node.updatePort.SetState(node.sourcePort.GetState())
 	return nil
 }
 
-func (node *initializerNode) GetRequirePortTags() ([]string, error) {
-	return []string{}, nil
+func (node *cycleBreakNode) UpdatePort() core.Port {
+	return node.updatePort
 }
 
-func (node *initializerNode) GetUpdatePortTags() ([]string, error) {
-	return []string{nodes.UpdatePort}, nil
-}
-
-func (node *initializerNode) GetPortTags() []string {
-	return []string{nodes.UpdatePort, nodes.DataSourcePort}
-}
-
-func (node *initializerNode) GetPortByTag(tag string) (core.Port, error) {
-	switch tag {
-	case nodes.UpdatePort:
-		return node.UpdatePort(), nil
-	case nodes.DataSourcePort:
-		return node.DataSourcePort(), nil
-	default:
-		return nil, fmt.Errorf("port with tag \"%s\" not found in cycle breaker", tag)
-	}
-}
-
-func (node *initializerNode) ContextDefined() bool {
-	return true
-}
-
-func (node *initializerNode) UpdatePort() core.Port {
-	return node.ports[nodes.UpdatePort]
-}
-
-func (node *initializerNode) DataSourcePort() core.Port {
-	return node.ports[nodes.DataSourcePort]
+func (node *cycleBreakNode) DataSourcePort() core.Port {
+	return node.sourcePort
 }
