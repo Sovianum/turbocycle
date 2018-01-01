@@ -35,7 +35,7 @@ func NewUniformNewtonSolver(eqSystem EquationSystem, x0 *mat.VecDense, derivativ
 
 	var derivativeSteps = mat.NewVecDense(eqSystem.Order(), nil)
 	for i := 0; i != eqSystem.Order(); i++ {
-		derivativeSteps.SetVec(i, 0)
+		derivativeSteps.SetVec(i, derivativeStep)
 	}
 
 	return &newtonSolver{
@@ -53,11 +53,17 @@ type newtonSolver struct {
 
 func (solver *newtonSolver) Solve(precision float64, iterLimit int) (solution *mat.VecDense, err error) {
 	var x = solver.initValues
-	var y = mat.NewVecDense(solver.order(), nil)
+	var y, yErr = solver.eqSystem.GetResiduals(x)
+	if yErr != nil {
+		return nil, yErr
+	}
 
 	var converged = false
 	for i := 0; i != iterLimit; i++ {
 		x, y, err = solver.getNewState(x, y)
+		if err != nil {
+			return nil, err
+		}
 		if mat.Norm(y, 2) <= precision {
 			converged = true
 			break
@@ -68,7 +74,7 @@ func (solver *newtonSolver) Solve(precision float64, iterLimit int) (solution *m
 		return nil, fmt.Errorf("failed to converge")
 	}
 
-	return y, nil
+	return x, nil
 }
 
 func (solver *newtonSolver) getNewState(currX, currY *mat.VecDense) (newX, newY *mat.VecDense, err error) {
