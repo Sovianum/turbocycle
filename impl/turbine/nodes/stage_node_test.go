@@ -40,7 +40,7 @@ const (
 	density0 = 2.405
 
 	statorApproxTRel = 0.7
-	rotorApproxTRel = 0.7
+	rotorApproxTRel  = 0.7
 
 	alpha = 0.5
 )
@@ -74,42 +74,6 @@ func (suite *StageNodeTestSuite) SetupTest() {
 
 	suite.pack = new(DataPack)
 }
-
-//func (suite *StageNodeTestSuite) TestCalc() {
-//	suite.node.VelocityInput().SetState(states2.NewVelocityPortState(
-//		states2.NewInletTriangle(0, 10, math.Pi/2),
-//		states2.InletTriangleType,
-//	))
-//	var pack = suite.node.getDataPack()
-//
-//	assert.False(suite.T(), math.IsNaN(pack.U2))
-//	assert.False(suite.T(), math.IsNaN(pack.Tw1))
-//	assert.False(suite.T(), math.IsNaN(pack.Pw1))
-//	assert.False(suite.T(), math.IsNaN(pack.RotorHeatDrop))
-//	assert.False(suite.T(), math.IsNaN(pack.WAd2))
-//	assert.False(suite.T(), math.IsNaN(pack.W2))
-//	assert.False(suite.T(), math.IsNaN(pack.T2))
-//	assert.False(suite.T(), math.IsNaN(pack.T2Prime))
-//	assert.False(suite.T(), math.IsNaN(pack.P2))
-//	assert.False(suite.T(), math.IsNaN(pack.Density2))
-//	assert.False(suite.T(), math.IsNaN(pack.C2a))
-//	assert.False(suite.T(), math.IsNaN(pack.Beta2))
-//	assert.False(suite.T(), math.IsNaN(pack.C2u))
-//	assert.False(suite.T(), math.IsNaN(pack.Pi))
-//	assert.False(suite.T(), math.IsNaN(pack.MeanRadiusLabour))
-//	assert.False(suite.T(), math.IsNaN(pack.EtaU))
-//	assert.False(suite.T(), math.IsNaN(pack.StatorSpecificLoss))
-//	assert.False(suite.T(), math.IsNaN(pack.RotorSpecificLoss))
-//	assert.False(suite.T(), math.IsNaN(pack.OutletVelocitySpecificLoss))
-//	assert.False(suite.T(), math.IsNaN(pack.AirGapSpecificLoss))
-//	assert.False(suite.T(), math.IsNaN(pack.VentilationSpecificLoss))
-//	assert.False(suite.T(), math.IsNaN(pack.EtaT))
-//	assert.False(suite.T(), math.IsNaN(pack.T2Stag))
-//	assert.False(suite.T(), math.IsNaN(pack.P2Stag))
-//	assert.False(suite.T(), math.IsNaN(pack.StageLabour))
-//	assert.False(suite.T(), math.IsNaN(pack.StageHeatDropStag))
-//	assert.False(suite.T(), math.IsNaN(pack.EtaT))
-//}
 
 func (suite *StageNodeTestSuite) TestCalcFirstStage() {
 	suite.node.SetFirstStageMode(true)

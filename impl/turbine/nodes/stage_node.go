@@ -15,74 +15,6 @@ import (
 	"github.com/go-errors/errors"
 )
 
-func NewTurbineStageNode(
-	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
-	gen geometry.StageGeometryGenerator,
-) TurbineStageNode {
-	var result = &turbineStageNode{
-		ports:            make(core.PortsType),
-		n:                n,
-		stageHeatDrop:    stageHeatDrop,
-		reactivity:       reactivity,
-		phi:              phi,
-		psi:              psi,
-		airGapRel:        airGapRel,
-		precision:        precision,
-		stageGeomGen:     gen,
-		alpha1FirstStage: math.NaN(),
-		isFirstStageNode: false,
-	}
-	result.ports[nodes.GasInput] = core.NewPort()
-	result.ports[nodes.GasInput].SetInnerNode(result)
-	result.ports[nodes.GasInput].SetState(states.NewGasPortState(gases.GetAir()))
-
-	result.ports[nodes.GasOutput] = core.NewPort()
-	result.ports[nodes.GasOutput].SetInnerNode(result)
-	result.ports[nodes.GasOutput].SetState(states.NewGasPortState(gases.GetAir()))
-
-	result.ports[nodes.PressureInput] = core.NewPort()
-	result.ports[nodes.PressureInput].SetInnerNode(result)
-	result.ports[nodes.PressureInput].SetState(states.NewPressurePortState(common.AtmPressure))
-
-	result.ports[nodes.PressureOutput] = core.NewPort()
-	result.ports[nodes.PressureOutput].SetInnerNode(result)
-	result.ports[nodes.PressureOutput].SetState(states.NewPressurePortState(common.AtmPressure))
-
-	result.ports[nodes.TemperatureInput] = core.NewPort()
-	result.ports[nodes.TemperatureInput].SetInnerNode(result)
-	result.ports[nodes.TemperatureInput].SetState(states.NewTemperaturePortState(common.AtmTemperature))
-
-	result.ports[nodes.TemperatureOutput] = core.NewPort()
-	result.ports[nodes.TemperatureOutput].SetInnerNode(result)
-	result.ports[nodes.TemperatureOutput].SetState(states.NewTemperaturePortState(common.AtmTemperature))
-
-	result.ports[VelocityInput] = core.NewPort()
-	result.ports[VelocityInput].SetInnerNode(result)
-	result.ports[VelocityInput].SetState(
-		states2.NewVelocityPortState(
-			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
-		),
-	)
-
-	result.ports[VelocityOutput] = core.NewPort()
-	result.ports[VelocityOutput].SetInnerNode(result)
-	result.ports[VelocityOutput].SetState(
-		states2.NewVelocityPortState(
-			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
-		),
-	)
-
-	result.ports[MassRateInput] = core.NewPort()
-	result.ports[MassRateInput].SetInnerNode(result)
-	result.ports[MassRateInput].SetState(states2.NewMassRatePortState(0))
-
-	result.ports[MassRateOutput] = core.NewPort()
-	result.ports[MassRateOutput].SetInnerNode(result)
-	result.ports[MassRateOutput].SetState(states2.NewMassRatePortState(0))
-
-	return result
-}
-
 type TurbineStageNode interface {
 	core.Node
 	nodes.GasChannel
@@ -104,6 +36,76 @@ func InitFromTurbineNode(stage TurbineStageNode, turbine constructive.TurbineNod
 	stage.PressureInput().SetState(states.NewPressurePortState(turbine.PStagIn()))
 	stage.MassRateInput().SetState(states2.NewMassRatePortState(massRate))
 	stage.SetAlpha1FirstStage(alpha1)
+}
+
+func NewTurbineStageNode(
+	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
+	gen geometry.StageGeometryGenerator,
+) TurbineStageNode {
+	var result = &turbineStageNode{
+		n:                n,
+		stageHeatDrop:    stageHeatDrop,
+		reactivity:       reactivity,
+		phi:              phi,
+		psi:              psi,
+		airGapRel:        airGapRel,
+		precision:        precision,
+		stageGeomGen:     gen,
+		alpha1FirstStage: math.NaN(),
+		isFirstStageNode: false,
+	}
+	result.gasInput = core.NewAttachedPort(result)
+	result.gasOutput = core.NewAttachedPort(result)
+
+	result.pressureInput = core.NewAttachedPort(result)
+	result.pressureOutput = core.NewAttachedPort(result)
+
+	result.temperatureInput = core.NewAttachedPort(result)
+	result.temperatureOutput = core.NewAttachedPort(result)
+
+	result.velocityInput = core.NewAttachedPort(result)
+	result.velocityInput.SetState(
+		states2.NewVelocityPortState(
+			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
+		),
+	)
+
+	result.velocityOutput = core.NewAttachedPort(result)
+
+	result.massRateInput = core.NewAttachedPort(result)
+	result.massRateOutput = core.NewAttachedPort(result)
+
+	return result
+}
+
+type turbineStageNode struct {
+	core.BaseNode
+
+	gasInput          core.Port
+	gasOutput         core.Port
+	pressureInput     core.Port
+	pressureOutput    core.Port
+	temperatureInput  core.Port
+	temperatureOutput core.Port
+	velocityInput     core.Port
+	velocityOutput    core.Port
+	massRateInput     core.Port
+	massRateOutput    core.Port
+
+	n                float64
+	stageHeatDrop    float64
+	reactivity       float64
+	phi              float64
+	psi              float64
+	airGapRel        float64
+	alpha1FirstStage float64
+
+	stageGeomGen geometry.StageGeometryGenerator
+
+	precision float64
+
+	isFirstStageNode bool
+	pack             *DataPack
 }
 
 type DataPack struct {
@@ -163,30 +165,43 @@ type DataPack struct {
 	T0                         float64                  `json:"t_0"`
 }
 
-type turbineStageNode struct {
-	ports            core.PortsType
-	n                float64
-	stageHeatDrop    float64
-	reactivity       float64
-	phi              float64
-	psi              float64
-	airGapRel        float64
-	alpha1FirstStage float64
-
-	stageGeomGen geometry.StageGeometryGenerator
-
-	precision float64
-
-	isFirstStageNode bool
-	pack             *DataPack
+func (node *turbineStageNode) GetName() string {
+	return common.EitherString(node.GetInstanceName(), "TurbineStage")
 }
 
-func (node *turbineStageNode) MarshalJSON() ([]byte, error) {
-	return nil, nil // todo add real functional
+func (node *turbineStageNode) GetPorts() []core.Port {
+	return []core.Port{
+		node.gasInput,
+		node.gasOutput,
+		node.pressureInput,
+		node.pressureOutput,
+		node.temperatureInput,
+		node.temperatureOutput,
+		node.velocityInput,
+		node.velocityOutput,
+		node.massRateInput,
+		node.massRateOutput,
+	}
 }
 
-func (node *turbineStageNode) GetPorts() core.PortsType {
-	return node.ports
+func (node *turbineStageNode) GetRequirePorts() []core.Port {
+	return []core.Port{
+		node.gasInput,
+		node.pressureInput,
+		node.temperatureInput,
+		node.velocityInput,
+		node.massRateInput,
+	}
+}
+
+func (node *turbineStageNode) GetUpdatePorts() []core.Port {
+	return []core.Port{
+		node.gasOutput,
+		node.pressureOutput,
+		node.temperatureOutput,
+		node.velocityOutput,
+		node.massRateOutput,
+	}
 }
 
 func (node *turbineStageNode) Process() error {
@@ -195,72 +210,11 @@ func (node *turbineStageNode) Process() error {
 		return node.pack.Err
 	}
 
-	node.temperatureOutput().SetState(states.NewTemperaturePortState(node.pack.T2Stag))
-	node.pressureOutput().SetState(states.NewPressurePortState(node.pack.P2Stag))
-	node.massRateOutput().SetState(states2.NewMassRatePortState(node.massRate())) // mass rate is constant
-	node.velocityOutput().SetState(states2.NewVelocityPortState(node.pack.RotorOutletTriangle, states2.OutletTriangleType))
+	node.temperatureOutput.SetState(states.NewTemperaturePortState(node.pack.T2Stag))
+	node.pressureOutput.SetState(states.NewPressurePortState(node.pack.P2Stag))
+	node.massRateOutput.SetState(states2.NewMassRatePortState(node.massRate())) // mass rate is constant
+	node.velocityOutput.SetState(states2.NewVelocityPortState(node.pack.RotorOutletTriangle, states2.OutletTriangleType))
 	return nil
-}
-
-func (node *turbineStageNode) GetRequirePortTags() ([]string, error) {
-	return []string{
-		nodes.TemperatureInput,
-		nodes.PressureInput,
-		nodes.GasInput,
-		MassRateInput,
-		DimensionInput,
-	}, nil
-}
-
-func (node *turbineStageNode) GetUpdatePortTags() ([]string, error) {
-	return []string{
-		nodes.TemperatureOutput,
-		nodes.PressureOutput,
-		nodes.GasOutput,
-		MassRateOutput,
-		DimensionOutput,
-	}, nil
-}
-
-func (node *turbineStageNode) GetPortTags() []string {
-	return []string{
-		nodes.TemperatureInput, nodes.TemperatureOutput,
-		nodes.PressureInput, nodes.PressureOutput,
-		nodes.GasInput, nodes.GasOutput,
-		MassRateInput, MassRateOutput,
-		VelocityInput, VelocityOutput,
-	}
-}
-
-func (node *turbineStageNode) GetPortByTag(tag string) (core.Port, error) {
-	switch tag {
-	case nodes.TemperatureInput:
-		return node.temperatureInput(), nil
-	case nodes.TemperatureOutput:
-		return node.temperatureOutput(), nil
-	case nodes.PressureInput:
-		return node.pressureInput(), nil
-	case nodes.PressureOutput:
-		return node.pressureOutput(), nil
-	case nodes.GasInput:
-		return node.gasInput(), nil
-	case nodes.GasOutput:
-		return node.gasOutput(), nil
-	case MassRateInput:
-		return node.massRateInput(), nil
-	case MassRateOutput:
-		return node.massRateOutput(), nil
-	case VelocityInput:
-		return node.velocityInput(), nil
-	case VelocityOutput:
-		return node.velocityOutput(), nil
-	default:
-		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
-	}
-}
-
-func (node *turbineStageNode) ContextDefined() bool {
-	return true
 }
 
 func (node *turbineStageNode) GetDataPack() DataPack {
@@ -279,43 +233,43 @@ func (node *turbineStageNode) SetAlpha1FirstStage(alpha1FirstStage float64) {
 }
 
 func (node *turbineStageNode) GasOutput() core.Port {
-	return node.gasOutput()
+	return node.gasOutput
 }
 
 func (node *turbineStageNode) GasInput() core.Port {
-	return node.gasInput()
+	return node.gasInput
 }
 
 func (node *turbineStageNode) VelocityInput() core.Port {
-	return node.velocityInput()
+	return node.velocityInput
 }
 
 func (node *turbineStageNode) VelocityOutput() core.Port {
-	return node.velocityOutput()
+	return node.velocityOutput
 }
 
 func (node *turbineStageNode) PressureOutput() core.Port {
-	return node.pressureOutput()
+	return node.pressureOutput
 }
 
 func (node *turbineStageNode) PressureInput() core.Port {
-	return node.pressureInput()
+	return node.pressureInput
 }
 
 func (node *turbineStageNode) TemperatureOutput() core.Port {
-	return node.temperatureOutput()
+	return node.temperatureOutput
 }
 
 func (node *turbineStageNode) TemperatureInput() core.Port {
-	return node.temperatureInput()
+	return node.temperatureInput
 }
 
 func (node *turbineStageNode) MassRateInput() core.Port {
-	return node.massRateInput()
+	return node.massRateInput
 }
 
 func (node *turbineStageNode) MassRateOutput() core.Port {
-	return node.massRateOutput()
+	return node.massRateOutput
 }
 
 func (node *turbineStageNode) StageGeomGen() geometry.StageGeometryGenerator {
@@ -575,7 +529,9 @@ func (node *turbineStageNode) c2a(pack *DataPack) {
 		pack.Err = fmt.Errorf("%s: c2a", pack.Err.Error())
 		return
 	}
-	pack.C2a = node.massRate() / (pack.Density2 * geometry.Area(pack.StageGeometry.RotorGeometry().XBladeOut(), pack.StageGeometry.RotorGeometry()))
+	pack.C2a = node.massRate() / (pack.Density2 * geometry.Area(
+		pack.StageGeometry.RotorGeometry().XBladeOut(), pack.StageGeometry.RotorGeometry(),
+	))
 }
 
 func (node *turbineStageNode) density2(pack *DataPack) {
@@ -726,7 +682,7 @@ func (node *turbineStageNode) inletVelocityTriangleFirstStage(pack *DataPack) {
 	var area = geometry.Area(0, pack.StageGeometry.StatorGeometry())
 	var density = node.p0Stag() / (node.gas().R() * node.t0Stag()) // todo use static density instead of stag
 	var ca = massRate / (area * density)
-	node.velocityInput().SetState(states2.NewVelocityPortState(
+	node.velocityInput.SetState(states2.NewVelocityPortState(
 		states2.NewInletTriangle(0, ca, math.Pi/2),
 		states2.InletTriangleType,
 	))
@@ -948,61 +904,21 @@ func (node *turbineStageNode) t0(pack *DataPack) {
 // below are private accessors
 
 func (node *turbineStageNode) massRate() float64 {
-	return node.massRateInput().GetState().(states2.MassRatePortState).MassRate
+	return node.massRateInput.GetState().(states2.MassRatePortState).MassRate
 }
 
 func (node *turbineStageNode) p0Stag() float64 {
-	return node.pressureInput().GetState().(states.PressurePortState).PStag
+	return node.pressureInput.GetState().(states.PressurePortState).PStag
 }
 
 func (node *turbineStageNode) t0Stag() float64 {
-	return node.temperatureInput().GetState().(states.TemperaturePortState).TStag
+	return node.temperatureInput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *turbineStageNode) gas() gases.Gas {
-	return node.gasInput().GetState().(states.GasPortState).Gas
+	return node.gasInput.GetState().(states.GasPortState).Gas
 }
 
 func (node *turbineStageNode) statorInletTriangle() states2.VelocityTriangle {
-	return node.velocityInput().GetState().(states2.VelocityPortState).Triangle
-}
-
-func (node *turbineStageNode) velocityInput() core.Port {
-	return node.ports[VelocityInput]
-}
-
-func (node *turbineStageNode) velocityOutput() core.Port {
-	return node.ports[VelocityOutput]
-}
-
-func (node *turbineStageNode) gasOutput() core.Port {
-	return node.ports[nodes.GasOutput]
-}
-
-func (node *turbineStageNode) gasInput() core.Port {
-	return node.ports[nodes.GasInput]
-}
-
-func (node *turbineStageNode) pressureOutput() core.Port {
-	return node.ports[nodes.PressureOutput]
-}
-
-func (node *turbineStageNode) pressureInput() core.Port {
-	return node.ports[nodes.PressureInput]
-}
-
-func (node *turbineStageNode) temperatureOutput() core.Port {
-	return node.ports[nodes.TemperatureOutput]
-}
-
-func (node *turbineStageNode) temperatureInput() core.Port {
-	return node.ports[nodes.TemperatureInput]
-}
-
-func (node *turbineStageNode) massRateInput() core.Port {
-	return node.ports[MassRateInput]
-}
-
-func (node *turbineStageNode) massRateOutput() core.Port {
-	return node.ports[MassRateOutput]
+	return node.velocityInput.GetState().(states2.VelocityPortState).Triangle
 }
