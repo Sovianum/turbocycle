@@ -57,36 +57,6 @@ func TestPressureLossNode_Process_Outflow(t *testing.T) {
 	)
 }
 
-func TestPressureLossNode_Process_BiFlow(t *testing.T) {
-	var pressureLossNode = getTestPressureLossNode()
-	var compressorNode1 = getTestCompressor()
-	var compressorNode2 = getTestCompressor()
-
-	core.Link(compressorNode1.ComplexGasOutput(), pressureLossNode.ComplexGasInput())
-	core.Link(compressorNode2.ComplexGasOutput(), pressureLossNode.ComplexGasOutput())
-
-	var gasState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
-	pressureLossNode.ComplexGasInput().SetState(gasState)
-	pressureLossNode.ComplexGasOutput().SetState(gasState)
-
-	var err = pressureLossNode.Process()
-	assert.Nil(t, err)
-
-	var pOut = pressureLossNode.ComplexGasOutput().GetState().(states.ComplexGasPortState).PStag
-	assert.True(
-		t,
-		common.ApproxEqual(pA*pressureLossSigma, pOut, 0.001),
-		fmt.Sprintf("Expected p_out %f, got %f", pA*pressureLossSigma, pOut),
-	)
-
-	var pIn = pressureLossNode.ComplexGasInput().GetState().(states.ComplexGasPortState).PStag
-	assert.True(
-		t,
-		common.ApproxEqual(pA/pressureLossSigma, pIn, 0.001),
-		fmt.Sprintf("Expected p_in %f, got %f", pA/pressureLossSigma, pIn),
-	)
-}
-
 func TestPressureLossNode_ContextDefined_True(t *testing.T) {
 	var compressorNode = getTestCompressor()
 	var pln1 = getTestPressureLossNode()
