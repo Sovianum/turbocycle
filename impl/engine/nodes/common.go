@@ -3,36 +3,7 @@ package nodes
 import "github.com/Sovianum/turbocycle/core"
 
 const (
-	PressureInput              = "pressureInput"
-	PressureOutput             = "pressureOutput"
-	TemperatureInput           = "temperatureInput"
-	TemperatureOutput          = "temperatureOutput"
-	GasInput                   = "gasInput"
-	GasOutput                  = "gasOutput"
-	ComplexGasPort             = "complexGasPort"
-	PressurePort               = "pressurePort"
-	TemperaturePort            = "temperaturePort"
-	MassRateRelPort            = "massRateRelPort"
-	MassRateRelInput           = "massRateRelInput"
-	MassRateRelOutput          = "massRateRelOutput"
-	GasPort                    = "gasPort"
-	PowerInput                 = "powerInput"
-	PowerOutput                = "powerOutput"
-	ComplexGasInput            = "complexGasInput"
-	ComplexGasOutput           = "complexGasOutput"
-	ColdGasInput               = "coldGasInput"
-	ColdGasOutput              = "coldGasOutput"
-	HotGasInput                = "hotGasInput"
-	HotGasOutput               = "hotGasOutput"
-	UpdatePort                 = "updatePort"
-	DataSourcePort             = "dataSourcePort"
-	CompressorComplexGasInput  = "compressorComplexGasInput"
-	CompressorComplexGasOutput = "compressorComplexGasOutput"
-	TurbineComplexGasInput     = "turbineComplexGasInput"
-	TurbineComplexGasOutput    = "turbineComplexGasOutput"
-	HeatExchangerHotInput      = "heatExchangerHotGasInput"
-	HeatExchangerHotOutput     = "heatExchangerHotGasOutput"
-	DefaultN                   = 50
+	DefaultN = 50
 )
 
 type ComplexGasChannel interface {
