@@ -6,7 +6,7 @@ import (
 )
 
 type Scheme interface {
-	GetNetwork() core.Network
+	GetNetwork() (core.Network, core.GraphError)
 	GetSpecificPower() float64
 	GetFuelMassRateRel() float64
 	GetQLower() float64

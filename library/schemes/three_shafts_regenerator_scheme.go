@@ -91,20 +91,18 @@ func (scheme *threeShaftsRegeneratorScheme) GetQLower() float64 {
 	return scheme.regenerativeGasGenerator.Burner().Fuel().QLower()
 }
 
-func (scheme *threeShaftsRegeneratorScheme) GetNetwork() core.Network {
-	var nodeMap = make(map[string]core.Node)
-	nodeMap[inputGasSourceName] = scheme.gasSource
-	nodeMap[inletPressureDropName] = scheme.inletPressureDrop
-	nodeMap[middlePressureCascadeName] = scheme.middlePressureCascade
-	nodeMap[middlePressureCompressorPipeName] = scheme.middlePressureCompressorPipe
-	nodeMap[regenerativeGasGeneratorName] = scheme.regenerativeGasGenerator
-	nodeMap[highPressureTurbinePipeName] = scheme.highPressureTurbinePipe
-	nodeMap[middlePressureTurbinePipeName] = scheme.middlePressureTurbinePipe
-	nodeMap[freeTurbineBlockName] = scheme.freeTurbineBlock
-	nodeMap[outputGasSinkName] = scheme.gasSink
-	nodeMap["breaker1"] = scheme.breaker1
-	nodeMap["breaker2"] = scheme.breaker2
+func (scheme *threeShaftsRegeneratorScheme) GetNetwork() (core.Network, core.GraphError) {
+	scheme.linkPorts()
 
+	return core.NewNetwork([]core.Node{
+		scheme.gasSource, scheme.inletPressureDrop, scheme.middlePressureCascade,
+		scheme.middlePressureCompressorPipe, scheme.regenerativeGasGenerator,
+		scheme.highPressureTurbinePipe, scheme.middlePressureTurbinePipe,
+		scheme.freeTurbineBlock, scheme.gasSink, scheme.breaker1, scheme.breaker2,
+	})
+}
+
+func (scheme *threeShaftsRegeneratorScheme) linkPorts() {
 	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
 	core.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.middlePressureCascade.CompressorComplexGasInput())
 
@@ -119,6 +117,4 @@ func (scheme *threeShaftsRegeneratorScheme) GetNetwork() core.Network {
 	core.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.breaker2.DataSourcePort())
 	core.Link(scheme.breaker2.UpdatePort(), scheme.regenerativeGasGenerator.HeatExchangerHotInput())
 	core.Link(scheme.regenerativeGasGenerator.HeatExchangerHotOutput(), scheme.gasSink.ComplexGasInput())
-
-	return core.NewNetwork(nodeMap)
 }

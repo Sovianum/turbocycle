@@ -1,9 +1,6 @@
 package schemes
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
@@ -69,14 +66,10 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	scheme.InitGasGeneratorCompressor(states.NewComplexGasPortState(gases.GetAir(), 500, 5e5, 1))
 	scheme.InitGasGeneratorHeatExchanger(states.NewComplexGasPortState(gases.GetAir(), 900, 1e5, 1))
 
-	var network = scheme.GetNetwork()
-	var callOrder, err1 = network.GetCallOrder()
-	assert.Nil(t, err1)
-	fmt.Println(callOrder)
-	var converged, solveErr = network.Solve(0.2, 100, 0.05)
+	var network, networkErr = scheme.GetNetwork()
+	assert.Nil(t, networkErr)
+
+	var converged, solveErr = network.Solve(0.2, 1, 100, 0.05)
 	assert.True(t, converged)
 	assert.Nil(t, solveErr)
-
-	var b, _ = json.MarshalIndent(network, "", "    ")
-	ioutil.Discard.Write(b)
 }

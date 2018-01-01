@@ -75,19 +75,17 @@ func (scheme *twoShaftsRegeneratorScheme) GetQLower() float64 {
 	return scheme.burner.Fuel().QLower()
 }
 
-func (scheme *twoShaftsRegeneratorScheme) GetNetwork() core.Network {
-	var nodeMap = make(map[string]core.Node)
-	nodeMap[inputGasSourceName] = scheme.gasSource
-	nodeMap[inletPressureDropName] = scheme.inletPressureDrop
-	nodeMap[turboCascadeName] = scheme.turboCascade
-	nodeMap[regeneratorName] = scheme.regenerator
-	nodeMap[burnerName] = scheme.burner
-	nodeMap[compressorTurbinePipeName] = scheme.compressorTurbinePipe
-	nodeMap[freeTurbineBlockName] = scheme.freeTurbineBlock
-	nodeMap[outputGasSinkName] = scheme.gasSink
-	nodeMap["breaker1"] = scheme.breaker1
-	nodeMap["breaker2"] = scheme.breaker2
+func (scheme *twoShaftsRegeneratorScheme) GetNetwork() (core.Network, core.GraphError) {
+	scheme.linkPorts()
 
+	return core.NewNetwork([]core.Node{
+		scheme.gasSource, scheme.inletPressureDrop, scheme.turboCascade,
+		scheme.regenerator, scheme.burner, scheme.compressorTurbinePipe,
+		scheme.freeTurbineBlock, scheme.gasSink, scheme.breaker1, scheme.breaker2,
+	})
+}
+
+func (scheme *twoShaftsRegeneratorScheme) linkPorts() {
 	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
 	core.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.turboCascade.CompressorComplexGasInput())
 	core.Link(scheme.turboCascade.CompressorComplexGasOutput(), scheme.regenerator.ColdInput())
@@ -100,6 +98,4 @@ func (scheme *twoShaftsRegeneratorScheme) GetNetwork() core.Network {
 	core.Link(scheme.breaker2.UpdatePort(), scheme.regenerator.HotInput())
 	core.Link(scheme.regenerator.HotOutput(), scheme.gasSink.ComplexGasInput())
 	core.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
-
-	return core.NewNetwork(nodeMap)
 }
