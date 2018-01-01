@@ -1,99 +1,177 @@
 package core
 
-import "fmt"
+const (
+	inaccessibleNodesMsg  = "inaccessible nodes detected"
+	unconnectedPortsMsg   = "unconnected port detected"
+	contextUndefinedNodes = "context undefined nodes detected"
+)
 
-func NewConnectivityMatrix(nodeArr []interface{}) *connectivityMatrixType {
+func newGraphMatrix(nodeArr []Node) (*graphMatrix, *graphError) {
 	var nodeMap = newBiMap()
 	for i, node := range nodeArr {
 		nodeMap.Add(i, node)
 	}
 
 	var matrix = make([][]bool, len(nodeArr))
+	var matrixCopy = make([][]bool, len(nodeArr))
+
 	for i := 0; i != len(nodeArr); i++ {
 		matrix[i] = make([]bool, len(nodeArr))
+		matrixCopy[i] = make([]bool, len(nodeArr))
 	}
 
-	return &connectivityMatrixType{
-		nodes:  nodeMap,
-		matrix: matrix,
+	var result = &graphMatrix{
+		nodes:      nodeMap,
+		matrix:     matrix,
+		matrixCopy: matrixCopy,
 	}
-}
 
-type connectivityMatrixType struct {
-	nodes  *biMap
-	matrix [][]bool
-}
-
-func (m *connectivityMatrixType) AddEdge(to, from interface{}) error {
-	var toKey, ok1 = m.nodes.backward[to]
-	if !ok1 {
-		return fmt.Errorf("%v not found", to)
+	var err = result.setEdges()
+	if err != nil {
+		return nil, err
 	}
-	var fromKey, ok2 = m.nodes.backward[from]
-	if !ok2 {
-		return fmt.Errorf("%v not found", from)
+
+	result.copyMatrix()
+	return result, nil
+}
+
+// this type is used to perform graph related operations like
+// getting call order, checking context definition and unconnected ports
+type graphMatrix struct {
+	nodes      *biMap
+	matrix     [][]bool
+	matrixCopy [][]bool
+}
+
+func (m *graphMatrix) GetCallOrder() ([]Node, *graphError) {
+	m.copyMatrix()
+	var usedFreeNodes = make(map[Node]bool)
+
+	var getUnusedFreeNodes = func() []Node {
+		var freeNodes = m.getFreeNodes()
+		var result = make([]Node, 0)
+
+		for _, node := range freeNodes {
+			var _, ok = usedFreeNodes[node]
+			if !ok {
+				usedFreeNodes[node] = true
+				result = append(result, node)
+			}
+		}
+
+		return result
 	}
-	m.matrix[toKey][fromKey] = true
-	return nil
-}
 
-func (m *connectivityMatrixType) At(i, j int) bool {
-	return m.at(i, j)
-}
-
-func (m *connectivityMatrixType) GetCallOrder() ([]interface{}, error) {
-	var result = make([]interface{}, 0)
-	var front = m.getFreeNodes()
+	var result = make([]Node, 0)
+	var front = getUnusedFreeNodes()
 
 	for len(front) != 0 {
 		result = append(result, front...)
 		m.removeAllDependencies(front)
-		front = m.getFreeNodes()
+		front = getUnusedFreeNodes()
 	}
 
 	var dependentNodes = m.getDependentNodes()
 	if len(dependentNodes) > 0 {
-		return nil, fmt.Errorf("nodes %v are not accessible", dependentNodes)
+		return nil, graphErrorFromNodes(
+			inaccessibleNodesMsg, dependentNodes,
+		)
 	}
 	return result, nil
 }
 
-func (m *connectivityMatrixType) getDependentNodes() []interface{} {
-	var nodes = make(map[interface{}]bool)
+func (m *graphMatrix) copyMatrix() {
+	for i, row := range m.matrix {
+		for j, col := range row {
+			m.matrixCopy[i][j] = col
+		}
+	}
+}
+
+// edges are set in require direction, i.e. if A requires B
+// there exists edge from B to A, and matrix[i_A][i_B] == true
+func (m *graphMatrix) setEdges() *graphError {
+	if unconnectedPorts := m.getUnconnectedPorts(); len(unconnectedPorts) > 0 {
+		return graphErrorFromPorts(unconnectedPortsMsg, unconnectedPorts)
+	}
+	if undefined := m.getContextUndefinedNodes(); len(undefined) > 0 {
+		return graphErrorFromNodes(contextUndefinedNodes, undefined)
+	}
+
 	for pair := range m.nodes.Iterate() {
-		nodes[pair.val] = true
+		var innerNode = pair.val.(Node)
+		for _, port := range innerNode.GetRequirePorts() {
+			var outerNode = port.GetOuterNode()
+
+			var innerNodeId, _ = m.nodes.GetByVal(innerNode)
+			var outerNodeId, _ = m.nodes.GetByVal(outerNode)
+			m.matrix[innerNodeId][outerNodeId] = true
+		}
+	}
+	return nil
+}
+
+func (m *graphMatrix) getUnconnectedPorts() []Port {
+	var unconnected = make([]Port, 0)
+	for pair := range m.nodes.Iterate() {
+		for _, port := range pair.val.(Node).GetPorts() {
+			if port.GetOuterNode() == nil {
+				unconnected = append(unconnected, port)
+			}
+		}
+	}
+	return unconnected
+}
+
+func (m *graphMatrix) getContextUndefinedNodes() []Node {
+	var undefined = make([]Node, 0)
+	for pair := range m.nodes.Iterate() {
+		if node := pair.val.(Node); !node.ContextDefined() {
+			undefined = append(undefined, node)
+		}
+	}
+	return undefined
+}
+
+// get nodes with at least one dependency
+func (m *graphMatrix) getDependentNodes() []Node {
+	var nodes = make(map[Node]bool)
+	// add all nodes to the map
+	for pair := range m.nodes.Iterate() {
+		nodes[pair.val.(Node)] = true
 	}
 
 	var freeNodes = m.getFreeNodes()
+	// remove free nodes from the map
 	for _, node := range freeNodes {
 		delete(nodes, node)
 	}
 
-	var result = make([]interface{}, 0)
-	for _, node := range nodes {
+	var result = make([]Node, 0)
+	for node := range nodes {
 		result = append(result, node)
 	}
 	return result
 }
 
-func (m *connectivityMatrixType) removeAllDependencies(nodes []interface{}) {
+func (m *graphMatrix) removeAllDependencies(nodes []Node) {
 	for _, node := range nodes {
 		m.removeDependency(node)
 	}
 }
 
-func (m *connectivityMatrixType) removeDependency(node interface{}) {
+func (m *graphMatrix) removeDependency(node Node) {
 	var key, ok = m.nodes.GetByVal(node)
 	if !ok {
 		return
 	}
 	for i := 0; i != m.nodes.Length(); i++ {
-		m.matrix[i][key] = false
+		m.matrixCopy[i][key] = false
 	}
 }
 
-func (m *connectivityMatrixType) getFreeNodes() []interface{} {
-	var nodes = make([]interface{}, 0)
+func (m *graphMatrix) getFreeNodes() []Node {
+	var nodes = make([]Node, 0)
 
 	for i := 0; i != m.nodes.Length(); i++ {
 		var free = true
@@ -104,23 +182,13 @@ func (m *connectivityMatrixType) getFreeNodes() []interface{} {
 			}
 		}
 		if free {
-			nodes = append(nodes, m.nodes.GetByKey(i))
+			var node, _ = m.nodes.GetByKey(i)
+			nodes = append(nodes, node.(Node))
 		}
 	}
 	return nodes
 }
 
-func (m *connectivityMatrixType) defaultCols() int {
-	if m.defaultRows() == 0 {
-		return 0
-	}
-	return len(m.matrix[0])
-}
-
-func (m *connectivityMatrixType) defaultRows() int {
-	return len(m.matrix)
-}
-
-func (m *connectivityMatrixType) at(i, j int) bool {
-	return m.matrix[j][i]
+func (m *graphMatrix) at(i, j int) bool {
+	return m.matrixCopy[i][j]
 }

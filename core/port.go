@@ -27,6 +27,17 @@ func NewPort() Port {
 	}
 }
 
+func NewAttachedPort(node Node) Port {
+	var port = &portType{
+		state:     nil,
+		innerNode: nil,
+		outerNode: nil,
+		linkPort:  nil,
+	}
+	port.SetInnerNode(node)
+	return port
+}
+
 func Link(port1 Port, port2 Port) {
 	port1.SetLinkPort(port2)
 	port2.SetLinkPort(port1)
