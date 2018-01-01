@@ -1,16 +1,22 @@
 package compose
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
-	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
+
+type FreeTurbineBlockNode interface {
+	core.Node
+	nodes.ComplexGasChannel
+	nodes.PowerSource
+	FreeTurbine() constructive.FreeTurbineNode
+	OutletPressureLoss() constructive.PressureLossNode
+}
 
 func NewFreeTurbineBlock(
 	pAtm float64,
@@ -19,7 +25,6 @@ func NewFreeTurbineBlock(
 	pressureLossSigma float64,
 ) FreeTurbineBlockNode {
 	var result = &freeTurbineBlockNode{
-		ports:   make(core.PortsType),
 		atmNode: source.NewComplexGasSourceNode(nil, 0, pAtm), // first two arguments are not used cos they will be sent to sinks
 		turbine: constructive.NewFreeTurbineNode(
 			etaT, lambdaOut, precision,
@@ -31,35 +36,24 @@ func NewFreeTurbineBlock(
 		tSink:        sink.NewTemperatureSinkNode(),
 		gSink:        sink.NewGasSinkNode(),
 		mSink:        sink.NewMassRateRelSinkNode(),
-		hub:          helper.NewHubNode(states.StandardAtmosphereState()),
+		hub:          helper.NewHubNode(),
 	}
 	result.linkPorts()
 
-	result.ports[nodes.ComplexGasInput] = core.NewPort()
-	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
-
-	result.ports[nodes.ComplexGasOutput] = core.NewPort()
-	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
-
-	result.ports[nodes.PowerOutput] = core.NewPort()
-	result.ports[nodes.PowerOutput].SetInnerNode(result)
-	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
+	result.complexGasInput = core.NewAttachedPort(result)
+	result.complexGasOutput = core.NewAttachedPort(result)
+	result.powerOutput = core.NewAttachedPort(result)
 
 	return result
 }
 
-type FreeTurbineBlockNode interface {
-	core.Node
-	nodes.ComplexGasChannel
-	nodes.PowerSource
-	FreeTurbine() constructive.FreeTurbineNode
-	OutletPressureLoss() constructive.PressureLossNode
-}
-
 type freeTurbineBlockNode struct {
-	ports        core.PortsType
+	core.BaseNode
+
+	complexGasInput  core.Port
+	complexGasOutput core.Port
+	powerOutput      core.Port
+
 	atmNode      source.ComplexGasSourceNode
 	turbine      constructive.FreeTurbineNode
 	pressureLoss constructive.PressureLossNode
@@ -71,30 +65,28 @@ type freeTurbineBlockNode struct {
 	hub          helper.HubNode
 }
 
+func (node *freeTurbineBlockNode) GetName() string {
+	return common.EitherString(node.GetInstanceName(), "FreeTurbineBlock")
+}
+
+func (node *freeTurbineBlockNode) GetPorts() []core.Port {
+	return []core.Port{node.complexGasInput, node.complexGasOutput, node.powerOutput}
+}
+
+func (node *freeTurbineBlockNode) GetRequirePorts() []core.Port {
+	return []core.Port{node.complexGasInput}
+}
+
+func (node *freeTurbineBlockNode) GetUpdatePorts() []core.Port {
+	return []core.Port{node.complexGasOutput, node.powerOutput}
+}
+
 func (node *freeTurbineBlockNode) FreeTurbine() constructive.FreeTurbineNode {
 	return node.turbine
 }
 
 func (node *freeTurbineBlockNode) OutletPressureLoss() constructive.PressureLossNode {
 	return node.pressureLoss
-}
-
-func (node *freeTurbineBlockNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		GasInputState    core.PortState               `json:"gas_input_state"`
-		GasOutputState   core.PortState               `json:"gas_output_state"`
-		PowerOutputState core.PortState               `json:"power_output_state"`
-		Turbine          constructive.FreeTurbineNode `json:"turbine"`
-	}{
-		GasInputState:    node.complexGasInput().GetState(),
-		GasOutputState:   node.complexGasOutput().GetState(),
-		PowerOutputState: node.powerOutput().GetState(),
-		Turbine:          node.turbine,
-	})
-}
-
-func (node *freeTurbineBlockNode) GetPorts() core.PortsType {
-	return node.ports
 }
 
 func (node *freeTurbineBlockNode) Process() error {
@@ -121,45 +113,16 @@ func (node *freeTurbineBlockNode) Process() error {
 	return nil
 }
 
-func (node *freeTurbineBlockNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasInput}, nil
-}
-
-func (node *freeTurbineBlockNode) GetUpdatePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasOutput, nodes.PowerOutput}, nil
-}
-
-func (node *freeTurbineBlockNode) GetPortTags() []string {
-	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
-}
-
-func (node *freeTurbineBlockNode) GetPortByTag(tag string) (core.Port, error) {
-	switch tag {
-	case nodes.ComplexGasInput:
-		return node.complexGasInput(), nil
-	case nodes.ComplexGasOutput:
-		return node.complexGasOutput(), nil
-	case nodes.PowerOutput:
-		return node.powerOutput(), nil
-	default:
-		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
-	}
-}
-
-func (node *freeTurbineBlockNode) ContextDefined() bool {
-	return true
-}
-
 func (node *freeTurbineBlockNode) ComplexGasInput() core.Port {
-	return node.complexGasInput()
+	return node.complexGasInput
 }
 
 func (node *freeTurbineBlockNode) ComplexGasOutput() core.Port {
-	return node.complexGasOutput()
+	return node.complexGasOutput
 }
 
 func (node *freeTurbineBlockNode) PowerOutput() core.Port {
-	return node.powerOutput()
+	return node.powerOutput
 }
 
 func (node *freeTurbineBlockNode) linkPorts() {
@@ -180,22 +143,10 @@ func (node *freeTurbineBlockNode) linkPorts() {
 }
 
 func (node *freeTurbineBlockNode) readInput() {
-	node.turbine.ComplexGasInput().SetState(node.ComplexGasInput().GetState())
+	node.turbine.ComplexGasInput().SetState(node.complexGasInput.GetState())
 }
 
 func (node *freeTurbineBlockNode) writeOutput() {
-	node.complexGasOutput().SetState(node.assembler.ComplexGasPort().GetState())
-	node.PowerOutput().SetState(node.turbine.PowerOutput().GetState())
-}
-
-func (node *freeTurbineBlockNode) complexGasInput() core.Port {
-	return node.ports[nodes.ComplexGasInput]
-}
-
-func (node *freeTurbineBlockNode) complexGasOutput() core.Port {
-	return node.ports[nodes.ComplexGasOutput]
-}
-
-func (node *freeTurbineBlockNode) powerOutput() core.Port {
-	return node.ports[nodes.PowerOutput]
+	node.complexGasOutput.SetState(node.assembler.ComplexGasPort().GetState())
+	node.powerOutput.SetState(node.turbine.PowerOutput().GetState())
 }
