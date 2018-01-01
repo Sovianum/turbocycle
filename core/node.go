@@ -22,3 +22,7 @@ func (node *BaseNode) SetName(name string) {
 func (node *BaseNode) ContextDefined() bool {
 	return true
 }
+
+func (node *BaseNode) GetInstanceName() string {
+	return node.name
+}
