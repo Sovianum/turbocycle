@@ -1,6 +1,6 @@
 package nodes
 
-import "github.com/Sovianum/turbocycle/core"
+import "github.com/Sovianum/turbocycle/core/graph"
 
 type MassRateChannel interface {
 	MassRateSource
@@ -8,11 +8,11 @@ type MassRateChannel interface {
 }
 
 type MassRateSink interface {
-	MassRateInput() core.Port
+	MassRateInput() graph.Port
 }
 
 type MassRateSource interface {
-	MassRateOutput() core.Port
+	MassRateOutput() graph.Port
 }
 
 type VelocityChannel interface {
@@ -21,11 +21,11 @@ type VelocityChannel interface {
 }
 
 type VelocitySink interface {
-	VelocityInput() core.Port
+	VelocityInput() graph.Port
 }
 
 type VelocitySource interface {
-	VelocityOutput() core.Port
+	VelocityOutput() graph.Port
 }
 
 type DimensionChannel interface {
@@ -34,9 +34,9 @@ type DimensionChannel interface {
 }
 
 type DimensionSource interface {
-	DimensionInput() core.Port
+	DimensionInput() graph.Port
 }
 
 type DimensionSink interface {
-	DimensionSource() core.Port
+	DimensionSource() graph.Port
 }

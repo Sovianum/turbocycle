@@ -2,46 +2,46 @@ package helper
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 )
 
 type HubNode interface {
-	core.Node
-	Inlet() core.Port
-	Outlet1() core.Port
-	Outlet2() core.Port
+	graph.Node
+	Inlet() graph.Port
+	Outlet1() graph.Port
+	Outlet2() graph.Port
 }
 
 func NewHubNode() HubNode {
 	var result = &hubNode{}
-	result.inlet = core.NewAttachedPort(result)
-	result.outlet1 = core.NewAttachedPort(result)
-	result.outlet2 = core.NewAttachedPort(result)
+	result.inlet = graph.NewAttachedPort(result)
+	result.outlet1 = graph.NewAttachedPort(result)
+	result.outlet2 = graph.NewAttachedPort(result)
 	return result
 }
 
 type hubNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	inlet   core.Port
-	outlet1 core.Port
-	outlet2 core.Port
+	inlet   graph.Port
+	outlet1 graph.Port
+	outlet2 graph.Port
 }
 
 func (node *hubNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Hub")
 }
 
-func (node *hubNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.inlet}
+func (node *hubNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.inlet}
 }
 
-func (node *hubNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.outlet1, node.outlet2}
+func (node *hubNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.outlet1, node.outlet2}
 }
 
-func (node *hubNode) GetPorts() []core.Port {
-	return []core.Port{node.inlet, node.outlet1, node.outlet2}
+func (node *hubNode) GetPorts() []graph.Port {
+	return []graph.Port{node.inlet, node.outlet1, node.outlet2}
 }
 
 func (node *hubNode) Process() error {
@@ -50,14 +50,14 @@ func (node *hubNode) Process() error {
 	return nil
 }
 
-func (node *hubNode) Inlet() core.Port {
+func (node *hubNode) Inlet() graph.Port {
 	return node.inlet
 }
 
-func (node *hubNode) Outlet1() core.Port {
+func (node *hubNode) Outlet1() graph.Port {
 	return node.outlet1
 }
 
-func (node *hubNode) Outlet2() core.Port {
+func (node *hubNode) Outlet2() graph.Port {
 	return node.outlet2
 }

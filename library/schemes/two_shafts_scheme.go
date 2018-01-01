@@ -1,7 +1,7 @@
 package schemes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
@@ -64,20 +64,20 @@ func (scheme *twoShaftsScheme) GetQLower() float64 {
 	return scheme.gasGenerator.Burner().Fuel().QLower()
 }
 
-func (scheme *twoShaftsScheme) GetNetwork() (core.Network, core.GraphError) {
+func (scheme *twoShaftsScheme) GetNetwork() (graph.Network, graph.GraphError) {
 	scheme.linkPorts()
 
-	return core.NewNetwork([]core.Node{
+	return graph.NewNetwork([]graph.Node{
 		scheme.gasSource, scheme.inletPressureDrop, scheme.gasGenerator,
 		scheme.compressorTurbinePipe, scheme.freeTurbineBlock, scheme.gasSink,
 	})
 }
 
 func (scheme *twoShaftsScheme) linkPorts() {
-	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
-	core.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.gasGenerator.ComplexGasInput())
-	core.Link(scheme.gasGenerator.ComplexGasOutput(), scheme.compressorTurbinePipe.ComplexGasInput())
-	core.Link(scheme.compressorTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
-	core.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.gasSink.ComplexGasInput())
-	core.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
+	graph.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
+	graph.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.gasGenerator.ComplexGasInput())
+	graph.Link(scheme.gasGenerator.ComplexGasOutput(), scheme.compressorTurbinePipe.ComplexGasInput())
+	graph.Link(scheme.compressorTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
+	graph.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.gasSink.ComplexGasInput())
+	graph.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
 }

@@ -2,13 +2,13 @@ package constructive
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type TransmissionNode interface {
-	core.Node
+	graph.Node
 	nodes.PowerChannel
 	Eta() float64
 }
@@ -18,17 +18,17 @@ func NewTransmissionNode(etaM float64) TransmissionNode {
 		etaM: etaM,
 	}
 
-	result.powerInput = core.NewAttachedPort(result)
-	result.powerOutput = core.NewAttachedPort(result)
+	result.powerInput = graph.NewAttachedPort(result)
+	result.powerOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type transmissionNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	powerInput  core.Port
-	powerOutput core.Port
+	powerInput  graph.Port
+	powerOutput graph.Port
 
 	etaM float64
 }
@@ -37,27 +37,27 @@ func (node *transmissionNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Transmission")
 }
 
-func (node *transmissionNode) GetPorts() []core.Port {
-	return []core.Port{node.powerInput, node.powerOutput}
+func (node *transmissionNode) GetPorts() []graph.Port {
+	return []graph.Port{node.powerInput, node.powerOutput}
 }
 
-func (node *transmissionNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.powerInput}
+func (node *transmissionNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.powerInput}
 }
 
-func (node *transmissionNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.powerOutput}
+func (node *transmissionNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.powerOutput}
 }
 
 func (node *transmissionNode) Eta() float64 {
 	return node.etaM
 }
 
-func (node *transmissionNode) PowerInput() core.Port {
+func (node *transmissionNode) PowerInput() graph.Port {
 	return node.powerInput
 }
 
-func (node *transmissionNode) PowerOutput() core.Port {
+func (node *transmissionNode) PowerOutput() graph.Port {
 	return node.powerOutput
 }
 

@@ -2,13 +2,13 @@ package source
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type TemperatureSourceNode interface {
-	core.Node
+	graph.Node
 	nodes.TemperatureSource
 }
 
@@ -17,7 +17,7 @@ func NewTemperatureSourceNode(tStag float64) TemperatureSourceNode {
 		tStag: tStag,
 	}
 
-	result.output = core.NewAttachedPort(result)
+	result.output = graph.NewAttachedPort(result)
 	return result
 }
 
@@ -39,6 +39,6 @@ func (node *temperatureSourceNode) TStagOut() float64 {
 	return node.tStag
 }
 
-func (node *temperatureSourceNode) TemperatureOutput() core.Port {
+func (node *temperatureSourceNode) TemperatureOutput() graph.Port {
 	return node.output
 }

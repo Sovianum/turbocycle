@@ -1,4 +1,4 @@
-package core
+package graph
 
 const (
 	inaccessibleNodesMsg  = "inaccessible nodes detected"

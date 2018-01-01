@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
@@ -19,8 +19,8 @@ func TestPressureLossNode_Process_Inflow(t *testing.T) {
 	var pressureLossNode = getTestPressureLossNode()
 	var compressorNode = getTestCompressor()
 
-	core.Link(compressorNode.ComplexGasOutput(), pressureLossNode.ComplexGasInput())
-	core.Link(compressorNode.ComplexGasInput(), pressureLossNode.ComplexGasOutput())
+	graph.Link(compressorNode.ComplexGasOutput(), pressureLossNode.ComplexGasInput())
+	graph.Link(compressorNode.ComplexGasInput(), pressureLossNode.ComplexGasOutput())
 
 	var inputState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
 	pressureLossNode.ComplexGasInput().SetState(inputState)
@@ -40,8 +40,8 @@ func TestPressureLossNode_Process_Outflow(t *testing.T) {
 	var pressureLossNode = getTestPressureLossNode()
 	var compressorNode = getTestCompressor()
 
-	core.Link(compressorNode.ComplexGasOutput(), pressureLossNode.ComplexGasOutput())
-	core.Link(compressorNode.ComplexGasInput(), pressureLossNode.ComplexGasInput())
+	graph.Link(compressorNode.ComplexGasOutput(), pressureLossNode.ComplexGasOutput())
+	graph.Link(compressorNode.ComplexGasInput(), pressureLossNode.ComplexGasInput())
 
 	var inputState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
 	pressureLossNode.ComplexGasOutput().SetState(inputState)
@@ -63,9 +63,9 @@ func TestPressureLossNode_ContextDefined_True(t *testing.T) {
 	var pln2 = getTestPressureLossNode()
 	var pln3 = getTestPressureLossNode()
 
-	core.Link(compressorNode.ComplexGasOutput(), pln1.ComplexGasInput())
-	core.Link(pln1.ComplexGasOutput(), pln2.ComplexGasInput())
-	core.Link(pln2.ComplexGasOutput(), pln3.ComplexGasInput())
+	graph.Link(compressorNode.ComplexGasOutput(), pln1.ComplexGasInput())
+	graph.Link(pln1.ComplexGasOutput(), pln2.ComplexGasInput())
+	graph.Link(pln2.ComplexGasOutput(), pln3.ComplexGasInput())
 
 	assert.True(t, pln1.ContextDefined())
 	assert.True(t, pln2.ContextDefined())
@@ -77,8 +77,8 @@ func TestPressureLossNode_ContextDefined_False(t *testing.T) {
 	var pln2 = getTestPressureLossNode()
 	var pln3 = getTestPressureLossNode()
 
-	core.Link(pln1.ComplexGasOutput(), pln2.ComplexGasInput())
-	core.Link(pln2.ComplexGasOutput(), pln3.ComplexGasInput())
+	graph.Link(pln1.ComplexGasOutput(), pln2.ComplexGasInput())
+	graph.Link(pln2.ComplexGasOutput(), pln3.ComplexGasInput())
 
 	assert.False(t, pln1.ContextDefined())
 	assert.False(t, pln2.ContextDefined())

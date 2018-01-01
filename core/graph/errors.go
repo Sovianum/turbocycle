@@ -1,4 +1,4 @@
-package core
+package graph
 
 func graphErrorFromNodes(msg string, nodes []Node) GraphError {
 	return &graphErrorImpl{

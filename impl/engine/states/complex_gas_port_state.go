@@ -2,10 +2,11 @@ package states
 
 import (
 	"encoding/json"
-	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
-	"github.com/Sovianum/turbocycle/material/gases"
 	"math"
+
+	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 type ComplexGasPortState struct {
@@ -40,7 +41,7 @@ func StandardAtmosphereState() ComplexGasPortState {
 	return NewComplexGasPortState(gases.GetAir(), 288, 1e5, 1) // TODO remove hardcoded constants
 }
 
-func (state ComplexGasPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
+func (state ComplexGasPortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
 	switch v := another.(type) {
 	case ComplexGasPortState:
 		var casted = another.(ComplexGasPortState)
@@ -56,7 +57,7 @@ func (state ComplexGasPortState) Mix(another core.PortState, relaxCoef float64) 
 	}
 }
 
-func (state ComplexGasPortState) MaxResidual(another core.PortState) (float64, error) {
+func (state ComplexGasPortState) MaxResidual(another graph.PortState) (float64, error) {
 	switch v := another.(type) {
 	case ComplexGasPortState:
 		var casted = another.(ComplexGasPortState)

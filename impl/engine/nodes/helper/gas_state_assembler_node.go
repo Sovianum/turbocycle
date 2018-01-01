@@ -2,18 +2,18 @@ package helper
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type GasStateAssemblerNode interface {
-	core.Node
-	ComplexGasPort() core.Port
-	PressurePort() core.Port
-	TemperaturePort() core.Port
-	MassRateRelPort() core.Port
-	GasPort() core.Port
+	graph.Node
+	ComplexGasPort() graph.Port
+	PressurePort() graph.Port
+	TemperaturePort() graph.Port
+	MassRateRelPort() graph.Port
+	GasPort() graph.Port
 }
 
 func NewGasStateDisassemblerNode() GasStateAssemblerNode {
@@ -33,23 +33,23 @@ func newAssemblerNode(isAssembler bool) GasStateAssemblerNode {
 		isAssembler:        isAssembler,
 	}
 
-	result.complexGasPort = core.NewAttachedPort(result)
-	result.pressurePort = core.NewAttachedPort(result)
-	result.temperaturePort = core.NewAttachedPort(result)
-	result.massRateRelPort = core.NewAttachedPort(result)
-	result.gasPort = core.NewAttachedPort(result)
+	result.complexGasPort = graph.NewAttachedPort(result)
+	result.pressurePort = graph.NewAttachedPort(result)
+	result.temperaturePort = graph.NewAttachedPort(result)
+	result.massRateRelPort = graph.NewAttachedPort(result)
+	result.gasPort = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type gasStateAssemblerNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	complexGasPort  core.Port
-	pressurePort    core.Port
-	temperaturePort core.Port
-	massRateRelPort core.Port
-	gasPort         core.Port
+	complexGasPort  graph.Port
+	pressurePort    graph.Port
+	temperaturePort graph.Port
+	massRateRelPort graph.Port
+	gasPort         graph.Port
 
 	contextCalledFlag  bool
 	contextDefinedFlag bool
@@ -62,37 +62,37 @@ func (node *gasStateAssemblerNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "GasStateAssembler")
 }
 
-func (node *gasStateAssemblerNode) GetRequirePorts() []core.Port {
+func (node *gasStateAssemblerNode) GetRequirePorts() []graph.Port {
 	if node.isAssembler {
-		return []core.Port{
+		return []graph.Port{
 			node.gasPort,
 			node.temperaturePort,
 			node.pressurePort,
 			node.massRateRelPort,
 		}
 	} else {
-		return []core.Port{
+		return []graph.Port{
 			node.complexGasPort,
 		}
 	}
 }
 
-func (node *gasStateAssemblerNode) GetUpdatePorts() []core.Port {
+func (node *gasStateAssemblerNode) GetUpdatePorts() []graph.Port {
 	if !node.isAssembler {
-		return []core.Port{
+		return []graph.Port{
 			node.gasPort,
 			node.temperaturePort,
 			node.pressurePort,
 			node.massRateRelPort,
 		}
 	} else {
-		return []core.Port{
+		return []graph.Port{
 			node.complexGasPort,
 		}
 	}
 }
 
-func (node *gasStateAssemblerNode) GetPorts() []core.Port {
+func (node *gasStateAssemblerNode) GetPorts() []graph.Port {
 	return node.getPorts()
 }
 
@@ -158,28 +158,28 @@ func (node *gasStateAssemblerNode) ContextDefined() bool {
 	return node.contextDefinedFlag
 }
 
-func (node *gasStateAssemblerNode) ComplexGasPort() core.Port {
+func (node *gasStateAssemblerNode) ComplexGasPort() graph.Port {
 	return node.complexGasPort
 }
 
-func (node *gasStateAssemblerNode) PressurePort() core.Port {
+func (node *gasStateAssemblerNode) PressurePort() graph.Port {
 	return node.pressurePort
 }
 
-func (node *gasStateAssemblerNode) TemperaturePort() core.Port {
+func (node *gasStateAssemblerNode) TemperaturePort() graph.Port {
 	return node.temperaturePort
 }
 
-func (node *gasStateAssemblerNode) MassRateRelPort() core.Port {
+func (node *gasStateAssemblerNode) MassRateRelPort() graph.Port {
 	return node.massRateRelPort
 }
 
-func (node *gasStateAssemblerNode) GasPort() core.Port {
+func (node *gasStateAssemblerNode) GasPort() graph.Port {
 	return node.gasPort
 }
 
-func (node *gasStateAssemblerNode) getPorts() []core.Port {
-	return []core.Port{
+func (node *gasStateAssemblerNode) getPorts() []graph.Port {
+	return []graph.Port{
 		node.complexGasPort,
 		node.pressurePort,
 		node.temperaturePort,

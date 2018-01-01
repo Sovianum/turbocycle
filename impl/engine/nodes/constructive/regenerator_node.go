@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -16,11 +16,11 @@ const (
 )
 
 type RegeneratorNode interface {
-	core.Node
-	ColdInput() core.Port
-	ColdOutput() core.Port
-	HotInput() core.Port
-	HotOutput() core.Port
+	graph.Node
+	ColdInput() graph.Port
+	ColdOutput() graph.Port
+	HotInput() graph.Port
+	HotOutput() graph.Port
 	Sigma() float64
 }
 
@@ -31,21 +31,21 @@ func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
 		mode:      mode,
 	}
 
-	result.hotGasInput = core.NewAttachedPort(result)
-	result.coldGasInput = core.NewAttachedPort(result)
-	result.hotGasOutput = core.NewAttachedPort(result)
-	result.coldGasOutput = core.NewAttachedPort(result)
+	result.hotGasInput = graph.NewAttachedPort(result)
+	result.coldGasInput = graph.NewAttachedPort(result)
+	result.hotGasOutput = graph.NewAttachedPort(result)
+	result.coldGasOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type regeneratorNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	hotGasInput   core.Port
-	coldGasInput  core.Port
-	hotGasOutput  core.Port
-	coldGasOutput core.Port
+	hotGasInput   graph.Port
+	coldGasInput  graph.Port
+	hotGasOutput  graph.Port
+	coldGasOutput graph.Port
 
 	sigma     float64
 	precision float64
@@ -56,31 +56,31 @@ func (node *regeneratorNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Regenerator")
 }
 
-func (node *regeneratorNode) GetPorts() []core.Port {
-	return []core.Port{node.hotGasInput, node.coldGasInput, node.hotGasOutput, node.coldGasOutput}
+func (node *regeneratorNode) GetPorts() []graph.Port {
+	return []graph.Port{node.hotGasInput, node.coldGasInput, node.hotGasOutput, node.coldGasOutput}
 }
 
-func (node *regeneratorNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.hotGasInput, node.coldGasInput}
+func (node *regeneratorNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.hotGasInput, node.coldGasInput}
 }
 
-func (node *regeneratorNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.hotGasOutput, node.coldGasOutput}
+func (node *regeneratorNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.hotGasOutput, node.coldGasOutput}
 }
 
-func (node *regeneratorNode) ColdInput() core.Port {
+func (node *regeneratorNode) ColdInput() graph.Port {
 	return node.coldGasInput
 }
 
-func (node *regeneratorNode) ColdOutput() core.Port {
+func (node *regeneratorNode) ColdOutput() graph.Port {
 	return node.coldGasOutput
 }
 
-func (node *regeneratorNode) HotInput() core.Port {
+func (node *regeneratorNode) HotInput() graph.Port {
 	return node.hotGasInput
 }
 
-func (node *regeneratorNode) HotOutput() core.Port {
+func (node *regeneratorNode) HotOutput() graph.Port {
 	return node.hotGasOutput
 }
 

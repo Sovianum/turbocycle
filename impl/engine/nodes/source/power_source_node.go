@@ -2,13 +2,13 @@ package source
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type PowerSourceNode interface {
-	core.Node
+	graph.Node
 	nodes.PowerSource
 }
 
@@ -17,7 +17,7 @@ func NewPowerSourceNode(lRel float64) PowerSourceNode {
 		lSpecific: lRel,
 	}
 
-	result.setOutput(core.NewAttachedPort(result))
+	result.setOutput(graph.NewAttachedPort(result))
 	return result
 }
 
@@ -35,6 +35,6 @@ func (node *powerSourceNode) Process() error {
 	return nil
 }
 
-func (node *powerSourceNode) PowerOutput() core.Port {
+func (node *powerSourceNode) PowerOutput() graph.Port {
 	return node.getOutput()
 }

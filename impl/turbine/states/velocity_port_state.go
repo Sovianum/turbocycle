@@ -6,7 +6,7 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 )
 
 const (
@@ -34,7 +34,7 @@ func (state VelocityPortState) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (state VelocityPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
+func (state VelocityPortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
 	switch v := another.(type) {
 	case VelocityPortState:
 		var casted = another.(VelocityPortState)
@@ -65,7 +65,7 @@ func (state VelocityPortState) Mix(another core.PortState, relaxCoef float64) (c
 	}
 }
 
-func (state VelocityPortState) MaxResidual(another core.PortState) (float64, error) {
+func (state VelocityPortState) MaxResidual(another graph.PortState) (float64, error) {
 	switch v := another.(type) {
 	case VelocityPortState:
 		var casted = another.(VelocityPortState)

@@ -2,13 +2,13 @@ package source
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type PressureSourceNode interface {
-	core.Node
+	graph.Node
 	nodes.PressureSource
 }
 
@@ -17,7 +17,7 @@ func NewPressureSourceNode(pStag float64) PressureSourceNode {
 		pStag: pStag,
 	}
 
-	result.setOutput(core.NewAttachedPort(result))
+	result.setOutput(graph.NewAttachedPort(result))
 	return result
 }
 
@@ -39,6 +39,6 @@ func (node *pressureSourceNode) PStagOut() float64 {
 	return node.pStag
 }
 
-func (node *pressureSourceNode) PressureOutput() core.Port {
+func (node *pressureSourceNode) PressureOutput() graph.Port {
 	return node.getOutput()
 }

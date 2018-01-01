@@ -2,8 +2,9 @@ package states
 
 import (
 	"encoding/json"
+
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 )
 
 type MassRateRelPortState struct {
@@ -22,7 +23,7 @@ func (state MassRateRelPortState) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (state MassRateRelPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
+func (state MassRateRelPortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
 	switch v := another.(type) {
 	case MassRateRelPortState:
 		var casted = another.(MassRateRelPortState)
@@ -35,7 +36,7 @@ func (state MassRateRelPortState) Mix(another core.PortState, relaxCoef float64)
 	}
 }
 
-func (state MassRateRelPortState) MaxResidual(another core.PortState) (float64, error) {
+func (state MassRateRelPortState) MaxResidual(another graph.PortState) (float64, error) {
 	switch v := another.(type) {
 	case MassRateRelPortState:
 		return common.GetRelResidual(state.MassRateRel, another.(MassRateRelPortState).MassRateRel), nil

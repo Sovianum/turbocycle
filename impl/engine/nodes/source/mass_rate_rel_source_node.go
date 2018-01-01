@@ -2,13 +2,13 @@ package source
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type MassRateRelSourceNode interface {
-	core.Node
+	graph.Node
 	nodes.MassRateRelSource
 }
 
@@ -17,7 +17,7 @@ func NewMassRateRelSourceNode(massRateRel float64) MassRateRelSourceNode {
 		massRateRel: massRateRel,
 	}
 
-	result.setOutput(core.NewAttachedPort(result))
+	result.setOutput(graph.NewAttachedPort(result))
 	return result
 }
 
@@ -39,6 +39,6 @@ func (node *massRateRelSourceNode) MassRateRelOut() float64 {
 	return node.massRateRel
 }
 
-func (node *massRateRelSourceNode) MassRateRelOutput() core.Port {
+func (node *massRateRelSourceNode) MassRateRelOutput() graph.Port {
 	return node.getOutput()
 }

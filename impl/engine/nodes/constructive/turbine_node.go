@@ -1,15 +1,16 @@
 package constructive
 
 import (
+	"math"
+
 	"github.com/Sovianum/turbocycle/common/gdf"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/material/gases"
-	"math"
 )
 
 type TurbineNode interface {
-	core.Node
+	graph.Node
 	nodes.ComplexGasSink
 	nodes.PowerSource
 	nodes.PressureIn
@@ -33,7 +34,7 @@ func TurbineLabour(node TurbineNode) float64 {
 }
 
 type GasBiPole interface {
-	core.Node
+	graph.Node
 }
 
 func TOut(node TurbineNode) float64 {

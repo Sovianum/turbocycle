@@ -3,7 +3,7 @@ package helper
 import (
 	"testing"
 
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
@@ -25,11 +25,11 @@ func TestGasStateAssemblerNode_ProcessAssemble(t *testing.T) {
 	var complexSink = sink.NewComplexGasSinkNode()
 
 	var assembler = NewGasStateAssemblerNode()
-	core.Link(assembler.GasPort(), gSource.GasOutput())
-	core.Link(assembler.TemperaturePort(), tSource.TemperatureOutput())
-	core.Link(assembler.PressurePort(), pSource.PressureOutput())
-	core.Link(assembler.MassRateRelPort(), mSource.MassRateRelOutput())
-	core.Link(assembler.ComplexGasPort(), complexSink.ComplexGasInput())
+	graph.Link(assembler.GasPort(), gSource.GasOutput())
+	graph.Link(assembler.TemperaturePort(), tSource.TemperatureOutput())
+	graph.Link(assembler.PressurePort(), pSource.PressureOutput())
+	graph.Link(assembler.MassRateRelPort(), mSource.MassRateRelOutput())
+	graph.Link(assembler.ComplexGasPort(), complexSink.ComplexGasInput())
 
 	var require = assembler.GetRequirePorts()
 	assert.Equal(t, 4, len(require), len(require))
@@ -60,11 +60,11 @@ func TestGasStateAssemblerNode_ProcessDesemble(t *testing.T) {
 	var complexSource = source.NewComplexGasSourceNode(gases.GetAir(), tStag, pStag)
 
 	var assembler = NewGasStateDisassemblerNode()
-	core.Link(assembler.GasPort(), gSink.GasInput())
-	core.Link(assembler.TemperaturePort(), tSink.TemperatureInput())
-	core.Link(assembler.PressurePort(), pSink.PressureInput())
-	core.Link(assembler.MassRateRelPort(), mSink.MassRateRelInput())
-	core.Link(assembler.ComplexGasPort(), complexSource.ComplexGasOutput())
+	graph.Link(assembler.GasPort(), gSink.GasInput())
+	graph.Link(assembler.TemperaturePort(), tSink.TemperatureInput())
+	graph.Link(assembler.PressurePort(), pSink.PressureInput())
+	graph.Link(assembler.MassRateRelPort(), mSink.MassRateRelInput())
+	graph.Link(assembler.ComplexGasPort(), complexSource.ComplexGasOutput())
 
 	mSink.MassRateRelInput().SetState(states.NewMassRateRelPortState(massRateRel))
 

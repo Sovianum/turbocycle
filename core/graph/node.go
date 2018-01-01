@@ -1,4 +1,4 @@
-package core
+package graph
 
 type Node interface {
 	SetName(name string)

@@ -1,12 +1,12 @@
 package schemes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 )
 
 type Scheme interface {
-	GetNetwork() (core.Network, core.GraphError)
+	GetNetwork() (graph.Network, graph.GraphError)
 	GetSpecificPower() float64
 	GetFuelMassRateRel() float64
 	GetQLower() float64

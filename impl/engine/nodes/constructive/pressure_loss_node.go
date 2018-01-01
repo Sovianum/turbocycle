@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
@@ -19,7 +19,7 @@ const (
 )
 
 type PressureLossNode interface {
-	core.Node
+	graph.Node
 	nodes.ComplexGasChannel
 	nodes.PressureIn
 	nodes.PressureOut
@@ -36,17 +36,17 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 		contextDefined: false,
 	}
 
-	result.complexGasInput = core.NewAttachedPort(result)
-	result.complexGasOutput = core.NewAttachedPort(result)
+	result.complexGasInput = graph.NewAttachedPort(result)
+	result.complexGasOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type pressureLossNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	complexGasInput  core.Port
-	complexGasOutput core.Port
+	complexGasInput  graph.Port
+	complexGasOutput graph.Port
 
 	sigma          float64
 	mode           string
@@ -58,32 +58,32 @@ func (node *pressureLossNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "PressureLossNode")
 }
 
-func (node *pressureLossNode) GetPorts() []core.Port {
-	return []core.Port{node.complexGasInput, node.complexGasOutput}
+func (node *pressureLossNode) GetPorts() []graph.Port {
+	return []graph.Port{node.complexGasInput, node.complexGasOutput}
 }
 
-func (node *pressureLossNode) GetRequirePorts() []core.Port {
+func (node *pressureLossNode) GetRequirePorts() []graph.Port {
 	var mode, err = node.getMode()
 	if err != nil {
 		panic(err)
 	}
 
 	if mode == pressureLossInflow {
-		return []core.Port{node.complexGasInput}
+		return []graph.Port{node.complexGasInput}
 	}
-	return []core.Port{node.complexGasOutput}
+	return []graph.Port{node.complexGasOutput}
 }
 
-func (node *pressureLossNode) GetUpdatePorts() []core.Port {
+func (node *pressureLossNode) GetUpdatePorts() []graph.Port {
 	var mode, err = node.getMode()
 	if err != nil {
 		panic(err)
 	}
 
 	if mode == pressureLossOutflow {
-		return []core.Port{node.complexGasInput}
+		return []graph.Port{node.complexGasInput}
 	}
-	return []core.Port{node.complexGasOutput}
+	return []graph.Port{node.complexGasOutput}
 }
 
 func (node *pressureLossNode) ContextDefined() bool {
@@ -147,7 +147,7 @@ func (node *pressureLossNode) Process() error {
 	}
 }
 
-func (node *pressureLossNode) ComplexGasOutput() core.Port {
+func (node *pressureLossNode) ComplexGasOutput() graph.Port {
 	return node.complexGasOutput
 }
 
@@ -159,7 +159,7 @@ func (node *pressureLossNode) PStagOut() float64 {
 	return node.pStagOut()
 }
 
-func (node *pressureLossNode) ComplexGasInput() core.Port {
+func (node *pressureLossNode) ComplexGasInput() graph.Port {
 	return node.complexGasInput
 }
 

@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
@@ -13,7 +13,7 @@ import (
 )
 
 type BurnerNode interface {
-	core.Node
+	graph.Node
 	nodes.ComplexGasChannel
 	nodes.PressureIn
 	nodes.PressureOut
@@ -48,17 +48,17 @@ func NewBurnerNode(
 		precision: precision,
 	}
 
-	result.complexGasInput = core.NewAttachedPort(result)
-	result.complexGasOutput = core.NewAttachedPort(result)
+	result.complexGasInput = graph.NewAttachedPort(result)
+	result.complexGasOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type burnerNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	complexGasInput  core.Port
-	complexGasOutput core.Port
+	complexGasInput  graph.Port
+	complexGasOutput graph.Port
 
 	fuel      fuel.GasFuel
 	outletGas gases.Gas
@@ -76,16 +76,16 @@ func (node *burnerNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Burner")
 }
 
-func (node *burnerNode) GetPorts() []core.Port {
-	return []core.Port{node.complexGasInput, node.complexGasOutput}
+func (node *burnerNode) GetPorts() []graph.Port {
+	return []graph.Port{node.complexGasInput, node.complexGasOutput}
 }
 
-func (node *burnerNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.complexGasInput}
+func (node *burnerNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.complexGasInput}
 }
 
-func (node *burnerNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.complexGasOutput}
+func (node *burnerNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.complexGasOutput}
 }
 
 func (node *burnerNode) Fuel() fuel.GasFuel {
@@ -108,11 +108,11 @@ func (node *burnerNode) TFuel() float64 {
 	return node.tFuel
 }
 
-func (node *burnerNode) ComplexGasInput() core.Port {
+func (node *burnerNode) ComplexGasInput() graph.Port {
 	return node.complexGasInput
 }
 
-func (node *burnerNode) ComplexGasOutput() core.Port {
+func (node *burnerNode) ComplexGasOutput() graph.Port {
 	return node.complexGasOutput
 }
 

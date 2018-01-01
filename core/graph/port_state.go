@@ -1,4 +1,4 @@
-package core
+package graph
 
 type PortState interface {
 	Mix(another PortState, relaxCoef float64) (PortState, error)

@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
@@ -16,7 +16,7 @@ import (
 )
 
 type TurbineStageNode interface {
-	core.Node
+	graph.Node
 	nodes.GasChannel
 	nodes.PressureChannel
 	nodes.TemperatureChannel
@@ -54,43 +54,43 @@ func NewTurbineStageNode(
 		alpha1FirstStage: math.NaN(),
 		isFirstStageNode: false,
 	}
-	result.gasInput = core.NewAttachedPort(result)
-	result.gasOutput = core.NewAttachedPort(result)
+	result.gasInput = graph.NewAttachedPort(result)
+	result.gasOutput = graph.NewAttachedPort(result)
 
-	result.pressureInput = core.NewAttachedPort(result)
-	result.pressureOutput = core.NewAttachedPort(result)
+	result.pressureInput = graph.NewAttachedPort(result)
+	result.pressureOutput = graph.NewAttachedPort(result)
 
-	result.temperatureInput = core.NewAttachedPort(result)
-	result.temperatureOutput = core.NewAttachedPort(result)
+	result.temperatureInput = graph.NewAttachedPort(result)
+	result.temperatureOutput = graph.NewAttachedPort(result)
 
-	result.velocityInput = core.NewAttachedPort(result)
+	result.velocityInput = graph.NewAttachedPort(result)
 	result.velocityInput.SetState(
 		states2.NewVelocityPortState(
 			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
 		),
 	)
 
-	result.velocityOutput = core.NewAttachedPort(result)
+	result.velocityOutput = graph.NewAttachedPort(result)
 
-	result.massRateInput = core.NewAttachedPort(result)
-	result.massRateOutput = core.NewAttachedPort(result)
+	result.massRateInput = graph.NewAttachedPort(result)
+	result.massRateOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type turbineStageNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	gasInput          core.Port
-	gasOutput         core.Port
-	pressureInput     core.Port
-	pressureOutput    core.Port
-	temperatureInput  core.Port
-	temperatureOutput core.Port
-	velocityInput     core.Port
-	velocityOutput    core.Port
-	massRateInput     core.Port
-	massRateOutput    core.Port
+	gasInput          graph.Port
+	gasOutput         graph.Port
+	pressureInput     graph.Port
+	pressureOutput    graph.Port
+	temperatureInput  graph.Port
+	temperatureOutput graph.Port
+	velocityInput     graph.Port
+	velocityOutput    graph.Port
+	massRateInput     graph.Port
+	massRateOutput    graph.Port
 
 	n                float64
 	stageHeatDrop    float64
@@ -169,8 +169,8 @@ func (node *turbineStageNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "TurbineStage")
 }
 
-func (node *turbineStageNode) GetPorts() []core.Port {
-	return []core.Port{
+func (node *turbineStageNode) GetPorts() []graph.Port {
+	return []graph.Port{
 		node.gasInput,
 		node.gasOutput,
 		node.pressureInput,
@@ -184,8 +184,8 @@ func (node *turbineStageNode) GetPorts() []core.Port {
 	}
 }
 
-func (node *turbineStageNode) GetRequirePorts() []core.Port {
-	return []core.Port{
+func (node *turbineStageNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{
 		node.gasInput,
 		node.pressureInput,
 		node.temperatureInput,
@@ -194,8 +194,8 @@ func (node *turbineStageNode) GetRequirePorts() []core.Port {
 	}
 }
 
-func (node *turbineStageNode) GetUpdatePorts() []core.Port {
-	return []core.Port{
+func (node *turbineStageNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{
 		node.gasOutput,
 		node.pressureOutput,
 		node.temperatureOutput,
@@ -232,43 +232,43 @@ func (node *turbineStageNode) SetAlpha1FirstStage(alpha1FirstStage float64) {
 	node.alpha1FirstStage = alpha1FirstStage
 }
 
-func (node *turbineStageNode) GasOutput() core.Port {
+func (node *turbineStageNode) GasOutput() graph.Port {
 	return node.gasOutput
 }
 
-func (node *turbineStageNode) GasInput() core.Port {
+func (node *turbineStageNode) GasInput() graph.Port {
 	return node.gasInput
 }
 
-func (node *turbineStageNode) VelocityInput() core.Port {
+func (node *turbineStageNode) VelocityInput() graph.Port {
 	return node.velocityInput
 }
 
-func (node *turbineStageNode) VelocityOutput() core.Port {
+func (node *turbineStageNode) VelocityOutput() graph.Port {
 	return node.velocityOutput
 }
 
-func (node *turbineStageNode) PressureOutput() core.Port {
+func (node *turbineStageNode) PressureOutput() graph.Port {
 	return node.pressureOutput
 }
 
-func (node *turbineStageNode) PressureInput() core.Port {
+func (node *turbineStageNode) PressureInput() graph.Port {
 	return node.pressureInput
 }
 
-func (node *turbineStageNode) TemperatureOutput() core.Port {
+func (node *turbineStageNode) TemperatureOutput() graph.Port {
 	return node.temperatureOutput
 }
 
-func (node *turbineStageNode) TemperatureInput() core.Port {
+func (node *turbineStageNode) TemperatureInput() graph.Port {
 	return node.temperatureInput
 }
 
-func (node *turbineStageNode) MassRateInput() core.Port {
+func (node *turbineStageNode) MassRateInput() graph.Port {
 	return node.massRateInput
 }
 
-func (node *turbineStageNode) MassRateOutput() core.Port {
+func (node *turbineStageNode) MassRateOutput() graph.Port {
 	return node.massRateOutput
 }
 

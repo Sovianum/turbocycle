@@ -6,7 +6,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/common/gdf"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -33,25 +33,25 @@ func NewFreeTurbineNode(
 		inflowMassRateRel: inflowMassRateRel,
 	}
 
-	result.complexGasInput = core.NewAttachedPort(result)
-	result.powerOutput = core.NewAttachedPort(result)
-	result.pressureOutput = core.NewAttachedPort(result)
-	result.temperatureOutput = core.NewAttachedPort(result)
-	result.gasOutput = core.NewAttachedPort(result)
-	result.massRateRelOutput = core.NewAttachedPort(result)
+	result.complexGasInput = graph.NewAttachedPort(result)
+	result.powerOutput = graph.NewAttachedPort(result)
+	result.pressureOutput = graph.NewAttachedPort(result)
+	result.temperatureOutput = graph.NewAttachedPort(result)
+	result.gasOutput = graph.NewAttachedPort(result)
+	result.massRateRelOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type freeTurbineNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	complexGasInput   core.Port
-	powerOutput       core.Port
-	pressureOutput    core.Port
-	temperatureOutput core.Port
-	gasOutput         core.Port
-	massRateRelOutput core.Port
+	complexGasInput   graph.Port
+	powerOutput       graph.Port
+	pressureOutput    graph.Port
+	temperatureOutput graph.Port
+	gasOutput         graph.Port
+	massRateRelOutput graph.Port
 
 	etaT              float64
 	precision         float64
@@ -65,8 +65,8 @@ func (node *freeTurbineNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "FreeTurbine")
 }
 
-func (node *freeTurbineNode) GetPorts() []core.Port {
-	return []core.Port{
+func (node *freeTurbineNode) GetPorts() []graph.Port {
+	return []graph.Port{
 		node.complexGasInput,
 		node.powerOutput,
 		node.pressureOutput,
@@ -76,15 +76,15 @@ func (node *freeTurbineNode) GetPorts() []core.Port {
 	}
 }
 
-func (node *freeTurbineNode) GetRequirePorts() []core.Port {
-	return []core.Port{
+func (node *freeTurbineNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{
 		node.complexGasInput,
 		node.pressureOutput,
 	}
 }
 
-func (node *freeTurbineNode) GetUpdatePorts() []core.Port {
-	return []core.Port{
+func (node *freeTurbineNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{
 		node.powerOutput,
 		node.temperatureOutput,
 		node.gasOutput,
@@ -92,11 +92,11 @@ func (node *freeTurbineNode) GetUpdatePorts() []core.Port {
 	}
 }
 
-func (node *freeTurbineNode) ComplexGasInput() core.Port {
+func (node *freeTurbineNode) ComplexGasInput() graph.Port {
 	return node.complexGasInput
 }
 
-func (node *freeTurbineNode) PowerOutput() core.Port {
+func (node *freeTurbineNode) PowerOutput() graph.Port {
 	return node.powerOutput
 }
 
@@ -178,15 +178,15 @@ func (node *freeTurbineNode) Process() error {
 	return nil
 }
 
-func (node *freeTurbineNode) PressureOutput() core.Port {
+func (node *freeTurbineNode) PressureOutput() graph.Port {
 	return node.pressureOutput
 }
 
-func (node *freeTurbineNode) TemperatureOutput() core.Port {
+func (node *freeTurbineNode) TemperatureOutput() graph.Port {
 	return node.temperatureOutput
 }
 
-func (node *freeTurbineNode) MassRateRelOutput() core.Port {
+func (node *freeTurbineNode) MassRateRelOutput() graph.Port {
 	return node.massRateRelOutput
 }
 
@@ -194,7 +194,7 @@ func (node *freeTurbineNode) MassRateRelOut() float64 {
 	return node.massRateRelOut()
 }
 
-func (node *freeTurbineNode) GasOutput() core.Port {
+func (node *freeTurbineNode) GasOutput() graph.Port {
 	return node.gasOutput
 }
 

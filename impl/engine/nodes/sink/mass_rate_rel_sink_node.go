@@ -2,19 +2,19 @@ package sink
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type MassRateRelSinkNode interface {
-	core.Node
+	graph.Node
 	nodes.MassRateRelSink
 }
 
 func NewMassRateRelSinkNode() MassRateRelSinkNode {
 	var result = &massRateRelSinkNode{}
-	result.setInput(core.NewAttachedPort(result))
+	result.setInput(graph.NewAttachedPort(result))
 	return result
 }
 
@@ -30,6 +30,6 @@ func (node *massRateRelSinkNode) MassRateRelIn() float64 {
 	return node.getInput().GetState().(states.MassRateRelPortState).MassRateRel
 }
 
-func (node *massRateRelSinkNode) MassRateRelInput() core.Port {
+func (node *massRateRelSinkNode) MassRateRelInput() graph.Port {
 	return node.getInput()
 }

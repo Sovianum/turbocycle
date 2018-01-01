@@ -1,6 +1,6 @@
 package nodes
 
-import "github.com/Sovianum/turbocycle/core"
+import "github.com/Sovianum/turbocycle/core/graph"
 
 const (
 	DefaultN = 50
@@ -12,11 +12,11 @@ type ComplexGasChannel interface {
 }
 
 type ComplexGasSource interface {
-	ComplexGasOutput() core.Port
+	ComplexGasOutput() graph.Port
 }
 
 type ComplexGasSink interface {
-	ComplexGasInput() core.Port
+	ComplexGasInput() graph.Port
 }
 
 type PowerChannel interface {
@@ -25,11 +25,11 @@ type PowerChannel interface {
 }
 
 type PowerSource interface {
-	PowerOutput() core.Port
+	PowerOutput() graph.Port
 }
 
 type PowerSink interface {
-	PowerInput() core.Port
+	PowerInput() graph.Port
 }
 
 type MassRateRelChannel interface {
@@ -38,12 +38,12 @@ type MassRateRelChannel interface {
 }
 
 type MassRateRelSource interface {
-	MassRateRelOutput() core.Port
+	MassRateRelOutput() graph.Port
 	MassRateRelOut() float64
 }
 
 type MassRateRelSink interface {
-	MassRateRelInput() core.Port
+	MassRateRelInput() graph.Port
 	MassRateRelIn() float64
 }
 
@@ -53,11 +53,11 @@ type GasChannel interface {
 }
 
 type GasSource interface {
-	GasOutput() core.Port
+	GasOutput() graph.Port
 }
 
 type GasSink interface {
-	GasInput() core.Port
+	GasInput() graph.Port
 }
 
 type TemperatureChannel interface {
@@ -66,7 +66,7 @@ type TemperatureChannel interface {
 }
 
 type TemperatureSource interface {
-	TemperatureOutput() core.Port
+	TemperatureOutput() graph.Port
 }
 
 type TemperatureOut interface {
@@ -74,7 +74,7 @@ type TemperatureOut interface {
 }
 
 type TemperatureSink interface {
-	TemperatureInput() core.Port
+	TemperatureInput() graph.Port
 }
 
 type TemperatureIn interface {
@@ -87,7 +87,7 @@ type PressureChannel interface {
 }
 
 type PressureSource interface {
-	PressureOutput() core.Port
+	PressureOutput() graph.Port
 }
 
 type PressureOut interface {
@@ -95,14 +95,14 @@ type PressureOut interface {
 }
 
 type PressureSink interface {
-	PressureInput() core.Port
+	PressureInput() graph.Port
 }
 
 type PressureIn interface {
 	PStagIn() float64
 }
 
-func IsDataSource(port core.Port) (bool, error) {
+func IsDataSource(port graph.Port) (bool, error) {
 	var linkPort = port.GetLinkPort()
 	if linkPort == nil {
 		return false, nil

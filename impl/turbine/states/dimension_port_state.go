@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 )
 
 type DimensionPortState struct {
@@ -21,7 +21,7 @@ func (state DimensionPortState) MarshalJSON() ([]byte, error) {
 	}{Diameter: state.Dimension})
 }
 
-func (state DimensionPortState) Mix(another core.PortState, relaxCoef float64) (core.PortState, error) {
+func (state DimensionPortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
 	switch v := another.(type) {
 	case DimensionPortState:
 		var casted = another.(DimensionPortState)
@@ -31,7 +31,7 @@ func (state DimensionPortState) Mix(another core.PortState, relaxCoef float64) (
 	}
 }
 
-func (state DimensionPortState) MaxResidual(another core.PortState) (float64, error) {
+func (state DimensionPortState) MaxResidual(another graph.PortState) (float64, error) {
 	switch v := another.(type) {
 	case DimensionPortState:
 		return common.GetRelResidual(state.Dimension, another.(DimensionPortState).Dimension), nil

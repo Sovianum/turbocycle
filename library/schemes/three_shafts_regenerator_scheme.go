@@ -1,7 +1,7 @@
 package schemes
 
 import (
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
@@ -91,10 +91,10 @@ func (scheme *threeShaftsRegeneratorScheme) GetQLower() float64 {
 	return scheme.regenerativeGasGenerator.Burner().Fuel().QLower()
 }
 
-func (scheme *threeShaftsRegeneratorScheme) GetNetwork() (core.Network, core.GraphError) {
+func (scheme *threeShaftsRegeneratorScheme) GetNetwork() (graph.Network, graph.GraphError) {
 	scheme.linkPorts()
 
-	return core.NewNetwork([]core.Node{
+	return graph.NewNetwork([]graph.Node{
 		scheme.gasSource, scheme.inletPressureDrop, scheme.middlePressureCascade,
 		scheme.middlePressureCompressorPipe, scheme.regenerativeGasGenerator,
 		scheme.highPressureTurbinePipe, scheme.middlePressureTurbinePipe,
@@ -103,18 +103,18 @@ func (scheme *threeShaftsRegeneratorScheme) GetNetwork() (core.Network, core.Gra
 }
 
 func (scheme *threeShaftsRegeneratorScheme) linkPorts() {
-	core.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
-	core.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.middlePressureCascade.CompressorComplexGasInput())
+	graph.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
+	graph.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.middlePressureCascade.CompressorComplexGasInput())
 
-	core.Link(scheme.middlePressureCascade.CompressorComplexGasOutput(), scheme.middlePressureCompressorPipe.ComplexGasInput())
-	core.Link(scheme.middlePressureCompressorPipe.ComplexGasOutput(), scheme.breaker1.DataSourcePort())
-	core.Link(scheme.breaker1.UpdatePort(), scheme.regenerativeGasGenerator.ComplexGasInput())
-	core.Link(scheme.regenerativeGasGenerator.ComplexGasOutput(), scheme.highPressureTurbinePipe.ComplexGasInput())
-	core.Link(scheme.highPressureTurbinePipe.ComplexGasOutput(), scheme.middlePressureCascade.TurbineComplexGasInput())
-	core.Link(scheme.middlePressureCascade.TurbineComplexGasOutput(), scheme.middlePressureTurbinePipe.ComplexGasInput())
-	core.Link(scheme.middlePressureTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
-	core.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
-	core.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.breaker2.DataSourcePort())
-	core.Link(scheme.breaker2.UpdatePort(), scheme.regenerativeGasGenerator.HeatExchangerHotInput())
-	core.Link(scheme.regenerativeGasGenerator.HeatExchangerHotOutput(), scheme.gasSink.ComplexGasInput())
+	graph.Link(scheme.middlePressureCascade.CompressorComplexGasOutput(), scheme.middlePressureCompressorPipe.ComplexGasInput())
+	graph.Link(scheme.middlePressureCompressorPipe.ComplexGasOutput(), scheme.breaker1.DataSourcePort())
+	graph.Link(scheme.breaker1.UpdatePort(), scheme.regenerativeGasGenerator.ComplexGasInput())
+	graph.Link(scheme.regenerativeGasGenerator.ComplexGasOutput(), scheme.highPressureTurbinePipe.ComplexGasInput())
+	graph.Link(scheme.highPressureTurbinePipe.ComplexGasOutput(), scheme.middlePressureCascade.TurbineComplexGasInput())
+	graph.Link(scheme.middlePressureCascade.TurbineComplexGasOutput(), scheme.middlePressureTurbinePipe.ComplexGasInput())
+	graph.Link(scheme.middlePressureTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
+	graph.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
+	graph.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.breaker2.DataSourcePort())
+	graph.Link(scheme.breaker2.UpdatePort(), scheme.regenerativeGasGenerator.HeatExchangerHotInput())
+	graph.Link(scheme.regenerativeGasGenerator.HeatExchangerHotOutput(), scheme.gasSink.ComplexGasInput())
 }

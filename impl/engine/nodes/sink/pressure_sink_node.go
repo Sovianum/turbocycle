@@ -2,19 +2,19 @@ package sink
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type PressureSinkNode interface {
-	core.Node
+	graph.Node
 	nodes.PressureSink
 }
 
 func NewPressureSinkNode() PressureSinkNode {
 	var result = &pressureSinkNode{}
-	result.setInput(core.NewAttachedPort(result))
+	result.setInput(graph.NewAttachedPort(result))
 	return result
 }
 
@@ -30,6 +30,6 @@ func (node *pressureSinkNode) PStagIn() float64 {
 	return node.getInput().GetState().(states.PressurePortState).PStag
 }
 
-func (node *pressureSinkNode) PressureInput() core.Port {
+func (node *pressureSinkNode) PressureInput() graph.Port {
 	return node.getInput()
 }

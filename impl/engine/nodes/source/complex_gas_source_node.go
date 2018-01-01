@@ -2,14 +2,14 @@ package source
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 type ComplexGasSourceNode interface {
-	core.Node
+	graph.Node
 	nodes.ComplexGasSource
 }
 
@@ -20,7 +20,7 @@ func NewComplexGasSourceNode(gas gases.Gas, tStag, pStag float64) ComplexGasSour
 		gas:   gas,
 	}
 
-	result.setOutput(core.NewAttachedPort(result))
+	result.setOutput(graph.NewAttachedPort(result))
 	return result
 }
 
@@ -40,7 +40,7 @@ func (node *complexGasSourceNode) Process() error {
 	return nil
 }
 
-func (node *complexGasSourceNode) ComplexGasOutput() core.Port {
+func (node *complexGasSourceNode) ComplexGasOutput() graph.Port {
 	return node.getOutput()
 }
 

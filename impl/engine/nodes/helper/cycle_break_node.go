@@ -2,43 +2,43 @@ package helper
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 )
 
 type CycleBreakNode interface {
-	core.Node
-	UpdatePort() core.Port
-	DataSourcePort() core.Port
+	graph.Node
+	UpdatePort() graph.Port
+	DataSourcePort() graph.Port
 }
 
-func NewCycleBreakerNode(initialState core.PortState) CycleBreakNode {
+func NewCycleBreakerNode(initialState graph.PortState) CycleBreakNode {
 	var result = &cycleBreakNode{}
-	result.updatePort = core.NewAttachedPort(result)
-	result.sourcePort = core.NewAttachedPort(result)
+	result.updatePort = graph.NewAttachedPort(result)
+	result.sourcePort = graph.NewAttachedPort(result)
 	result.sourcePort.SetState(initialState)
 	return result
 }
 
 type cycleBreakNode struct {
-	core.BaseNode
-	updatePort core.Port
-	sourcePort core.Port
+	graph.BaseNode
+	updatePort graph.Port
+	sourcePort graph.Port
 }
 
 func (node *cycleBreakNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "CycleBreak")
 }
 
-func (node *cycleBreakNode) GetRequirePorts() []core.Port {
-	return make([]core.Port, 0)
+func (node *cycleBreakNode) GetRequirePorts() []graph.Port {
+	return make([]graph.Port, 0)
 }
 
-func (node *cycleBreakNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.updatePort}
+func (node *cycleBreakNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.updatePort}
 }
 
-func (node *cycleBreakNode) GetPorts() []core.Port {
-	return []core.Port{node.sourcePort, node.updatePort}
+func (node *cycleBreakNode) GetPorts() []graph.Port {
+	return []graph.Port{node.sourcePort, node.updatePort}
 }
 
 func (node *cycleBreakNode) Process() error {
@@ -46,10 +46,10 @@ func (node *cycleBreakNode) Process() error {
 	return nil
 }
 
-func (node *cycleBreakNode) UpdatePort() core.Port {
+func (node *cycleBreakNode) UpdatePort() graph.Port {
 	return node.updatePort
 }
 
-func (node *cycleBreakNode) DataSourcePort() core.Port {
+func (node *cycleBreakNode) DataSourcePort() graph.Port {
 	return node.sourcePort
 }

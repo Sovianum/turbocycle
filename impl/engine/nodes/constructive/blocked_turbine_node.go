@@ -6,7 +6,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/common/gdf"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -31,22 +31,22 @@ func NewBlockedTurbineNode(
 		inflowMassRateRel: inflowMassRateRel,
 	}
 
-	result.powerInput = core.NewAttachedPort(result)
-	result.powerOutput = core.NewAttachedPort(result)
-	result.complexGasInput = core.NewAttachedPort(result)
-	result.complexGasOutput = core.NewAttachedPort(result)
+	result.powerInput = graph.NewAttachedPort(result)
+	result.powerOutput = graph.NewAttachedPort(result)
+	result.complexGasInput = graph.NewAttachedPort(result)
+	result.complexGasOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type blockedTurbineNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	powerInput  core.Port
-	powerOutput core.Port
+	powerInput  graph.Port
+	powerOutput graph.Port
 
-	complexGasInput  core.Port
-	complexGasOutput core.Port
+	complexGasInput  graph.Port
+	complexGasOutput graph.Port
 
 	etaT              float64
 	precision         float64
@@ -60,16 +60,16 @@ func (node *blockedTurbineNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "BlockedTurbine")
 }
 
-func (node *blockedTurbineNode) GetPorts() []core.Port {
-	return []core.Port{node.powerInput, node.powerOutput, node.complexGasInput, node.complexGasOutput}
+func (node *blockedTurbineNode) GetPorts() []graph.Port {
+	return []graph.Port{node.powerInput, node.powerOutput, node.complexGasInput, node.complexGasOutput}
 }
 
-func (node *blockedTurbineNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.powerInput, node.complexGasInput}
+func (node *blockedTurbineNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.powerInput, node.complexGasInput}
 }
 
-func (node *blockedTurbineNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.powerOutput, node.complexGasOutput}
+func (node *blockedTurbineNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.powerOutput, node.complexGasOutput}
 }
 
 func (node *blockedTurbineNode) Process() error {
@@ -148,19 +148,19 @@ func (node *blockedTurbineNode) PiTStag() float64 {
 	return node.piTStag(node.tStagOut())
 }
 
-func (node *blockedTurbineNode) ComplexGasInput() core.Port {
+func (node *blockedTurbineNode) ComplexGasInput() graph.Port {
 	return node.complexGasInput
 }
 
-func (node *blockedTurbineNode) ComplexGasOutput() core.Port {
+func (node *blockedTurbineNode) ComplexGasOutput() graph.Port {
 	return node.complexGasOutput
 }
 
-func (node *blockedTurbineNode) PowerInput() core.Port {
+func (node *blockedTurbineNode) PowerInput() graph.Port {
 	return node.powerInput
 }
 
-func (node *blockedTurbineNode) PowerOutput() core.Port {
+func (node *blockedTurbineNode) PowerOutput() graph.Port {
 	return node.powerOutput
 }
 

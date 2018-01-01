@@ -2,18 +2,18 @@ package compose
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 )
 
 type TurboCascadeNode interface {
-	core.Node
-	CompressorComplexGasInput() core.Port
-	CompressorComplexGasOutput() core.Port
-	TurbineComplexGasInput() core.Port
-	TurbineComplexGasOutput() core.Port
+	graph.Node
+	CompressorComplexGasInput() graph.Port
+	CompressorComplexGasOutput() graph.Port
+	TurbineComplexGasInput() graph.Port
+	TurbineComplexGasOutput() graph.Port
 	Compressor() constructive.CompressorNode
 	Turbine() constructive.TurbineNode
 	Transmission() constructive.TransmissionNode
@@ -40,21 +40,21 @@ func NewTurboCascadeNode(
 
 	result.linkPorts()
 
-	result.compressorComplexGasInput = core.NewAttachedPort(result)
-	result.compressorComplexGasOutput = core.NewAttachedPort(result)
-	result.turbineComplexGasInput = core.NewAttachedPort(result)
-	result.turbineComplexGasOutput = core.NewAttachedPort(result)
+	result.compressorComplexGasInput = graph.NewAttachedPort(result)
+	result.compressorComplexGasOutput = graph.NewAttachedPort(result)
+	result.turbineComplexGasInput = graph.NewAttachedPort(result)
+	result.turbineComplexGasOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type turboCascadeNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	compressorComplexGasInput  core.Port
-	compressorComplexGasOutput core.Port
-	turbineComplexGasInput     core.Port
-	turbineComplexGasOutput    core.Port
+	compressorComplexGasInput  graph.Port
+	compressorComplexGasOutput graph.Port
+	turbineComplexGasInput     graph.Port
+	turbineComplexGasOutput    graph.Port
 
 	compressor   constructive.CompressorNode
 	turbine      constructive.BlockedTurbineNode
@@ -66,8 +66,8 @@ func (node *turboCascadeNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "TurboCascade")
 }
 
-func (node *turboCascadeNode) GetPorts() []core.Port {
-	return []core.Port{
+func (node *turboCascadeNode) GetPorts() []graph.Port {
+	return []graph.Port{
 		node.compressorComplexGasInput,
 		node.compressorComplexGasOutput,
 		node.turbineComplexGasInput,
@@ -75,15 +75,15 @@ func (node *turboCascadeNode) GetPorts() []core.Port {
 	}
 }
 
-func (node *turboCascadeNode) GetRequirePorts() []core.Port {
-	return []core.Port{
+func (node *turboCascadeNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{
 		node.compressorComplexGasInput,
 		node.turbineComplexGasInput,
 	}
 }
 
-func (node *turboCascadeNode) GetUpdatePorts() []core.Port {
-	return []core.Port{
+func (node *turboCascadeNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{
 		node.compressorComplexGasOutput,
 		node.turbineComplexGasOutput,
 	}
@@ -138,26 +138,26 @@ func (node *turboCascadeNode) Process() error {
 	return nil
 }
 
-func (node *turboCascadeNode) TurbineComplexGasOutput() core.Port {
+func (node *turboCascadeNode) TurbineComplexGasOutput() graph.Port {
 	return node.turbineComplexGasOutput
 }
 
-func (node *turboCascadeNode) TurbineComplexGasInput() core.Port {
+func (node *turboCascadeNode) TurbineComplexGasInput() graph.Port {
 	return node.turbineComplexGasInput
 }
 
-func (node *turboCascadeNode) CompressorComplexGasOutput() core.Port {
+func (node *turboCascadeNode) CompressorComplexGasOutput() graph.Port {
 	return node.compressorComplexGasOutput
 }
 
-func (node *turboCascadeNode) CompressorComplexGasInput() core.Port {
+func (node *turboCascadeNode) CompressorComplexGasInput() graph.Port {
 	return node.compressorComplexGasInput
 }
 
 func (node *turboCascadeNode) linkPorts() {
-	core.Link(node.compressor.PowerOutput(), node.transmission.PowerInput())
-	core.Link(node.transmission.PowerOutput(), node.turbine.PowerInput())
-	core.Link(node.turbine.PowerOutput(), node.powerSink.PowerInput())
+	graph.Link(node.compressor.PowerOutput(), node.transmission.PowerInput())
+	graph.Link(node.transmission.PowerOutput(), node.turbine.PowerInput())
+	graph.Link(node.turbine.PowerOutput(), node.powerSink.PowerInput())
 }
 
 func (node *turboCascadeNode) readInput() {

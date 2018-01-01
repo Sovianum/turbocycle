@@ -2,13 +2,13 @@ package constructive
 
 import (
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type CoolerNode interface {
-	core.Node
+	graph.Node
 	nodes.ComplexGasChannel
 }
 
@@ -18,17 +18,17 @@ func NewCoolerNode(tOut float64, sigma float64) CoolerNode {
 		sigma: sigma,
 	}
 
-	result.complexGasInput = core.NewAttachedPort(result)
-	result.complexGasOutput = core.NewAttachedPort(result)
+	result.complexGasInput = graph.NewAttachedPort(result)
+	result.complexGasOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 type coolerNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	complexGasInput  core.Port
-	complexGasOutput core.Port
+	complexGasInput  graph.Port
+	complexGasOutput graph.Port
 
 	tOut  float64
 	sigma float64
@@ -38,16 +38,16 @@ func (node *coolerNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Cooler")
 }
 
-func (node *coolerNode) GetPorts() []core.Port {
-	return []core.Port{node.complexGasInput, node.complexGasOutput}
+func (node *coolerNode) GetPorts() []graph.Port {
+	return []graph.Port{node.complexGasInput, node.complexGasOutput}
 }
 
-func (node *coolerNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.complexGasInput}
+func (node *coolerNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.complexGasInput}
 }
 
-func (node *coolerNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.complexGasOutput}
+func (node *coolerNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.complexGasOutput}
 }
 
 func (node *coolerNode) Process() error {
@@ -58,10 +58,10 @@ func (node *coolerNode) Process() error {
 	return nil
 }
 
-func (node *coolerNode) ComplexGasInput() core.Port {
+func (node *coolerNode) ComplexGasInput() graph.Port {
 	return node.complexGasInput
 }
 
-func (node *coolerNode) ComplexGasOutput() core.Port {
+func (node *coolerNode) ComplexGasOutput() graph.Port {
 	return node.complexGasOutput
 }

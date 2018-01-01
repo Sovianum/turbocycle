@@ -6,14 +6,14 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 type CompressorNode interface {
-	core.Node
+	graph.Node
 	nodes.ComplexGasChannel
 	nodes.PowerSource
 	nodes.PressureIn
@@ -34,20 +34,20 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 		piStag:    piStag,
 	}
 
-	result.complexGasInput = core.NewAttachedPort(result)
-	result.complexGasOutput = core.NewAttachedPort(result)
-	result.powerOutput = core.NewAttachedPort(result)
+	result.complexGasInput = graph.NewAttachedPort(result)
+	result.complexGasOutput = graph.NewAttachedPort(result)
+	result.powerOutput = graph.NewAttachedPort(result)
 
 	return result
 }
 
 // TODO add collector port
 type compressorNode struct {
-	core.BaseNode
+	graph.BaseNode
 
-	complexGasInput  core.Port
-	complexGasOutput core.Port
-	powerOutput      core.Port
+	complexGasInput  graph.Port
+	complexGasOutput graph.Port
+	powerOutput      graph.Port
 
 	etaPol    float64 // politropic efficiency
 	precision float64
@@ -58,16 +58,16 @@ func (node *compressorNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Compressor")
 }
 
-func (node *compressorNode) GetPorts() []core.Port {
-	return []core.Port{node.complexGasInput, node.complexGasOutput, node.powerOutput}
+func (node *compressorNode) GetPorts() []graph.Port {
+	return []graph.Port{node.complexGasInput, node.complexGasOutput, node.powerOutput}
 }
 
-func (node *compressorNode) GetRequirePorts() []core.Port {
-	return []core.Port{node.complexGasInput}
+func (node *compressorNode) GetRequirePorts() []graph.Port {
+	return []graph.Port{node.complexGasInput}
 }
 
-func (node *compressorNode) GetUpdatePorts() []core.Port {
-	return []core.Port{node.complexGasOutput, node.powerOutput}
+func (node *compressorNode) GetUpdatePorts() []graph.Port {
+	return []graph.Port{node.complexGasOutput, node.powerOutput}
 }
 
 // while calculating labour function takes massRateRel into account
@@ -99,15 +99,15 @@ func (node *compressorNode) Process() error {
 	return nil
 }
 
-func (node *compressorNode) ComplexGasInput() core.Port {
+func (node *compressorNode) ComplexGasInput() graph.Port {
 	return node.complexGasInput
 }
 
-func (node *compressorNode) ComplexGasOutput() core.Port {
+func (node *compressorNode) ComplexGasOutput() graph.Port {
 	return node.complexGasOutput
 }
 
-func (node *compressorNode) PowerOutput() core.Port {
+func (node *compressorNode) PowerOutput() graph.Port {
 	return node.powerOutput
 }
 

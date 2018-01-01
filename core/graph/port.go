@@ -1,4 +1,4 @@
-package core
+package graph
 
 type Port interface {
 	GetState() PortState
