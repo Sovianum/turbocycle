@@ -48,10 +48,10 @@ func (b *biMap) ContainsVal(val interface{}) bool {
 func (b *biMap) Iterate() chan pair {
 	var result = make(chan pair)
 	var f = func() {
-		for key := range b.forward {
-			var val = b.backward[key]
+		for key, val := range b.forward {
 			result <- pair{key: key, val: val}
 		}
+		close(result)
 	}
 	go f()
 
