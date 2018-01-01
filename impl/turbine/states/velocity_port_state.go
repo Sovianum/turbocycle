@@ -80,7 +80,3 @@ func (state VelocityPortState) MaxResidual(another core.PortState) (float64, err
 		return 0, common.GetTypeError("MassRatePortState", v)
 	}
 }
-
-//func (state MassRatePortState) MaxResidual(another core.PortState) (float64, error) {
-//	panic("implement me")
-//}
