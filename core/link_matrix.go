@@ -6,7 +6,7 @@ const (
 	contextUndefinedNodes = "context undefined nodes detected"
 )
 
-func newGraphMatrix(nodeArr []Node) (*graphMatrix, *graphError) {
+func newGraphMatrix(nodeArr []Node) (*graphMatrix, GraphError) {
 	var nodeMap = newBiMap()
 	for i, node := range nodeArr {
 		nodeMap.Add(i, node)
@@ -43,7 +43,7 @@ type graphMatrix struct {
 	matrixCopy [][]bool
 }
 
-func (m *graphMatrix) GetCallOrder() ([]Node, *graphError) {
+func (m *graphMatrix) GetCallOrder() ([]Node, GraphError) {
 	m.copyMatrix()
 	var usedFreeNodes = make(map[Node]bool)
 
@@ -90,7 +90,7 @@ func (m *graphMatrix) copyMatrix() {
 
 // edges are set in require direction, i.e. if A requires B
 // there exists edge from B to A, and matrix[i_A][i_B] == true
-func (m *graphMatrix) setEdges() *graphError {
+func (m *graphMatrix) setEdges() GraphError {
 	if unconnectedPorts := m.getUnconnectedPorts(); len(unconnectedPorts) > 0 {
 		return graphErrorFromPorts(unconnectedPortsMsg, unconnectedPorts)
 	}

@@ -1,16 +1,24 @@
 package core
 
-type PortsType map[string]Port
-
 type Node interface {
-	//GetPorts() PortsType
+	SetName(name string)
+	GetName() string
+
 	Process() error
 	GetRequirePorts() []Port
 	GetUpdatePorts() []Port
 	GetPorts() []Port
-	//GetRequirePortTags() ([]string, error)
-	//GetUpdatePortTags() ([]string, error)
-	//GetPortTags() []string
-	GetPortByTag(tag string) (Port, error)
 	ContextDefined() bool
+}
+
+type BaseNode struct {
+	name string
+}
+
+func (node *BaseNode) SetName(name string) {
+	node.name = name
+}
+
+func (node *BaseNode) ContextDefined() bool {
+	return true
 }

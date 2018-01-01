@@ -1,33 +1,39 @@
 package core
 
-func graphErrorFromNodes(msg string, nodes []Node) *graphError {
-	return &graphError{
+func graphErrorFromNodes(msg string, nodes []Node) GraphError {
+	return &graphErrorImpl{
 		msg:   msg,
 		nodes: nodes,
 	}
 }
 
-func graphErrorFromPorts(msg string, ports []Port) *graphError {
-	return &graphError{
+func graphErrorFromPorts(msg string, ports []Port) GraphError {
+	return &graphErrorImpl{
 		msg:   msg,
 		ports: ports,
 	}
 }
 
-type graphError struct {
+type GraphError interface {
+	error
+	Nodes() []Node
+	Ports() []Port
+}
+
+type graphErrorImpl struct {
 	msg   string
 	nodes []Node
 	ports []Port
 }
 
-func (e *graphError) Error() string {
+func (e *graphErrorImpl) Error() string {
 	return e.msg
 }
 
-func (e *graphError) Nodes() []Node {
+func (e *graphErrorImpl) Nodes() []Node {
 	return e.nodes
 }
 
-func (e *graphError) Ports() []Port {
+func (e *graphErrorImpl) Ports() []Port {
 	return e.ports
 }
