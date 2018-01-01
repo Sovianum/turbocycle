@@ -1,9 +1,7 @@
 package constructive
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -20,22 +18,11 @@ type BlockedTurbineNode interface {
 	nodes.PowerSink
 }
 
-type blockedTurbineNode struct {
-	ports             core.PortsType
-	etaT              float64
-	precision         float64
-	lambdaOut         float64
-	leakMassRateFunc  func(TurbineNode) float64
-	coolMasRateRel    func(TurbineNode) float64
-	inflowMassRateRel func(TurbineNode) float64
-}
-
 func NewBlockedTurbineNode(
 	etaT, lambdaOut, precision float64,
 	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(TurbineNode) float64,
 ) BlockedTurbineNode {
 	var result = &blockedTurbineNode{
-		ports:             make(core.PortsType),
 		etaT:              etaT,
 		precision:         precision,
 		lambdaOut:         lambdaOut,
@@ -44,80 +31,49 @@ func NewBlockedTurbineNode(
 		inflowMassRateRel: inflowMassRateRel,
 	}
 
-	result.ports[nodes.PowerInput] = core.NewPort()
-	result.ports[nodes.PowerInput].SetInnerNode(result)
-	result.ports[nodes.PowerInput].SetState(states.StandardPowerState())
-
-	result.ports[nodes.PowerOutput] = core.NewPort()
-	result.ports[nodes.PowerOutput].SetInnerNode(result)
-	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
-
-	result.ports[nodes.ComplexGasInput] = core.NewPort()
-	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
-
-	result.ports[nodes.ComplexGasOutput] = core.NewPort()
-	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
+	result.powerInput = core.NewAttachedPort(result)
+	result.powerOutput = core.NewAttachedPort(result)
+	result.complexGasInput = core.NewAttachedPort(result)
+	result.complexGasOutput = core.NewAttachedPort(result)
 
 	return result
 }
 
-func (node *blockedTurbineNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		GasInputState    core.PortState `json:"gas_input_state"`
-		GasOutputState   core.PortState `json:"gas_output_state"`
-		PowerInputState  core.PortState `json:"power_input_state"`
-		PowerOutputState core.PortState `json:"power_output_state"`
-		LSpecific        float64        `json:"l_specific"`
-		Eta              float64        `json:"eta"`
-	}{
-		GasInputState:    node.gasInput().GetState(),
-		GasOutputState:   node.gasOutput().GetState(),
-		PowerInputState:  node.powerInput().GetState(),
-		PowerOutputState: node.powerOutput().GetState(),
-		LSpecific:        node.turbineLabour(),
-		Eta:              node.etaT,
-	})
+type blockedTurbineNode struct {
+	core.BaseNode
+
+	powerInput  core.Port
+	powerOutput core.Port
+
+	complexGasInput  core.Port
+	complexGasOutput core.Port
+
+	etaT              float64
+	precision         float64
+	lambdaOut         float64
+	leakMassRateFunc  func(TurbineNode) float64
+	coolMasRateRel    func(TurbineNode) float64
+	inflowMassRateRel func(TurbineNode) float64
 }
 
-func (node *blockedTurbineNode) ContextDefined() bool {
-	return true
+func (node *blockedTurbineNode) GetName() string {
+	return common.EitherString(node.GetInstanceName(), "BlockedTurbine")
 }
 
-func (node *blockedTurbineNode) GetPortByTag(tag string) (core.Port, error) {
-	switch tag {
-	case nodes.ComplexGasInput:
-		return node.gasInput(), nil
-	case nodes.ComplexGasOutput:
-		return node.gasOutput(), nil
-	case nodes.PowerInput:
-		return node.powerInput(), nil
-	case nodes.PowerOutput:
-		return node.PowerOutput(), nil
-	default:
-		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
-	}
+func (node *blockedTurbineNode) GetPorts() []core.Port {
+	return []core.Port{node.powerInput, node.powerOutput, node.complexGasInput, node.complexGasOutput}
 }
 
-func (node *blockedTurbineNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasInput, nodes.PowerInput}, nil
+func (node *blockedTurbineNode) GetRequirePorts() []core.Port {
+	return []core.Port{node.powerInput, node.complexGasInput}
 }
 
-func (node *blockedTurbineNode) GetUpdatePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasOutput, nodes.PowerOutput}, nil
-}
-
-func (node *blockedTurbineNode) GetPortTags() []string {
-	return []string{nodes.ComplexGasInput, nodes.PowerInput, nodes.ComplexGasOutput, nodes.PowerOutput}
-}
-
-func (node *blockedTurbineNode) GetPorts() core.PortsType {
-	return node.ports
+func (node *blockedTurbineNode) GetUpdatePorts() []core.Port {
+	return []core.Port{node.powerOutput, node.complexGasOutput}
 }
 
 func (node *blockedTurbineNode) Process() error {
-	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
+	var gasState = node.complexGasInput.GetState().(states.ComplexGasPortState)
 
 	var err error
 	gasState.TStag, err = node.getTStagOut(node.turbineLabour())
@@ -130,8 +86,8 @@ func (node *blockedTurbineNode) Process() error {
 	gasState.PStag = node.pStagIn() / (piTStag * pi)
 	gasState.MassRateRel *= node.massRateRelFactor()
 
-	node.gasOutput().SetState(gasState)
-	node.powerOutput().SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
+	node.complexGasOutput.SetState(gasState)
+	node.powerOutput.SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
 
 	return nil
 }
@@ -157,7 +113,7 @@ func (node *blockedTurbineNode) TStatOut() float64 {
 }
 
 func (node *blockedTurbineNode) MassRateRel() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).MassRateRel
+	return node.complexGasOutput.GetState().(states.ComplexGasPortState).MassRateRel
 }
 
 func (node *blockedTurbineNode) LeakMassRateRel() float64 {
@@ -193,19 +149,19 @@ func (node *blockedTurbineNode) PiTStag() float64 {
 }
 
 func (node *blockedTurbineNode) ComplexGasInput() core.Port {
-	return node.gasInput()
+	return node.complexGasInput
 }
 
 func (node *blockedTurbineNode) ComplexGasOutput() core.Port {
-	return node.gasOutput()
+	return node.complexGasOutput
 }
 
 func (node *blockedTurbineNode) PowerInput() core.Port {
-	return node.powerInput()
+	return node.powerInput
 }
 
 func (node *blockedTurbineNode) PowerOutput() core.Port {
-	return node.powerOutput()
+	return node.powerOutput
 }
 
 func (node *blockedTurbineNode) getTStagOut(turbineLabour float64) (float64, error) {
@@ -237,7 +193,7 @@ func (node *blockedTurbineNode) getNewTtStag(currTtStag, turbineLabour float64) 
 }
 
 func (node *blockedTurbineNode) inputGas() gases.Gas {
-	return node.gasInput().GetState().(states.ComplexGasPortState).Gas
+	return node.complexGasInput.GetState().(states.ComplexGasPortState).Gas
 }
 
 func (node *blockedTurbineNode) piTStag(tStagOut float64) float64 {
@@ -255,7 +211,7 @@ func (node *blockedTurbineNode) getPiTStag(k, cp, turbineLabour float64) float64
 }
 
 func (node *blockedTurbineNode) turbineLabour() float64 {
-	return -node.powerInput().GetState().(states.PowerPortState).LSpecific
+	return -node.powerInput.GetState().(states.PowerPortState).LSpecific
 }
 
 func (node *blockedTurbineNode) tStatOut() float64 {
@@ -276,33 +232,17 @@ func (node *blockedTurbineNode) massRateRelFactor() float64 {
 }
 
 func (node *blockedTurbineNode) tStagIn() float64 {
-	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
+	return node.complexGasInput.GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *blockedTurbineNode) pStagIn() float64 {
-	return node.gasInput().GetState().(states.ComplexGasPortState).PStag
+	return node.complexGasInput.GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *blockedTurbineNode) tStagOut() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).TStag
+	return node.complexGasOutput.GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *blockedTurbineNode) pStagOut() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).PStag
-}
-
-func (node *blockedTurbineNode) gasInput() core.Port {
-	return node.ports[nodes.ComplexGasInput]
-}
-
-func (node *blockedTurbineNode) gasOutput() core.Port {
-	return node.ports[nodes.ComplexGasOutput]
-}
-
-func (node *blockedTurbineNode) powerInput() core.Port {
-	return node.ports[nodes.PowerInput]
-}
-
-func (node *blockedTurbineNode) powerOutput() core.Port {
-	return node.ports[nodes.PowerOutput]
+	return node.complexGasOutput.GetState().(states.ComplexGasPortState).PStag
 }
