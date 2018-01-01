@@ -11,10 +11,11 @@ type CycleBreakNode interface {
 	DataSourcePort() core.Port
 }
 
-func NewCycleBreakerNode() CycleBreakNode {
+func NewCycleBreakerNode(initialState core.PortState) CycleBreakNode {
 	var result = &cycleBreakNode{}
 	result.updatePort = core.NewAttachedPort(result)
 	result.sourcePort = core.NewAttachedPort(result)
+	result.sourcePort.SetState(initialState)
 	return result
 }
 
