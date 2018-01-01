@@ -1,15 +1,15 @@
 package constructive
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
-	"math"
 )
 
 type CompressorNode interface {
@@ -27,92 +27,53 @@ type CompressorNode interface {
 	SetPiStag(piStag float64)
 }
 
-// while calculating labour function takes massRateRel into account
-func CompressorLabour(node CompressorNode) float64 {
-	var massRateRel = node.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
-	return node.LSpecific() * massRateRel
-}
-
-// TODO add collector port
-type compressorNode struct {
-	ports     core.PortsType
-	etaPol    float64	// politropic efficiency
-	precision float64
-	piStag    float64
-}
-
-func (node *compressorNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		GasInputState    core.PortState `json:"gas_input_state"`
-		GasOutputState   core.PortState `json:"gas_output_state"`
-		PowerOutputState core.PortState `json:"power_output_state"`
-		EtaAd            float64        `json:"eta_ad"`
-		PiStag           float64        `json:"pi_stag"`
-		MassRateRel      float64        `json:"mass_rate_rel"`
-	}{
-		GasInputState:    node.gasInput().GetState(),
-		GasOutputState:   node.gasOutput().GetState(),
-		PowerOutputState: node.powerOutput().GetState(),
-		EtaAd:            node.etaPol,
-		PiStag:           node.piStag,
-		MassRateRel:      node.gasInput().GetState().(states.ComplexGasPortState).MassRateRel,
-	})
-}
-
 func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 	var result = &compressorNode{
-		ports:     make(core.PortsType),
 		etaPol:    etaAd,
 		precision: precision,
 		piStag:    piStag,
 	}
 
-	result.ports[nodes.ComplexGasInput] = core.NewPort()
-	result.ports[nodes.ComplexGasInput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasInput].SetState(states.StandardAtmosphereState())
-
-	result.ports[nodes.ComplexGasOutput] = core.NewPort()
-	result.ports[nodes.ComplexGasOutput].SetInnerNode(result)
-	result.ports[nodes.ComplexGasOutput].SetState(states.StandardAtmosphereState())
-
-	result.ports[nodes.PowerOutput] = core.NewPort()
-	result.ports[nodes.PowerOutput].SetInnerNode(result)
-	result.ports[nodes.PowerOutput].SetState(states.StandardPowerState())
+	result.complexGasInput = core.NewAttachedPort(result)
+	result.complexGasOutput = core.NewAttachedPort(result)
+	result.powerOutput = core.NewAttachedPort(result)
 
 	return result
 }
 
-func (node *compressorNode) ContextDefined() bool {
-	return true
+// TODO add collector port
+type compressorNode struct {
+	core.BaseNode
+
+	complexGasInput  core.Port
+	complexGasOutput core.Port
+	powerOutput      core.Port
+
+	etaPol    float64 // politropic efficiency
+	precision float64
+	piStag    float64
 }
 
-func (node *compressorNode) GetPortByTag(tag string) (core.Port, error) {
-	switch tag {
-	case nodes.ComplexGasInput:
-		return node.gasInput(), nil
-	case nodes.ComplexGasOutput:
-		return node.gasOutput(), nil
-	case nodes.PowerOutput:
-		return node.PowerOutput(), nil
-	default:
-		return nil, fmt.Errorf("port with tag \"%s\" not found", tag)
-	}
+func (node *compressorNode) GetName() string {
+	return common.EitherString(node.GetInstanceName(), "Compressor")
 }
 
-func (node *compressorNode) GetRequirePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasInput}, nil
+func (node *compressorNode) GetPorts() []core.Port {
+	return []core.Port{node.complexGasInput, node.complexGasOutput, node.powerOutput}
 }
 
-func (node *compressorNode) GetUpdatePortTags() ([]string, error) {
-	return []string{nodes.ComplexGasOutput, nodes.PowerOutput}, nil
+func (node *compressorNode) GetRequirePorts() []core.Port {
+	return []core.Port{node.complexGasInput}
 }
 
-func (node *compressorNode) GetPortTags() []string {
-	return []string{nodes.ComplexGasInput, nodes.ComplexGasOutput, nodes.PowerOutput}
+func (node *compressorNode) GetUpdatePorts() []core.Port {
+	return []core.Port{node.complexGasOutput, node.powerOutput}
 }
 
-func (node *compressorNode) GetPorts() core.PortsType {
-	return node.ports
+// while calculating labour function takes massRateRel into account
+func CompressorLabour(node CompressorNode) float64 {
+	var massRateRel = node.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	return node.LSpecific() * massRateRel
 }
 
 func (node *compressorNode) Process() error {
@@ -130,24 +91,24 @@ func (node *compressorNode) Process() error {
 	gasState.TStag = tStagOut
 	gasState.PStag = pStagOut
 
-	node.gasOutput().SetState(gasState)
+	node.complexGasOutput.SetState(gasState)
 
-	node.powerOutput().SetState(states.NewPowerPortState(-node.lSpecific()))
+	node.powerOutput.SetState(states.NewPowerPortState(-node.lSpecific()))
 	// TODO add and set collector port
 
 	return nil
 }
 
 func (node *compressorNode) ComplexGasInput() core.Port {
-	return node.gasInput()
+	return node.complexGasInput
 }
 
 func (node *compressorNode) ComplexGasOutput() core.Port {
-	return node.gasOutput()
+	return node.complexGasOutput
 }
 
 func (node *compressorNode) PowerOutput() core.Port {
-	return node.powerOutput()
+	return node.powerOutput
 }
 
 func (node *compressorNode) TStagIn() float64 {
@@ -220,7 +181,7 @@ func (node *compressorNode) etaAd(piCStag, tStagIn, tStagOut float64) float64 {
 	var k = gases.KMean(node.gas(), tStagIn, tStagOut, nodes.DefaultN)
 
 	var enom = math.Pow(piCStag, (k-1)/k) - 1
-	var denom = math.Pow(piCStag, (k-1)/(k * node.etaPol)) - 1
+	var denom = math.Pow(piCStag, (k-1)/(k*node.etaPol)) - 1
 
 	return enom / denom
 }
@@ -231,33 +192,21 @@ func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
 }
 
 func (node *compressorNode) tStagIn() float64 {
-	return node.gasInput().GetState().(states.ComplexGasPortState).TStag
+	return node.complexGasInput.GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *compressorNode) tStagOut() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).TStag
+	return node.complexGasOutput.GetState().(states.ComplexGasPortState).TStag
 }
 
 func (node *compressorNode) pStagIn() float64 {
-	return node.gasInput().GetState().(states.ComplexGasPortState).PStag
+	return node.complexGasInput.GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *compressorNode) pStagOut() float64 {
-	return node.gasOutput().GetState().(states.ComplexGasPortState).PStag
+	return node.complexGasOutput.GetState().(states.ComplexGasPortState).PStag
 }
 
 func (node *compressorNode) gas() gases.Gas {
-	return node.ports[nodes.ComplexGasInput].GetState().(states.ComplexGasPortState).Gas
-}
-
-func (node *compressorNode) gasInput() core.Port {
-	return node.ports[nodes.ComplexGasInput]
-}
-
-func (node *compressorNode) gasOutput() core.Port {
-	return node.ports[nodes.ComplexGasOutput]
-}
-
-func (node *compressorNode) powerOutput() core.Port {
-	return node.ports[nodes.PowerOutput]
+	return node.complexGasInput.GetState().(states.ComplexGasPortState).Gas
 }

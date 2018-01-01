@@ -2,13 +2,14 @@ package constructive
 
 import (
 	"fmt"
+	"math"
+	"testing"
+
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
-	"math"
-	"testing"
 )
 
 const (
@@ -27,8 +28,7 @@ func TestCompressorNode_Process(t *testing.T) {
 	var expectedPressure = float64(piC * pA)
 	assert.Equal(t, compressor.PStagOut(), expectedPressure)
 
-
-	var etaAd = (math.Pow(piC, (kAir-1)/kAir) - 1) / (math.Pow(piC, (kAir-1)/(kAir * etaC)) - 1)
+	var etaAd = (math.Pow(piC, (kAir-1)/kAir) - 1) / (math.Pow(piC, (kAir-1)/(kAir*etaC)) - 1)
 	var expectedTemperature = tA * (1 + 1/etaAd*(math.Pow(piC, (kAir-1)/kAir)-1))
 	assert.True(
 		t,
