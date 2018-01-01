@@ -2,6 +2,9 @@ package constructive
 
 import (
 	"fmt"
+	"math"
+	"testing"
+
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
@@ -9,8 +12,6 @@ import (
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
-	"math"
-	"testing"
 )
 
 const (
