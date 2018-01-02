@@ -1,4 +1,4 @@
-package math
+package variator
 
 import (
 	"testing"

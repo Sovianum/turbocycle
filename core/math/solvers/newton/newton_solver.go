@@ -1,58 +1,50 @@
-package solving
+package newton
 
 import (
 	"fmt"
 
+	"github.com/Sovianum/turbocycle/core/math"
 	"gonum.org/v1/gonum/mat"
 )
 
-func NewNewtonSolver(eqSystem EquationSystem, x0, derivativeSteps *mat.VecDense) (Solver, error) {
+func NewNewtonSolver(eqSystem math.EquationSystem, derivativeSteps *mat.VecDense) (math.Solver, error) {
 	if derivativeSteps.Len() != eqSystem.Order() {
 		return nil, fmt.Errorf(
 			"derivative step size %d does not match eqSystem order %d", derivativeSteps.Len(), eqSystem.Order(),
 		)
 	}
 
-	if x0.Len() != eqSystem.Order() {
-		return nil, fmt.Errorf(
-			"x0 size %d does not match eqSystem order %d", x0.Len(), eqSystem.Order(),
-		)
-	}
-
 	return &newtonSolver{
-		eqSystem:   eqSystem,
-		initValues: x0,
-		steps:      derivativeSteps,
+		eqSystem: eqSystem,
+		steps:    derivativeSteps,
 	}, nil
 }
 
-func NewUniformNewtonSolver(eqSystem EquationSystem, x0 *mat.VecDense, derivativeStep float64) (Solver, error) {
-	if x0.Len() != eqSystem.Order() {
-		return nil, fmt.Errorf(
-			"x0 size %d does not match eqSystem order %d", x0.Len(), eqSystem.Order(),
-		)
-	}
-
+func NewUniformNewtonSolver(eqSystem math.EquationSystem, derivativeStep float64) (math.Solver, error) {
 	var derivativeSteps = mat.NewVecDense(eqSystem.Order(), nil)
 	for i := 0; i != eqSystem.Order(); i++ {
 		derivativeSteps.SetVec(i, derivativeStep)
 	}
 
 	return &newtonSolver{
-		eqSystem:   eqSystem,
-		initValues: x0,
-		steps:      derivativeSteps,
+		eqSystem: eqSystem,
+		steps:    derivativeSteps,
 	}, nil
 }
 
 type newtonSolver struct {
-	eqSystem   EquationSystem
-	initValues *mat.VecDense
-	steps      *mat.VecDense // used to calculate partial derivatives
+	eqSystem math.EquationSystem
+	steps    *mat.VecDense // used to calculate partial derivatives
 }
 
-func (solver *newtonSolver) Solve(precision float64, iterLimit int) (solution *mat.VecDense, err error) {
-	var x = solver.initValues
+func (solver *newtonSolver) Solve(x0 *mat.VecDense, precision float64, iterLimit int) (solution *mat.VecDense, err error) {
+	if x0.Len() != solver.order() {
+		return nil, fmt.Errorf(
+			"x0 size %d does not match eqSystem order %d", x0.Len(), solver.order(),
+		)
+	}
+
+	var x = x0
 	var y, yErr = solver.eqSystem.GetResiduals(x)
 	if yErr != nil {
 		return nil, yErr

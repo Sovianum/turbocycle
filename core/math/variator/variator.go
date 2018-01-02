@@ -1,4 +1,4 @@
-package math
+package variator
 
 type Variator interface {
 	GetValue() float64
