@@ -10,7 +10,7 @@ func TestVariatorFromCallables(t *testing.T) {
 	var x = 1.
 	var getter = func() float64 { return x }
 	var setter = func(f float64) { x = f }
-	var variator = VariatorFromCallables(getter, setter)
+	var variator = FromCallables(getter, setter)
 
 	var val = 2.
 	variator.SetValue(val)
@@ -20,7 +20,7 @@ func TestVariatorFromCallables(t *testing.T) {
 
 func TestVariatorFromPointer(t *testing.T) {
 	var x = 1.
-	var variator = VariatorFromPointer(&x)
+	var variator = FromPointer(&x)
 
 	var val = 2.
 	variator.SetValue(val)
@@ -30,7 +30,7 @@ func TestVariatorFromPointer(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	var x = 1.
-	var variator = VariatorFromPointer(&x)
+	var variator = FromPointer(&x)
 
 	Add(variator, 1)
 

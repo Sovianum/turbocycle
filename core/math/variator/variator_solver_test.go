@@ -12,7 +12,7 @@ import (
 
 func TestVariatorSolver_Solve_Linear_1d(t *testing.T) {
 	var x = 1.
-	var xVariator = VariatorFromPointer(&x)
+	var xVariator = FromPointer(&x)
 
 	var systemCall = func() (*mat.VecDense, error) {
 		return mat.NewVecDense(1, []float64{x - 2}), nil
@@ -37,10 +37,10 @@ func TestVariatorSolver_Solve_Linear_1d(t *testing.T) {
 
 func TestVariatorSolver_Solve_Linear_2d(t *testing.T) {
 	var x = 1.
-	var xVariator = VariatorFromPointer(&x)
+	var xVariator = FromPointer(&x)
 
 	var y = 1.
-	var yVariator = VariatorFromPointer(&y)
+	var yVariator = FromPointer(&y)
 
 	var systemCall = func() (*mat.VecDense, error) {
 		return mat.NewVecDense(2, []float64{
@@ -69,7 +69,7 @@ func TestVariatorSolver_Solve_Linear_2d(t *testing.T) {
 
 func TestVariatorSolver_Solve_NonLinear_1d(t *testing.T) {
 	var x = 0.
-	var xVariator = VariatorFromPointer(&x)
+	var xVariator = FromPointer(&x)
 
 	var systemCall = func() (*mat.VecDense, error) {
 		return mat.NewVecDense(1, []float64{math2.Pow(x, 3) - 1}), nil
@@ -94,10 +94,10 @@ func TestVariatorSolver_Solve_NonLinear_1d(t *testing.T) {
 
 func TestVariatorSolver_Solve_NonLinear_2d(t *testing.T) {
 	var x = 1.
-	var xVariator = VariatorFromPointer(&x)
+	var xVariator = FromPointer(&x)
 
 	var y = 1.
-	var yVariator = VariatorFromPointer(&y)
+	var yVariator = FromPointer(&y)
 
 	var systemCall = func() (*mat.VecDense, error) {
 		return mat.NewVecDense(2, []float64{

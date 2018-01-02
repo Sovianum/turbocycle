@@ -9,8 +9,8 @@ func Add(variator Variator, delta float64) {
 	variator.SetValue(variator.GetValue() + delta)
 }
 
-func VariatorFromPointer(ptr *float64) Variator {
-	return VariatorFromCallables(
+func FromPointer(ptr *float64) Variator {
+	return FromCallables(
 		func() float64 {
 			return *ptr
 		},
@@ -20,7 +20,7 @@ func VariatorFromPointer(ptr *float64) Variator {
 	)
 }
 
-func VariatorFromCallables(getter func() float64, setter func(float64)) Variator {
+func FromCallables(getter func() float64, setter func(float64)) Variator {
 	return &variator{
 		getter: getter,
 		setter: setter,

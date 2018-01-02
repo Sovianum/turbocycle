@@ -7,6 +7,12 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+func NewUniformNewtonSolverGen(derivativeStep float64) math.SolverGenerator {
+	return func(system math.EquationSystem) (math.Solver, error) {
+		return NewUniformNewtonSolver(system, derivativeStep)
+	}
+}
+
 func NewNewtonSolver(eqSystem math.EquationSystem, derivativeSteps *mat.VecDense) (math.Solver, error) {
 	if derivativeSteps.Len() != eqSystem.Order() {
 		return nil, fmt.Errorf(

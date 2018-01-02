@@ -12,17 +12,18 @@ import (
 type VectorAssemblerNode interface {
 	Node
 	GetPairPort(outerPort Port) Port
-	DeletePairPort(port Port)
+	DeletePairPort(outerPort Port)
 	GetVectorPort() Port
 }
 
 func NewVectorAssemblerNode() VectorAssemblerNode {
-	return &vectorAssemblerNode{
+	var node = &vectorAssemblerNode{
 		portCnt:      0,
 		inputPortMap: make(map[int]Port),
 		outerPortMap: make(map[Port]int),
-		vectorPort:   NewPort(),
 	}
+	node.vectorPort = NewAttachedPort(node)
+	return node
 }
 
 type vectorAssemblerNode struct {
@@ -74,18 +75,19 @@ func (node *vectorAssemblerNode) GetPairPort(outerPort Port) Port {
 
 	node.portCnt++
 	node.outerPortMap[outerPort] = node.portCnt
-	var port = NewPort()
+	var port = NewAttachedPort(node)
 	node.inputPortMap[node.portCnt] = port
+	Link(port, outerPort)
 
 	return port
 }
 
-func (node *vectorAssemblerNode) DeletePairPort(port Port) {
-	var id, ok = node.outerPortMap[port]
+func (node *vectorAssemblerNode) DeletePairPort(outerPort Port) {
+	var id, ok = node.outerPortMap[outerPort]
 	if !ok {
 		return
 	}
-	delete(node.outerPortMap, port)
+	delete(node.outerPortMap, outerPort)
 	delete(node.inputPortMap, id)
 }
 

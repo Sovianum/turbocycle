@@ -6,7 +6,7 @@ import (
 )
 
 func NewVariatorSolver(
-	systemCall func() (*mat.VecDense, error),
+	systemCall SysCall,
 	variators []Variator,
 	solverGen math.SolverGenerator,
 ) math.Solver {

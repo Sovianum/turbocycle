@@ -1,6 +1,10 @@
 package graph
 
-import "github.com/Sovianum/turbocycle/common"
+import (
+	"strings"
+
+	"github.com/Sovianum/turbocycle/common"
+)
 
 const (
 	inaccessibleNodesMsg  = "inaccessible nodes detected"
@@ -75,9 +79,11 @@ func (m *graphMatrix) GetCallOrder() ([]Node, GraphError) {
 
 	var dependentNodes = m.getDependentNodes()
 	if len(dependentNodes) > 0 {
-		return nil, graphErrorFromNodes(
-			inaccessibleNodesMsg, dependentNodes,
-		)
+		var nodeNames = make([]string, len(dependentNodes))
+		for i, node := range dependentNodes {
+			nodeNames[i] = node.GetName()
+		}
+		return nil, graphErrorFromNodes(getInaccessibleErrMsg(dependentNodes), dependentNodes)
 	}
 	return result, nil
 }
@@ -94,10 +100,12 @@ func (m *graphMatrix) copyMatrix() {
 // there exists edge from B to A, and matrix[i_A][i_B] == true
 func (m *graphMatrix) setEdges() GraphError {
 	if unconnectedPorts := m.getUnconnectedPorts(); len(unconnectedPorts) > 0 {
-		return graphErrorFromPorts(unconnectedPortsMsg, unconnectedPorts)
+		var errMsg = getUnconnectedErrMsg(unconnectedPorts)
+		return graphErrorFromPorts(errMsg, unconnectedPorts)
 	}
 	if undefined := m.getContextUndefinedNodes(); len(undefined) > 0 {
-		return graphErrorFromNodes(contextUndefinedNodes, undefined)
+		var errMsg = getUndefinedErrMsg(undefined)
+		return graphErrorFromNodes(errMsg, undefined)
 	}
 
 	for pair := range m.nodes.Iterate() {
@@ -193,4 +201,28 @@ func (m *graphMatrix) getFreeNodes() []Node {
 
 func (m *graphMatrix) at(i, j int) bool {
 	return m.matrixCopy[i][j]
+}
+
+func getUnconnectedErrMsg(ports []Port) string {
+	var nodeNames = make([]string, len(ports))
+	for i, port := range ports {
+		nodeNames[i] = port.GetInnerNode().GetName()
+	}
+	return unconnectedPortsMsg + ": " + strings.Join(nodeNames, ", ")
+}
+
+func getUndefinedErrMsg(nodes []Node) string {
+	var nodeNames = make([]string, len(nodes))
+	for i, node := range nodes {
+		nodeNames[i] = node.GetName()
+	}
+	return contextUndefinedNodes + ": " + strings.Join(nodeNames, ", ")
+}
+
+func getInaccessibleErrMsg(nodes []Node) string {
+	var nodeNames = make([]string, len(nodes))
+	for i, node := range nodes {
+		nodeNames[i] = node.GetName()
+	}
+	return inaccessibleNodesMsg + ": " + strings.Join(nodeNames, ", ")
 }
