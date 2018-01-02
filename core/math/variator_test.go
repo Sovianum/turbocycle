@@ -27,3 +27,12 @@ func TestVariatorFromPointer(t *testing.T) {
 
 	assert.InDelta(t, val, variator.GetValue(), 1e-7)
 }
+
+func TestAdd(t *testing.T) {
+	var x = 1.
+	var variator = VariatorFromPointer(&x)
+
+	Add(variator, 1)
+
+	assert.InDelta(t, 2., x, 1e-7)
+}

@@ -5,7 +5,7 @@ type Variator interface {
 	SetValue(value float64)
 }
 
-func Add(variator variator, delta float64) {
+func Add(variator Variator, delta float64) {
 	variator.SetValue(variator.GetValue() + delta)
 }
 
