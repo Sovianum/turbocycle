@@ -1,4 +1,4 @@
-package graph
+package common
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestBiMap_Add_OK(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	var err = biMap.Add(0, "a")
 	assert.Nil(t, err)
 
@@ -23,7 +23,7 @@ func TestBiMap_Add_OK(t *testing.T) {
 }
 
 func TestBiMap_Add_Conflict(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	var err = biMap.Add(0, "a")
 	assert.Nil(t, err)
 
@@ -42,7 +42,7 @@ func TestBiMap_Add_Conflict(t *testing.T) {
 }
 
 func TestBiMap_ContainsKey(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	biMap.Add(0, "a")
 
 	assert.True(t, biMap.ContainsKey(0))
@@ -50,7 +50,7 @@ func TestBiMap_ContainsKey(t *testing.T) {
 }
 
 func TestBiMap_ContainsVal(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	biMap.Add(0, "a")
 
 	assert.True(t, biMap.ContainsVal("a"))
@@ -58,7 +58,7 @@ func TestBiMap_ContainsVal(t *testing.T) {
 }
 
 func TestBiMap_DeleteByKey(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	biMap.Add(0, "a")
 	biMap.Add(1, "b")
 	biMap.DeleteByKey(0)
@@ -71,7 +71,7 @@ func TestBiMap_DeleteByKey(t *testing.T) {
 }
 
 func TestBiMap_DeleteByVal(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	biMap.Add(0, "a")
 	biMap.Add(1, "b")
 	biMap.DeleteByVal("a")
@@ -84,7 +84,7 @@ func TestBiMap_DeleteByVal(t *testing.T) {
 }
 
 func TestBiMap_Iterate(t *testing.T) {
-	var biMap = newBiMap()
+	var biMap = NewBiMap()
 	biMap.Add(0, "a")
 	biMap.Add(1, "b")
 	var checkMap = map[int]interface{}{
@@ -93,8 +93,8 @@ func TestBiMap_Iterate(t *testing.T) {
 	}
 
 	for pair := range biMap.Iterate() {
-		var val, ok = checkMap[pair.key]
+		var val, ok = checkMap[pair.Key]
 		assert.True(t, ok)
-		assert.Equal(t, val, pair.val)
+		assert.Equal(t, val, pair.Val)
 	}
 }

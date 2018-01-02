@@ -1,17 +1,29 @@
-package graph
+package common
 
 import "fmt"
 
-func newBiMap() *biMap {
+type BiMap interface {
+	Length() int
+	Add(key int, val interface{}) error
+	ContainsKey(key int) bool
+	ContainsVal(val interface{}) bool
+	Iterate() chan Pair
+	GetByKey(key int) (val interface{}, ok bool)
+	GetByVal(val interface{}) (key int, ok bool)
+	DeleteByKey(key int)
+	DeleteByVal(val interface{})
+}
+
+func NewBiMap() BiMap {
 	return &biMap{
 		forward:  make(map[int]interface{}),
 		backward: make(map[interface{}]int),
 	}
 }
 
-type pair struct {
-	key int
-	val interface{}
+type Pair struct {
+	Key int
+	Val interface{}
 }
 
 type biMap struct {
@@ -25,10 +37,10 @@ func (b *biMap) Length() int {
 
 func (b *biMap) Add(key int, val interface{}) error {
 	if _, ok := b.forward[key]; ok {
-		return fmt.Errorf("key %d already presents", key)
+		return fmt.Errorf("Key %d already presents", key)
 	}
 	if _, ok := b.backward[key]; ok {
-		return fmt.Errorf("val %v already presents", val)
+		return fmt.Errorf("Val %v already presents", val)
 	}
 	b.forward[key] = val
 	b.backward[val] = key
@@ -45,11 +57,11 @@ func (b *biMap) ContainsVal(val interface{}) bool {
 	return ok
 }
 
-func (b *biMap) Iterate() chan pair {
-	var result = make(chan pair)
+func (b *biMap) Iterate() chan Pair {
+	var result = make(chan Pair)
 	var f = func() {
 		for key, val := range b.forward {
-			result <- pair{key: key, val: val}
+			result <- Pair{Key: key, Val: val}
 		}
 		close(result)
 	}

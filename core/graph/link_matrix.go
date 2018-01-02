@@ -1,5 +1,7 @@
 package graph
 
+import "github.com/Sovianum/turbocycle/common"
+
 const (
 	inaccessibleNodesMsg  = "inaccessible nodes detected"
 	unconnectedPortsMsg   = "unconnected port detected"
@@ -7,7 +9,7 @@ const (
 )
 
 func newGraphMatrix(nodeArr []Node) (*graphMatrix, GraphError) {
-	var nodeMap = newBiMap()
+	var nodeMap = common.NewBiMap()
 	for i, node := range nodeArr {
 		nodeMap.Add(i, node)
 	}
@@ -38,7 +40,7 @@ func newGraphMatrix(nodeArr []Node) (*graphMatrix, GraphError) {
 // this type is used to perform graph related operations like
 // getting call order, checking context definition and unconnected ports
 type graphMatrix struct {
-	nodes      *biMap
+	nodes      common.BiMap
 	matrix     [][]bool
 	matrixCopy [][]bool
 }
@@ -99,7 +101,7 @@ func (m *graphMatrix) setEdges() GraphError {
 	}
 
 	for pair := range m.nodes.Iterate() {
-		var innerNode = pair.val.(Node)
+		var innerNode = pair.Val.(Node)
 		for _, port := range innerNode.GetRequirePorts() {
 			var outerNode = port.GetOuterNode()
 
@@ -114,7 +116,7 @@ func (m *graphMatrix) setEdges() GraphError {
 func (m *graphMatrix) getUnconnectedPorts() []Port {
 	var unconnected = make([]Port, 0)
 	for pair := range m.nodes.Iterate() {
-		for _, port := range pair.val.(Node).GetPorts() {
+		for _, port := range pair.Val.(Node).GetPorts() {
 			if port.GetOuterNode() == nil {
 				unconnected = append(unconnected, port)
 			}
@@ -126,7 +128,7 @@ func (m *graphMatrix) getUnconnectedPorts() []Port {
 func (m *graphMatrix) getContextUndefinedNodes() []Node {
 	var undefined = make([]Node, 0)
 	for pair := range m.nodes.Iterate() {
-		if node := pair.val.(Node); !node.ContextDefined() {
+		if node := pair.Val.(Node); !node.ContextDefined() {
 			undefined = append(undefined, node)
 		}
 	}
@@ -138,7 +140,7 @@ func (m *graphMatrix) getDependentNodes() []Node {
 	var nodes = make(map[Node]bool)
 	// add all nodes to the map
 	for pair := range m.nodes.Iterate() {
-		nodes[pair.val.(Node)] = true
+		nodes[pair.Val.(Node)] = true
 	}
 
 	var freeNodes = m.getFreeNodes()
