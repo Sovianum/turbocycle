@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/common/gdf"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
@@ -24,8 +25,16 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	var turbine = getTestFreeTurbineNode()
 	assert.NotNil(t, turbine)
 
-	var inputGasState = states.NewComplexGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), tInFreeT, pInFreeT, 1)
-	turbine.ComplexGasInput().SetState(inputGasState)
+	var inputGas = fuel.GetCH4().GetCombustionGas(alphaT)
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(inputGas), states.NewTemperaturePortState(tInFreeT),
+			states.NewPressurePortState(pInFreeT), states.NewMassRateRelPortState(1),
+		},
+		[]graph.Port{
+			turbine.GasInput(), turbine.TemperatureInput(), turbine.PressureInput(), turbine.MassRateInput(),
+		},
+	)
 	turbine.PressureOutput().SetState(states.NewPressurePortState(pOutFreeT))
 
 	turbine.Process()
@@ -35,7 +44,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 
 	var expectedPit = expectedPitStag / gdf.Pi(lambdaOut, kAir)
 
-	var k = gases.KMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
+	var k = gases.KMean(inputGas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
 	var expectedTtStag = turbine.TStagIn() * (1 - (1-math.Pow(expectedPit, (1-k)/k))*etaT)
 	assert.True(
 		t,
@@ -43,7 +52,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected T_t %f, got %f", expectedTtStag, turbine.TStagOut()),
 	)
 
-	var cp = gases.CpMean(inputGasState.Gas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
+	var cp = gases.CpMean(inputGas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
 	var expectedLabour = cp * (turbine.TStagIn() - turbine.TStagOut())
 	assert.True(
 		t,

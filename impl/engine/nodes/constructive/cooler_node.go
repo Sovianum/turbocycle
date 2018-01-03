@@ -9,7 +9,11 @@ import (
 
 type CoolerNode interface {
 	graph.Node
-	nodes.ComplexGasChannel
+
+	nodes.GasChannel
+	nodes.PressureChannel
+	nodes.TemperatureChannel
+	nodes.MassRateChannel
 }
 
 func NewCoolerNode(tOut float64, sigma float64) CoolerNode {
@@ -18,8 +22,11 @@ func NewCoolerNode(tOut float64, sigma float64) CoolerNode {
 		sigma: sigma,
 	}
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.gasInput, &result.temperatureInput, &result.pressureInput, &result.massRateInput,
+		&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+	)
 
 	return result
 }
@@ -27,11 +34,50 @@ func NewCoolerNode(tOut float64, sigma float64) CoolerNode {
 type coolerNode struct {
 	graph.BaseNode
 
-	complexGasInput  graph.Port
-	complexGasOutput graph.Port
+	gasInput         graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	massRateInput    graph.Port
+
+	gasOutput         graph.Port
+	temperatureOutput graph.Port
+	pressureOutput    graph.Port
+	massRateOutput    graph.Port
 
 	tOut  float64
 	sigma float64
+}
+
+func (node *coolerNode) GasOutput() graph.Port {
+	return node.gasOutput
+}
+
+func (node *coolerNode) GasInput() graph.Port {
+	return node.gasInput
+}
+
+func (node *coolerNode) PressureOutput() graph.Port {
+	return node.pressureOutput
+}
+
+func (node *coolerNode) PressureInput() graph.Port {
+	return node.pressureInput
+}
+
+func (node *coolerNode) TemperatureOutput() graph.Port {
+	return node.temperatureOutput
+}
+
+func (node *coolerNode) TemperatureInput() graph.Port {
+	return node.temperatureInput
+}
+
+func (node *coolerNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
+func (node *coolerNode) MassRateOutput() graph.Port {
+	return node.massRateOutput
 }
 
 func (node *coolerNode) GetName() string {
@@ -39,29 +85,33 @@ func (node *coolerNode) GetName() string {
 }
 
 func (node *coolerNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput}
+	return []graph.Port{
+		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
+		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+	}
 }
 
 func (node *coolerNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.complexGasInput}
+	return []graph.Port{
+		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
+	}
 }
 
 func (node *coolerNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.complexGasOutput}
+	return []graph.Port{
+		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+	}
 }
 
 func (node *coolerNode) Process() error {
-	var state = node.complexGasInput.GetState().(states.ComplexGasPortState)
-	state.TStag = node.tOut
-	state.PStag *= node.sigma
-	node.complexGasOutput.SetState(state)
+	graph.SetAll(
+		[]graph.PortState{
+			node.gasInput.GetState(),
+			states.NewTemperaturePortState(node.tOut),
+			states.NewPressurePortState(node.pressureInput.GetState().(states.PressurePortState).PStag * node.sigma),
+			node.massRateInput.GetState(),
+		},
+		[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
+	)
 	return nil
-}
-
-func (node *coolerNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
-}
-
-func (node *coolerNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
 }

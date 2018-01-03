@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/common/gdf"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
@@ -27,8 +28,18 @@ func TestBlockedTurbineNode_Process(t *testing.T) {
 	var turbine = getTestBlockedTurbine()
 	assert.NotNil(t, turbine)
 
-	var gasState = states.NewComplexGasPortState(fuel.GetCH4().GetCombustionGas(alphaT), tBlockedT, pBlockedT, 1)
-	turbine.ComplexGasInput().SetState(gasState)
+	var gasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT))
+	var pressureState = states.NewPressurePortState(pBlockedT)
+	var temperatureState = states.NewTemperaturePortState(tBlockedT)
+	var massRateState = states.NewMassRateRelPortState(1)
+
+	var err = graph.SetAll(
+		[]graph.PortState{gasState, pressureState, temperatureState, massRateState},
+		[]graph.Port{turbine.GasInput(), turbine.PressureInput(), turbine.TemperatureInput(), turbine.MassRateInput()},
+	)
+	if err != nil {
+		panic(err)
+	}
 
 	var powerState = states.NewPowerPortState(-lBlockedT)
 	turbine.PowerInput().SetState(powerState)

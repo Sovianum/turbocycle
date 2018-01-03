@@ -14,11 +14,17 @@ import (
 
 type BurnerNode interface {
 	graph.Node
-	nodes.ComplexGasChannel
+
 	nodes.PressureIn
 	nodes.PressureOut
 	nodes.TemperatureIn
 	nodes.TemperatureOut
+
+	nodes.PressureChannel
+	nodes.TemperatureChannel
+	nodes.GasChannel
+	nodes.MassRateChannel
+
 	Alpha() float64
 	GetFuelRateRel() float64
 	Fuel() fuel.GasFuel
@@ -30,7 +36,7 @@ type BurnerNode interface {
 
 // while calculating labour function takes massRateRel into account
 func FuelMassRate(node BurnerNode) float64 {
-	var massRateRel = node.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	var massRateRel = node.GasInput().GetState().(states.MassRateRelPortState).MassRateRel
 	return node.GetFuelRateRel() * massRateRel
 }
 
@@ -48,8 +54,11 @@ func NewBurnerNode(
 		precision: precision,
 	}
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+	)
 
 	return result
 }
@@ -57,8 +66,15 @@ func NewBurnerNode(
 type burnerNode struct {
 	graph.BaseNode
 
-	complexGasInput  graph.Port
-	complexGasOutput graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	gasInput         graph.Port
+	massRateInput    graph.Port
+
+	temperatureOutput graph.Port
+	pressureOutput    graph.Port
+	gasOutput         graph.Port
+	massRateOutput    graph.Port
 
 	fuel      fuel.GasFuel
 	outletGas gases.Gas
@@ -72,20 +88,59 @@ type burnerNode struct {
 	alpha     float64
 }
 
+func (node *burnerNode) PressureOutput() graph.Port {
+	return node.pressureOutput
+}
+
+func (node *burnerNode) PressureInput() graph.Port {
+	return node.pressureInput
+}
+
+func (node *burnerNode) TemperatureOutput() graph.Port {
+	return node.temperatureOutput
+}
+
+func (node *burnerNode) TemperatureInput() graph.Port {
+	return node.temperatureInput
+}
+
+func (node *burnerNode) GasOutput() graph.Port {
+	return node.gasOutput
+}
+
+func (node *burnerNode) GasInput() graph.Port {
+	return node.gasInput
+}
+
+func (node *burnerNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
+func (node *burnerNode) MassRateOutput() graph.Port {
+	return node.massRateOutput
+}
+
 func (node *burnerNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Burner")
 }
 
 func (node *burnerNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *burnerNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.complexGasInput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+	}
 }
 
 func (node *burnerNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *burnerNode) Fuel() fuel.GasFuel {
@@ -106,14 +161,6 @@ func (node *burnerNode) T0() float64 {
 
 func (node *burnerNode) TFuel() float64 {
 	return node.tFuel
-}
-
-func (node *burnerNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
-}
-
-func (node *burnerNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
 }
 
 func (node *burnerNode) Alpha() float64 {
@@ -147,13 +194,18 @@ func (node *burnerNode) Process() error {
 	}
 	node.alpha = alpha
 
-	var gasState = node.complexGasInput.GetState().(states.ComplexGasPortState)
-	gasState.Gas = node.outletGas
-	gasState.TStag = node.tgStag
-	gasState.PStag = node.pStagIn() * node.sigma
-	gasState.MassRateRel *= 1 + fuelMassRateRel
+	var gasOut = node.outletGas
+	var tStagOut = node.tgStag
+	var pStagOut = node.pStagIn() * node.sigma
+	var massRateRelOut = node.massRateInput.GetState().(states.MassRateRelPortState).MassRateRel * (1 + fuelMassRateRel)
 
-	node.complexGasOutput.SetState(gasState)
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gasOut), states.NewTemperaturePortState(tStagOut),
+			states.NewPressurePortState(pStagOut), states.NewMassRateRelPortState(massRateRelOut),
+		},
+		[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
+	)
 
 	return nil
 }
@@ -192,21 +244,21 @@ func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 }
 
 func (node *burnerNode) inletGas() gases.Gas {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).Gas
+	return node.gasInput.GetState().(states.GasPortState).Gas
 }
 
 func (node *burnerNode) tStagIn() float64 {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureInput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *burnerNode) tStagOut() float64 {
-	return node.complexGasOutput.GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureOutput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *burnerNode) pStagIn() float64 {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).PStag
+	return node.pressureInput.GetState().(states.PressurePortState).PStag
 }
 
 func (node *burnerNode) pStagOut() float64 {
-	return node.complexGasOutput.GetState().(states.ComplexGasPortState).PStag
+	return node.pressureOutput.GetState().(states.PressurePortState).PStag
 }

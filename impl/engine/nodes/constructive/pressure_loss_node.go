@@ -20,7 +20,12 @@ const (
 
 type PressureLossNode interface {
 	graph.Node
-	nodes.ComplexGasChannel
+
+	nodes.GasChannel
+	nodes.TemperatureChannel
+	nodes.PressureChannel
+	nodes.MassRateChannel
+
 	nodes.PressureIn
 	nodes.PressureOut
 	nodes.TemperatureIn
@@ -36,8 +41,11 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 		contextDefined: false,
 	}
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+	)
 
 	return result
 }
@@ -45,8 +53,15 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 type pressureLossNode struct {
 	graph.BaseNode
 
-	complexGasInput  graph.Port
-	complexGasOutput graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	gasInput         graph.Port
+	massRateInput    graph.Port
+
+	pressureOutput    graph.Port
+	temperatureOutput graph.Port
+	gasOutput         graph.Port
+	massRateOutput    graph.Port
 
 	sigma          float64
 	mode           string
@@ -54,12 +69,47 @@ type pressureLossNode struct {
 	contextDefined bool
 }
 
+func (node *pressureLossNode) GasOutput() graph.Port {
+	return node.gasOutput
+}
+
+func (node *pressureLossNode) GasInput() graph.Port {
+	return node.gasInput
+}
+
+func (node *pressureLossNode) TemperatureOutput() graph.Port {
+	return node.temperatureOutput
+}
+
+func (node *pressureLossNode) TemperatureInput() graph.Port {
+	return node.temperatureInput
+}
+
+func (node *pressureLossNode) PressureOutput() graph.Port {
+	return node.pressureOutput
+}
+
+func (node *pressureLossNode) PressureInput() graph.Port {
+	return node.pressureInput
+}
+
+func (node *pressureLossNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
+func (node *pressureLossNode) MassRateOutput() graph.Port {
+	return node.massRateOutput
+}
+
 func (node *pressureLossNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "PressureLossNode")
 }
 
 func (node *pressureLossNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *pressureLossNode) GetRequirePorts() []graph.Port {
@@ -69,9 +119,13 @@ func (node *pressureLossNode) GetRequirePorts() []graph.Port {
 	}
 
 	if mode == pressureLossInflow {
-		return []graph.Port{node.complexGasInput}
+		return []graph.Port{
+			node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		}
 	}
-	return []graph.Port{node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *pressureLossNode) GetUpdatePorts() []graph.Port {
@@ -81,9 +135,13 @@ func (node *pressureLossNode) GetUpdatePorts() []graph.Port {
 	}
 
 	if mode == pressureLossOutflow {
-		return []graph.Port{node.complexGasInput}
+		return []graph.Port{
+			node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		}
 	}
-	return []graph.Port{node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *pressureLossNode) ContextDefined() bool {
@@ -92,8 +150,8 @@ func (node *pressureLossNode) ContextDefined() bool {
 	}
 	node.contextCalled = true
 
-	var node1 = node.complexGasInput.GetOuterNode()
-	var node2 = node.complexGasOutput.GetOuterNode()
+	var node1 = node.gasInput.GetOuterNode()
+	var node2 = node.gasOutput.GetOuterNode()
 
 	if node1 != nil {
 		var node1Defined = node1.ContextDefined()
@@ -123,32 +181,32 @@ func (node *pressureLossNode) Process() error {
 
 	switch mode {
 	case pressureLossInflow:
-		var inputState = node.complexGasInput.GetState()
-		if inputState == nil {
-			return errors.New("input state is nil")
-		}
+		graph.SetAll(
+			[]graph.PortState{
+				node.gasInput.GetState(),
+				node.temperatureInput.GetState(),
+				states.NewPressurePortState(node.pStagIn() * node.sigma),
+				node.massRateInput.GetState(),
+			},
+			[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
+		)
 
-		var gasState = inputState.(states.ComplexGasPortState)
-		gasState.PStag *= node.sigma
-		node.complexGasOutput.SetState(gasState)
 		return nil
 	case pressureLossOutflow:
-		var outputState = node.complexGasOutput.GetState()
-		if outputState == nil {
-			return errors.New("output state is nil")
-		}
+		graph.SetAll(
+			[]graph.PortState{
+				node.gasOutput.GetState(),
+				node.temperatureOutput.GetState(),
+				states.NewPressurePortState(node.pStagOut() / node.sigma),
+				node.massRateOutput.GetState(),
+			},
+			[]graph.Port{node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput},
+		)
 
-		var gasState = outputState.(states.ComplexGasPortState)
-		gasState.PStag /= node.sigma
-		node.complexGasInput.SetState(gasState)
 		return nil
 	default:
 		return errors.New(pressureNodeNotContextDefined)
 	}
-}
-
-func (node *pressureLossNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
 }
 
 func (node *pressureLossNode) TStagOut() float64 {
@@ -157,10 +215,6 @@ func (node *pressureLossNode) TStagOut() float64 {
 
 func (node *pressureLossNode) PStagOut() float64 {
 	return node.pStagOut()
-}
-
-func (node *pressureLossNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
 }
 
 func (node *pressureLossNode) TStagIn() float64 {
@@ -176,19 +230,19 @@ func (node *pressureLossNode) Sigma() float64 {
 }
 
 func (node *pressureLossNode) tStagOut() float64 {
-	return node.complexGasOutput.GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureOutput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *pressureLossNode) pStagOut() float64 {
-	return node.complexGasOutput.GetState().(states.ComplexGasPortState).PStag
+	return node.pressureOutput.GetState().(states.PressurePortState).PStag
 }
 
 func (node *pressureLossNode) tStagIn() float64 {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureInput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *pressureLossNode) pStagIn() float64 {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).PStag
+	return node.pressureInput.GetState().(states.PressurePortState).PStag
 }
 
 func (node *pressureLossNode) getMode() (string, error) {
@@ -196,11 +250,11 @@ func (node *pressureLossNode) getMode() (string, error) {
 		return node.mode, nil
 	}
 
-	var inputIsSource, inputErr = nodes.IsDataSource(node.complexGasInput)
+	var inputIsSource, inputErr = nodes.IsDataSource(node.gasInput)
 	if inputErr != nil {
 		return "", inputErr
 	}
-	var outputIsSource, outputErr = nodes.IsDataSource(node.complexGasOutput)
+	var outputIsSource, outputErr = nodes.IsDataSource(node.gasOutput)
 	if outputErr != nil {
 		return "", outputErr
 	}

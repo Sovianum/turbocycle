@@ -19,16 +19,43 @@ func TestPressureLossNode_Process_Inflow(t *testing.T) {
 	var pressureLossNode = getTestPressureLossNode()
 	var compressorNode = getTestCompressor()
 
-	graph.Link(compressorNode.ComplexGasOutput(), pressureLossNode.ComplexGasInput())
-	graph.Link(compressorNode.ComplexGasInput(), pressureLossNode.ComplexGasOutput())
+	graph.LinkAll(
+		[]graph.Port{
+			compressorNode.GasOutput(), compressorNode.TemperatureOutput(),
+			compressorNode.PressureOutput(), compressorNode.MassRateOutput(),
+		},
+		[]graph.Port{
+			pressureLossNode.GasInput(), pressureLossNode.TemperatureInput(),
+			pressureLossNode.PressureInput(), pressureLossNode.MassRateInput(),
+		},
+	)
 
-	var inputState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
-	pressureLossNode.ComplexGasInput().SetState(inputState)
+	graph.LinkAll(
+		[]graph.Port{
+			pressureLossNode.GasOutput(), pressureLossNode.TemperatureOutput(),
+			pressureLossNode.PressureOutput(), pressureLossNode.MassRateOutput(),
+		},
+		[]graph.Port{
+			compressorNode.GasInput(), compressorNode.TemperatureInput(),
+			compressorNode.PressureInput(), compressorNode.MassRateInput(),
+		},
+	)
+
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(tA),
+			states.NewPressurePortState(pA), states.NewMassRateRelPortState(1),
+		},
+		[]graph.Port{
+			pressureLossNode.GasInput(), pressureLossNode.TemperatureInput(),
+			pressureLossNode.PressureInput(), pressureLossNode.MassRateInput(),
+		},
+	)
 
 	var err = pressureLossNode.Process()
 	assert.Nil(t, err)
 
-	var pOut = pressureLossNode.ComplexGasOutput().GetState().(states.ComplexGasPortState).PStag
+	var pOut = pressureLossNode.PressureOutput().GetState().(states.PressurePortState).PStag
 	assert.True(
 		t,
 		common.ApproxEqual(pA*pressureLossSigma, pOut, 0.001),
@@ -40,16 +67,43 @@ func TestPressureLossNode_Process_Outflow(t *testing.T) {
 	var pressureLossNode = getTestPressureLossNode()
 	var compressorNode = getTestCompressor()
 
-	graph.Link(compressorNode.ComplexGasOutput(), pressureLossNode.ComplexGasOutput())
-	graph.Link(compressorNode.ComplexGasInput(), pressureLossNode.ComplexGasInput())
+	graph.LinkAll(
+		[]graph.Port{
+			compressorNode.GasOutput(), compressorNode.TemperatureOutput(),
+			compressorNode.PressureOutput(), compressorNode.MassRateOutput(),
+		},
+		[]graph.Port{
+			pressureLossNode.GasOutput(), pressureLossNode.TemperatureOutput(),
+			pressureLossNode.PressureOutput(), pressureLossNode.MassRateOutput(),
+		},
+	)
 
-	var inputState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
-	pressureLossNode.ComplexGasOutput().SetState(inputState)
+	graph.LinkAll(
+		[]graph.Port{
+			pressureLossNode.GasInput(), pressureLossNode.TemperatureInput(),
+			pressureLossNode.PressureInput(), pressureLossNode.MassRateInput(),
+		},
+		[]graph.Port{
+			compressorNode.GasInput(), compressorNode.TemperatureInput(),
+			compressorNode.PressureInput(), compressorNode.MassRateInput(),
+		},
+	)
+
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(tA),
+			states.NewPressurePortState(pA), states.NewMassRateRelPortState(1),
+		},
+		[]graph.Port{
+			pressureLossNode.GasOutput(), pressureLossNode.TemperatureOutput(),
+			pressureLossNode.PressureOutput(), pressureLossNode.MassRateOutput(),
+		},
+	)
 
 	var err = pressureLossNode.Process()
 	assert.Nil(t, err)
 
-	var pIn = pressureLossNode.ComplexGasInput().GetState().(states.ComplexGasPortState).PStag
+	var pIn = pressureLossNode.PressureInput().GetState().(states.PressurePortState).PStag
 	assert.True(
 		t,
 		common.ApproxEqual(pA/pressureLossSigma, pIn, 0.001),
@@ -63,9 +117,36 @@ func TestPressureLossNode_ContextDefined_True(t *testing.T) {
 	var pln2 = getTestPressureLossNode()
 	var pln3 = getTestPressureLossNode()
 
-	graph.Link(compressorNode.ComplexGasOutput(), pln1.ComplexGasInput())
-	graph.Link(pln1.ComplexGasOutput(), pln2.ComplexGasInput())
-	graph.Link(pln2.ComplexGasOutput(), pln3.ComplexGasInput())
+	graph.LinkAll(
+		[]graph.Port{
+			compressorNode.GasOutput(), compressorNode.TemperatureOutput(),
+			compressorNode.PressureOutput(), compressorNode.MassRateOutput(),
+		},
+		[]graph.Port{
+			pln1.GasInput(), pln1.TemperatureInput(),
+			pln1.PressureInput(), pln1.MassRateInput(),
+		},
+	)
+	graph.LinkAll(
+		[]graph.Port{
+			pln1.GasOutput(), pln1.TemperatureOutput(),
+			pln1.PressureOutput(), pln1.MassRateOutput(),
+		},
+		[]graph.Port{
+			pln2.GasInput(), pln2.TemperatureInput(),
+			pln2.PressureInput(), pln2.MassRateInput(),
+		},
+	)
+	graph.LinkAll(
+		[]graph.Port{
+			pln2.GasOutput(), pln2.TemperatureOutput(),
+			pln2.PressureOutput(), pln2.MassRateOutput(),
+		},
+		[]graph.Port{
+			pln3.GasInput(), pln3.TemperatureInput(),
+			pln3.PressureInput(), pln3.MassRateInput(),
+		},
+	)
 
 	assert.True(t, pln1.ContextDefined())
 	assert.True(t, pln2.ContextDefined())
@@ -77,8 +158,26 @@ func TestPressureLossNode_ContextDefined_False(t *testing.T) {
 	var pln2 = getTestPressureLossNode()
 	var pln3 = getTestPressureLossNode()
 
-	graph.Link(pln1.ComplexGasOutput(), pln2.ComplexGasInput())
-	graph.Link(pln2.ComplexGasOutput(), pln3.ComplexGasInput())
+	graph.LinkAll(
+		[]graph.Port{
+			pln1.GasOutput(), pln1.TemperatureOutput(),
+			pln1.PressureOutput(), pln1.MassRateOutput(),
+		},
+		[]graph.Port{
+			pln2.GasInput(), pln2.TemperatureInput(),
+			pln2.PressureInput(), pln2.MassRateInput(),
+		},
+	)
+	graph.LinkAll(
+		[]graph.Port{
+			pln2.GasOutput(), pln2.TemperatureOutput(),
+			pln2.PressureOutput(), pln2.MassRateOutput(),
+		},
+		[]graph.Port{
+			pln3.GasInput(), pln3.TemperatureInput(),
+			pln3.PressureInput(), pln3.MassRateInput(),
+		},
+	)
 
 	assert.False(t, pln1.ContextDefined())
 	assert.False(t, pln2.ContextDefined())

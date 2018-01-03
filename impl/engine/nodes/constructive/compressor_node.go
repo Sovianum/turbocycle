@@ -14,7 +14,12 @@ import (
 
 type CompressorNode interface {
 	graph.Node
-	nodes.ComplexGasChannel
+
+	nodes.GasChannel
+	nodes.PressureChannel
+	nodes.TemperatureChannel
+	nodes.MassRateChannel
+
 	nodes.PowerSource
 	nodes.PressureIn
 	nodes.PressureOut
@@ -34,9 +39,12 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 		piStag:    piStag,
 	}
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
-	result.powerOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.powerOutput,
+		&result.gasInput, &result.temperatureInput, &result.pressureInput, &result.massRateInput,
+		&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+	)
 
 	return result
 }
@@ -45,13 +53,59 @@ func NewCompressorNode(etaAd, piStag, precision float64) CompressorNode {
 type compressorNode struct {
 	graph.BaseNode
 
-	complexGasInput  graph.Port
-	complexGasOutput graph.Port
-	powerOutput      graph.Port
+	gasInput         graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	massRateInput    graph.Port
+
+	gasOutput         graph.Port
+	temperatureOutput graph.Port
+	pressureOutput    graph.Port
+	massRateOutput    graph.Port
+
+	powerOutput graph.Port
 
 	etaPol    float64 // politropic efficiency
 	precision float64
 	piStag    float64
+}
+
+// while calculating labour function takes massRateRel into account
+func CompressorLabour(node CompressorNode) float64 {
+	var massRateRel = node.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	return node.LSpecific() * massRateRel
+}
+
+func (node *compressorNode) GasOutput() graph.Port {
+	return node.gasOutput
+}
+
+func (node *compressorNode) GasInput() graph.Port {
+	return node.gasInput
+}
+
+func (node *compressorNode) PressureOutput() graph.Port {
+	return node.pressureOutput
+}
+
+func (node *compressorNode) PressureInput() graph.Port {
+	return node.pressureInput
+}
+
+func (node *compressorNode) TemperatureOutput() graph.Port {
+	return node.temperatureOutput
+}
+
+func (node *compressorNode) TemperatureInput() graph.Port {
+	return node.temperatureInput
+}
+
+func (node *compressorNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
+func (node *compressorNode) MassRateOutput() graph.Port {
+	return node.massRateOutput
 }
 
 func (node *compressorNode) GetName() string {
@@ -59,26 +113,29 @@ func (node *compressorNode) GetName() string {
 }
 
 func (node *compressorNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput, node.powerOutput}
+	return []graph.Port{
+		node.powerOutput,
+		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
+		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+	}
 }
 
 func (node *compressorNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.complexGasInput}
+	return []graph.Port{
+		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
+	}
 }
 
 func (node *compressorNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.complexGasOutput, node.powerOutput}
-}
-
-// while calculating labour function takes massRateRel into account
-func CompressorLabour(node CompressorNode) float64 {
-	var massRateRel = node.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
-	return node.LSpecific() * massRateRel
+	return []graph.Port{
+		node.powerOutput,
+		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+	}
 }
 
 func (node *compressorNode) Process() error {
 	if node.piStag <= 1 {
-		return fmt.Errorf("Invalid piStag = %f", node.piStag)
+		return fmt.Errorf("invalid piStag = %f", node.piStag)
 	}
 
 	var pStagOut = node.pStagIn() * node.piStag
@@ -87,24 +144,20 @@ func (node *compressorNode) Process() error {
 		return err
 	}
 
-	var gasState = node.ComplexGasInput().GetState().(states.ComplexGasPortState)
-	gasState.TStag = tStagOut
-	gasState.PStag = pStagOut
-
-	node.complexGasOutput.SetState(gasState)
+	graph.SetAll(
+		[]graph.PortState{
+			node.gasInput.GetState(),
+			states.NewTemperaturePortState(tStagOut),
+			states.NewPressurePortState(pStagOut),
+			node.massRateInput.GetState(),
+		},
+		[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
+	)
 
 	node.powerOutput.SetState(states.NewPowerPortState(-node.lSpecific()))
 	// TODO add and set collector port
 
 	return nil
-}
-
-func (node *compressorNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
-}
-
-func (node *compressorNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
 }
 
 func (node *compressorNode) PowerOutput() graph.Port {
@@ -192,21 +245,21 @@ func (node *compressorNode) xFunc(piCStag, tStagIn, tStagOut float64) float64 {
 }
 
 func (node *compressorNode) tStagIn() float64 {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureInput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *compressorNode) tStagOut() float64 {
-	return node.complexGasOutput.GetState().(states.ComplexGasPortState).TStag
+	return node.temperatureOutput.GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *compressorNode) pStagIn() float64 {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).PStag
+	return node.pressureInput.GetState().(states.PressurePortState).PStag
 }
 
 func (node *compressorNode) pStagOut() float64 {
-	return node.complexGasOutput.GetState().(states.ComplexGasPortState).PStag
+	return node.pressureOutput.GetState().(states.PressurePortState).PStag
 }
 
 func (node *compressorNode) gas() gases.Gas {
-	return node.complexGasInput.GetState().(states.ComplexGasPortState).Gas
+	return node.gasInput.GetState().(states.GasPortState).Gas
 }

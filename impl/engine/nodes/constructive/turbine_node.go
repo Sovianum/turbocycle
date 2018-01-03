@@ -11,12 +11,17 @@ import (
 
 type TurbineNode interface {
 	graph.Node
-	nodes.ComplexGasSink
 	nodes.PowerSource
 	nodes.PressureIn
 	nodes.PressureOut
 	nodes.TemperatureIn
 	nodes.TemperatureOut
+
+	nodes.GasChannel
+	nodes.PressureChannel
+	nodes.TemperatureChannel
+	nodes.MassRateChannel
+
 	PiTStag() float64
 	InputGas() gases.Gas
 	LambdaOut() float64

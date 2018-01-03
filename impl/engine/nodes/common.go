@@ -6,19 +6,6 @@ const (
 	DefaultN = 50
 )
 
-type ComplexGasChannel interface {
-	ComplexGasSink
-	ComplexGasSource
-}
-
-type ComplexGasSource interface {
-	ComplexGasOutput() graph.Port
-}
-
-type ComplexGasSink interface {
-	ComplexGasInput() graph.Port
-}
-
 type PowerChannel interface {
 	PowerSink
 	PowerSource
@@ -30,6 +17,11 @@ type PowerSource interface {
 
 type PowerSink interface {
 	PowerInput() graph.Port
+}
+
+type MassRateChannel interface {
+	MassRateInput() graph.Port
+	MassRateOutput() graph.Port
 }
 
 type MassRateRelChannel interface {

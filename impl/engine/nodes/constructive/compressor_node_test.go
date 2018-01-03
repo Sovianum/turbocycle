@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -47,7 +48,17 @@ func TestCompressorNode_Process(t *testing.T) {
 
 func getTestCompressor() CompressorNode {
 	var compressor = NewCompressorNode(etaC, piC, 0.05)
-	var gasState = states.NewComplexGasPortState(gases.GetAir(), tA, pA, 1)
-	compressor.ComplexGasInput().SetState(gasState)
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gases.GetAir()),
+			states.NewTemperaturePortState(tA),
+			states.NewPressurePortState(pA),
+			states.NewMassRateRelPortState(1),
+		},
+		[]graph.Port{
+			compressor.GasInput(), compressor.TemperatureInput(),
+			compressor.PressureInput(), compressor.MassRateInput(),
+		},
+	)
 	return compressor
 }
