@@ -6,6 +6,7 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
@@ -18,25 +19,11 @@ const (
 type RegeneratorNode interface {
 	graph.Node
 
-	HotGasInput() graph.Port
-	HotTemperatureInput() graph.Port
-	HotPressureInput() graph.Port
-	HotMassRateInput() graph.Port
+	HotInput() nodes.ComplexGasSink
+	HotOutput() nodes.ComplexGasSource
 
-	ColdGasInput() graph.Port
-	ColdTemperatureInput() graph.Port
-	ColdPressureInput() graph.Port
-	ColdMassRateInput() graph.Port
-
-	HotGasOutput() graph.Port
-	HotTemperatureOutput() graph.Port
-	HotPressureOutput() graph.Port
-	HotMassRateOutput() graph.Port
-
-	ColdGasOutput() graph.Port
-	ColdTemperatureOutput() graph.Port
-	ColdPressureOutput() graph.Port
-	ColdMassRateOutput() graph.Port
+	ColdInput() nodes.ComplexGasSink
+	ColdOutput() nodes.ComplexGasSource
 
 	Sigma() float64
 }
@@ -92,68 +79,28 @@ type regeneratorNode struct {
 	mode      string
 }
 
-func (node *regeneratorNode) HotGasInput() graph.Port {
-	return node.hotGasInput
+func (node *regeneratorNode) HotInput() nodes.ComplexGasSink {
+	return helper.NewPseudoComplexGasSink(
+		node.hotGasInput, node.hotTemperatureInput, node.hotPressureInput, node.hotMassRateInput,
+	)
 }
 
-func (node *regeneratorNode) HotTemperatureInput() graph.Port {
-	return node.hotTemperatureInput
+func (node *regeneratorNode) HotOutput() nodes.ComplexGasSource {
+	return helper.NewPseudoComplexGasSource(
+		node.hotGasOutput, node.hotTemperatureOutput, node.hotPressureOutput, node.hotMassRateOutput,
+	)
 }
 
-func (node *regeneratorNode) HotPressureInput() graph.Port {
-	return node.hotPressureInput
+func (node *regeneratorNode) ColdInput() nodes.ComplexGasSink {
+	return helper.NewPseudoComplexGasSink(
+		node.coldGasInput, node.coldTemperatureInput, node.coldPressureInput, node.coldMassRateInput,
+	)
 }
 
-func (node *regeneratorNode) HotMassRateInput() graph.Port {
-	return node.hotMassRateInput
-}
-
-func (node *regeneratorNode) ColdGasInput() graph.Port {
-	return node.coldGasInput
-}
-
-func (node *regeneratorNode) ColdTemperatureInput() graph.Port {
-	return node.coldTemperatureInput
-}
-
-func (node *regeneratorNode) ColdPressureInput() graph.Port {
-	return node.coldPressureInput
-}
-
-func (node *regeneratorNode) ColdMassRateInput() graph.Port {
-	return node.coldMassRateInput
-}
-
-func (node *regeneratorNode) HotGasOutput() graph.Port {
-	return node.hotGasOutput
-}
-
-func (node *regeneratorNode) HotTemperatureOutput() graph.Port {
-	return node.hotTemperatureOutput
-}
-
-func (node *regeneratorNode) HotPressureOutput() graph.Port {
-	return node.hotPressureOutput
-}
-
-func (node *regeneratorNode) HotMassRateOutput() graph.Port {
-	return node.hotMassRateOutput
-}
-
-func (node *regeneratorNode) ColdGasOutput() graph.Port {
-	return node.coldGasOutput
-}
-
-func (node *regeneratorNode) ColdTemperatureOutput() graph.Port {
-	return node.coldTemperatureOutput
-}
-
-func (node *regeneratorNode) ColdPressureOutput() graph.Port {
-	return node.coldPressureOutput
-}
-
-func (node *regeneratorNode) ColdMassRateOutput() graph.Port {
-	return node.coldMassRateOutput
+func (node *regeneratorNode) ColdOutput() nodes.ComplexGasSource {
+	return helper.NewPseudoComplexGasSource(
+		node.coldGasOutput, node.coldTemperatureOutput, node.coldPressureOutput, node.coldMassRateOutput,
+	)
 }
 
 func (node *regeneratorNode) GetName() string {

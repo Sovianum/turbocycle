@@ -5,7 +5,6 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 )
@@ -25,24 +24,22 @@ func NewFreeTurbineBlock(
 	pressureLossSigma float64,
 ) FreeTurbineBlockNode {
 	var result = &freeTurbineBlockNode{
-		atmNode: source.NewComplexGasSourceNode(nil, 0, pAtm), // first two arguments are not used cos they will be sent to sinks
+		// all values except pressure are sinked later
+		atmNode: source.NewComplexGasSourceNode(nil, 0, pAtm, 1),
 		turbine: constructive.NewFreeTurbineNode(
 			etaT, lambdaOut, precision,
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 		),
 		pressureLoss: constructive.NewPressureLossNode(pressureLossSigma),
-		assembler:    helper.NewGasStateAssemblerNode(),
-		disassembler: helper.NewGasStateDisassemblerNode(),
-		tSink:        sink.NewTemperatureSinkNode(),
-		gSink:        sink.NewGasSinkNode(),
-		mSink:        sink.NewMassRateRelSinkNode(),
-		hub:          helper.NewHubNode(),
 	}
 	result.linkPorts()
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
-	result.powerOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.powerOutput,
+		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+	)
 
 	return result
 }
@@ -50,19 +47,56 @@ func NewFreeTurbineBlock(
 type freeTurbineBlockNode struct {
 	graph.BaseNode
 
-	complexGasInput  graph.Port
-	complexGasOutput graph.Port
-	powerOutput      graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	gasInput         graph.Port
+	massRateInput    graph.Port
+
+	temperatureOutput graph.Port
+	pressureOutput    graph.Port
+	gasOutput         graph.Port
+	massRateOutput    graph.Port
+
+	powerOutput graph.Port
 
 	atmNode      source.ComplexGasSourceNode
 	turbine      constructive.FreeTurbineNode
 	pressureLoss constructive.PressureLossNode
-	assembler    helper.GasStateAssemblerNode
-	disassembler helper.GasStateAssemblerNode
-	tSink        nodes.TemperatureSink
-	gSink        nodes.GasSink
-	mSink        nodes.MassRateRelSink
-	hub          helper.HubNode
+	tSink        sink.SinkNode
+	gSink        sink.SinkNode
+	mSink        sink.SinkNode
+}
+
+func (node *freeTurbineBlockNode) GasInput() graph.Port {
+	return node.gasInput
+}
+
+func (node *freeTurbineBlockNode) TemperatureInput() graph.Port {
+	return node.temperatureInput
+}
+
+func (node *freeTurbineBlockNode) PressureInput() graph.Port {
+	return node.pressureInput
+}
+
+func (node *freeTurbineBlockNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
+func (node *freeTurbineBlockNode) GasOutput() graph.Port {
+	return node.gasInput
+}
+
+func (node *freeTurbineBlockNode) TemperatureOutput() graph.Port {
+	return node.temperatureOutput
+}
+
+func (node *freeTurbineBlockNode) PressureOutput() graph.Port {
+	return node.pressureOutput
+}
+
+func (node *freeTurbineBlockNode) MassRateOutput() graph.Port {
+	return node.massRateOutput
 }
 
 func (node *freeTurbineBlockNode) GetName() string {
@@ -70,15 +104,24 @@ func (node *freeTurbineBlockNode) GetName() string {
 }
 
 func (node *freeTurbineBlockNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput, node.powerOutput}
+	return []graph.Port{
+		node.powerOutput,
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *freeTurbineBlockNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.complexGasInput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+	}
 }
 
 func (node *freeTurbineBlockNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.complexGasOutput, node.powerOutput}
+	return []graph.Port{
+		node.powerOutput,
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *freeTurbineBlockNode) FreeTurbine() constructive.FreeTurbineNode {
@@ -97,28 +140,11 @@ func (node *freeTurbineBlockNode) Process() error {
 	if err := node.pressureLoss.Process(); err != nil {
 		return err
 	}
-	if err := node.disassembler.Process(); err != nil {
-		return err
-	}
-	if err := node.hub.Process(); err != nil {
-		return err
-	}
 	if err := node.turbine.Process(); err != nil {
-		return err
-	}
-	if err := node.assembler.Process(); err != nil {
 		return err
 	}
 	node.writeOutput()
 	return nil
-}
-
-func (node *freeTurbineBlockNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
-}
-
-func (node *freeTurbineBlockNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
 }
 
 func (node *freeTurbineBlockNode) PowerOutput() graph.Port {
@@ -126,27 +152,38 @@ func (node *freeTurbineBlockNode) PowerOutput() graph.Port {
 }
 
 func (node *freeTurbineBlockNode) linkPorts() {
-	graph.Link(node.atmNode.ComplexGasOutput(), node.pressureLoss.ComplexGasOutput())
-	graph.Link(node.pressureLoss.ComplexGasInput(), node.disassembler.ComplexGasPort())
+	nodes.LinkComplexOutToOut(node.atmNode, node.pressureLoss)
 
-	graph.Link(node.disassembler.TemperaturePort(), node.tSink.TemperatureInput())
-	graph.Link(node.disassembler.MassRateRelPort(), node.mSink.MassRateRelInput())
-	graph.Link(node.disassembler.GasPort(), node.gSink.GasInput())
-	graph.Link(node.disassembler.PressurePort(), node.hub.Inlet())
+	node.tSink = sink.SinkPort(node.pressureLoss.TemperatureInput())
+	node.mSink = sink.SinkPort(node.pressureLoss.MassRateInput())
+	node.gSink = sink.SinkPort(node.pressureLoss.GasInput())
 
-	graph.Link(node.hub.Outlet1(), node.turbine.PressureOutput())
-	graph.Link(node.hub.Outlet2(), node.assembler.PressurePort())
-
-	graph.Link(node.turbine.TemperatureOutput(), node.assembler.TemperaturePort())
-	graph.Link(node.turbine.GasOutput(), node.assembler.GasPort())
-	graph.Link(node.turbine.MassRateRelOutput(), node.assembler.MassRateRelPort())
+	graph.Link(node.pressureLoss.PressureInput(), node.turbine.PressureOutput())
 }
 
 func (node *freeTurbineBlockNode) readInput() {
-	node.turbine.ComplexGasInput().SetState(node.complexGasInput.GetState())
+	graph.SetAll(
+		[]graph.PortState{
+			node.gasInput.GetState(), node.temperatureInput.GetState(),
+			node.pressureInput.GetState(), node.massRateInput.GetState(),
+		},
+		[]graph.Port{
+			node.turbine.GasInput(), node.turbine.TemperatureInput(),
+			node.turbine.PressureInput(), node.turbine.MassRateInput(),
+		},
+	)
 }
 
 func (node *freeTurbineBlockNode) writeOutput() {
-	node.complexGasOutput.SetState(node.assembler.ComplexGasPort().GetState())
+	graph.SetAll(
+		[]graph.PortState{
+			node.turbine.GasOutput().GetState(), node.turbine.TemperatureOutput().GetState(),
+			node.turbine.PressureOutput().GetState(), node.massRateOutput.GetState(),
+		},
+		[]graph.Port{
+			node.gasOutput, node.temperatureOutput,
+			node.pressureOutput, node.massRateOutput,
+		},
+	)
 	node.powerOutput.SetState(node.turbine.PowerOutput().GetState())
 }

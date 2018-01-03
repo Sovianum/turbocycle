@@ -5,15 +5,15 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 )
 
 type TurboCascadeNode interface {
 	graph.Node
-	CompressorComplexGasInput() graph.Port
-	CompressorComplexGasOutput() graph.Port
-	TurbineComplexGasInput() graph.Port
-	TurbineComplexGasOutput() graph.Port
+	CompressorComplexGasInput() nodes.ComplexGasSink
+	CompressorComplexGasOutput() nodes.ComplexGasSource
+	TurbineComplexGasInput() nodes.ComplexGasSink
+	TurbineComplexGasOutput() nodes.ComplexGasSource
 	Compressor() constructive.CompressorNode
 	Turbine() constructive.TurbineNode
 	Transmission() constructive.TransmissionNode
@@ -35,15 +35,24 @@ func NewTurboCascadeNode(
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 		),
 		transmission: constructive.NewTransmissionNode(etaM),
-		powerSink:    sink.NewPowerSinkNode(),
 	}
 
 	result.linkPorts()
 
-	result.compressorComplexGasInput = graph.NewAttachedPort(result)
-	result.compressorComplexGasOutput = graph.NewAttachedPort(result)
-	result.turbineComplexGasInput = graph.NewAttachedPort(result)
-	result.turbineComplexGasOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.compressorGasInput, &result.compressorTemperatureInput,
+		&result.compressorPressureInput, &result.compressorMassRateInput,
+
+		&result.compressorGasOutput, &result.compressorTemperatureOutput,
+		&result.compressorPressureOutput, &result.compressorMassRateOutput,
+
+		&result.turbineGasInput, &result.turbineTemperatureInput,
+		&result.turbinePressureInput, &result.turbineMassRateInput,
+
+		&result.turbineGasOutput, &result.turbineTemperatureOutput,
+		&result.turbinePressureOutput, &result.turbineMassRateOutput,
+	)
 
 	return result
 }
@@ -51,15 +60,29 @@ func NewTurboCascadeNode(
 type turboCascadeNode struct {
 	graph.BaseNode
 
-	compressorComplexGasInput  graph.Port
-	compressorComplexGasOutput graph.Port
-	turbineComplexGasInput     graph.Port
-	turbineComplexGasOutput    graph.Port
+	compressorGasInput         graph.Port
+	compressorTemperatureInput graph.Port
+	compressorPressureInput    graph.Port
+	compressorMassRateInput    graph.Port
+
+	compressorGasOutput         graph.Port
+	compressorTemperatureOutput graph.Port
+	compressorPressureOutput    graph.Port
+	compressorMassRateOutput    graph.Port
+
+	turbineGasInput         graph.Port
+	turbineTemperatureInput graph.Port
+	turbinePressureInput    graph.Port
+	turbineMassRateInput    graph.Port
+
+	turbineGasOutput         graph.Port
+	turbineTemperatureOutput graph.Port
+	turbinePressureOutput    graph.Port
+	turbineMassRateOutput    graph.Port
 
 	compressor   constructive.CompressorNode
 	turbine      constructive.BlockedTurbineNode
 	transmission constructive.TransmissionNode
-	powerSink    nodes.PowerSink
 }
 
 func (node *turboCascadeNode) GetName() string {
@@ -68,24 +91,53 @@ func (node *turboCascadeNode) GetName() string {
 
 func (node *turboCascadeNode) GetPorts() []graph.Port {
 	return []graph.Port{
-		node.compressorComplexGasInput,
-		node.compressorComplexGasOutput,
-		node.turbineComplexGasInput,
-		node.turbineComplexGasOutput,
+		node.compressorGasInput,
+		node.compressorTemperatureInput,
+		node.compressorPressureInput,
+		node.compressorMassRateInput,
+
+		node.compressorGasOutput,
+		node.compressorTemperatureOutput,
+		node.compressorPressureOutput,
+		node.compressorMassRateOutput,
+
+		node.turbineGasInput,
+		node.turbineTemperatureInput,
+		node.turbinePressureInput,
+		node.turbineMassRateInput,
+
+		node.turbineGasOutput,
+		node.turbineTemperatureOutput,
+		node.turbinePressureOutput,
+		node.turbineMassRateOutput,
 	}
 }
 
 func (node *turboCascadeNode) GetRequirePorts() []graph.Port {
 	return []graph.Port{
-		node.compressorComplexGasInput,
-		node.turbineComplexGasInput,
+		node.compressorGasInput,
+		node.compressorTemperatureInput,
+		node.compressorPressureInput,
+		node.compressorMassRateInput,
+
+		node.turbineGasInput,
+		node.turbineTemperatureInput,
+		node.turbinePressureInput,
+		node.turbineMassRateInput,
 	}
 }
 
 func (node *turboCascadeNode) GetUpdatePorts() []graph.Port {
 	return []graph.Port{
-		node.compressorComplexGasOutput,
-		node.turbineComplexGasOutput,
+		node.compressorGasOutput,
+		node.compressorTemperatureOutput,
+		node.compressorPressureOutput,
+		node.compressorMassRateOutput,
+
+		node.turbineGasOutput,
+		node.turbineTemperatureOutput,
+		node.turbinePressureOutput,
+		node.turbineMassRateOutput,
 	}
 }
 
@@ -138,34 +190,72 @@ func (node *turboCascadeNode) Process() error {
 	return nil
 }
 
-func (node *turboCascadeNode) TurbineComplexGasOutput() graph.Port {
-	return node.turbineComplexGasOutput
+func (node *turboCascadeNode) TurbineComplexGasOutput() nodes.ComplexGasSource {
+	return helper.NewPseudoComplexGasSource(
+		node.turbineGasOutput, node.turbineTemperatureOutput,
+		node.turbinePressureOutput, node.turbineMassRateOutput,
+	)
 }
 
-func (node *turboCascadeNode) TurbineComplexGasInput() graph.Port {
-	return node.turbineComplexGasInput
+func (node *turboCascadeNode) TurbineComplexGasInput() nodes.ComplexGasSink {
+	return helper.NewPseudoComplexGasSink(
+		node.turbineGasInput, node.turbineTemperatureInput,
+		node.turbinePressureInput, node.turbineMassRateInput,
+	)
 }
 
-func (node *turboCascadeNode) CompressorComplexGasOutput() graph.Port {
-	return node.compressorComplexGasOutput
+func (node *turboCascadeNode) CompressorComplexGasOutput() nodes.ComplexGasSource {
+	return helper.NewPseudoComplexGasSource(
+		node.compressorGasOutput, node.compressorTemperatureOutput,
+		node.compressorPressureOutput, node.compressorMassRateOutput,
+	)
 }
 
-func (node *turboCascadeNode) CompressorComplexGasInput() graph.Port {
-	return node.compressorComplexGasInput
+func (node *turboCascadeNode) CompressorComplexGasInput() nodes.ComplexGasSink {
+	return helper.NewPseudoComplexGasSink(
+		node.compressorGasInput, node.compressorTemperatureInput,
+		node.compressorPressureInput, node.compressorMassRateInput,
+	)
 }
 
 func (node *turboCascadeNode) linkPorts() {
 	graph.Link(node.compressor.PowerOutput(), node.transmission.PowerInput())
 	graph.Link(node.transmission.PowerOutput(), node.turbine.PowerInput())
-	graph.Link(node.turbine.PowerOutput(), node.powerSink.PowerInput())
 }
 
 func (node *turboCascadeNode) readInput() {
-	node.compressor.ComplexGasInput().SetState(node.compressorComplexGasInput.GetState())
-	node.turbine.ComplexGasInput().SetState(node.turbineComplexGasInput.GetState())
+	graph.SetAll(
+		[]graph.PortState{
+			node.compressorGasInput.GetState(), node.compressorTemperatureInput.GetState(),
+			node.compressorPressureInput.GetState(), node.compressorMassRateInput.GetState(),
+		},
+		[]graph.Port{
+			node.compressor.GasInput(), node.compressor.TemperatureInput(),
+			node.compressor.PressureInput(), node.compressor.MassRateInput(),
+		},
+	)
 }
 
 func (node *turboCascadeNode) writeOutput() {
-	node.compressorComplexGasOutput.SetState(node.compressor.ComplexGasOutput().GetState())
-	node.turbineComplexGasOutput.SetState(node.turbine.ComplexGasOutput().GetState())
+	graph.SetAll(
+		[]graph.PortState{
+			node.compressor.GasOutput().GetState(), node.compressor.TemperatureOutput().GetState(),
+			node.compressor.PressureOutput().GetState(), node.compressor.MassRateOutput().GetState(),
+		},
+		[]graph.Port{
+			node.compressorGasOutput, node.compressorTemperatureOutput,
+			node.compressorPressureOutput, node.compressorMassRateOutput,
+		},
+	)
+
+	graph.SetAll(
+		[]graph.PortState{
+			node.turbine.GasOutput().GetState(), node.turbine.TemperatureOutput().GetState(),
+			node.turbine.PressureOutput().GetState(), node.turbine.MassRateOutput().GetState(),
+		},
+		[]graph.Port{
+			node.turbineGasOutput, node.turbineTemperatureOutput,
+			node.turbinePressureOutput, node.turbineMassRateOutput,
+		},
+	)
 }

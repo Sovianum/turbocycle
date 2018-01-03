@@ -5,14 +5,16 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/material/fuel"
 )
 
 type RegenerativeGasGeneratorNode interface {
 	graph.Node
-	nodes.ComplexGasChannel
-	HeatExchangerHotInput() graph.Port
-	HeatExchangerHotOutput() graph.Port
+	CompressorInput() nodes.ComplexGasSink
+	TurbineOutput() nodes.ComplexGasSource
+	HeatExchangerHotInput() nodes.ComplexGasSink
+	HeatExchangerHotOutput() nodes.ComplexGasSource
 	Burner() constructive.BurnerNode
 	TurboCascade() TurboCascadeNode
 	Regenerator() constructive.RegeneratorNode
@@ -39,10 +41,17 @@ func NewRegenerativeGasGeneratorNode(
 		regeneratorPressureDrop: constructive.NewPressureLossNode(sigmaRegeneratorPipe),
 	}
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
-	result.heatExchangerHotInput = graph.NewAttachedPort(result)
-	result.heatExchangerHotOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+
+		&result.regeneratorHotTemperatureInput, &result.regeneratorHotPressureInput,
+		&result.regeneratorHotGasInput, &result.regeneratorHotMassRateInput,
+
+		&result.regeneratorHotTemperatureOutput, &result.regeneratorHotPressureOutput,
+		&result.regeneratorHotGasOutput, &result.regeneratorHotMassRateOutput,
+	)
 
 	result.linkPorts()
 	return result
@@ -51,10 +60,25 @@ func NewRegenerativeGasGeneratorNode(
 type regenerativeGasGeneratorNode struct {
 	graph.BaseNode
 
-	complexGasInput        graph.Port
-	complexGasOutput       graph.Port
-	heatExchangerHotInput  graph.Port
-	heatExchangerHotOutput graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	gasInput         graph.Port
+	massRateInput    graph.Port
+
+	temperatureOutput graph.Port
+	pressureOutput    graph.Port
+	gasOutput         graph.Port
+	massRateOutput    graph.Port
+
+	regeneratorHotTemperatureInput graph.Port
+	regeneratorHotPressureInput    graph.Port
+	regeneratorHotGasInput         graph.Port
+	regeneratorHotMassRateInput    graph.Port
+
+	regeneratorHotTemperatureOutput graph.Port
+	regeneratorHotPressureOutput    graph.Port
+	regeneratorHotGasOutput         graph.Port
+	regeneratorHotMassRateOutput    graph.Port
 
 	burner                  constructive.BurnerNode
 	turboCascade            TurboCascadeNode
@@ -67,15 +91,34 @@ func (node *regenerativeGasGeneratorNode) GetName() string {
 }
 
 func (node *regenerativeGasGeneratorNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput, node.heatExchangerHotInput, node.heatExchangerHotOutput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+
+		node.regeneratorHotTemperatureInput, node.regeneratorHotPressureInput,
+		node.regeneratorHotGasInput, node.regeneratorHotMassRateInput,
+
+		node.regeneratorHotTemperatureOutput, node.regeneratorHotPressureOutput,
+		node.regeneratorHotGasOutput, node.regeneratorHotMassRateOutput,
+	}
 }
 
 func (node *regenerativeGasGeneratorNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.heatExchangerHotInput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+
+		node.regeneratorHotTemperatureInput, node.regeneratorHotPressureInput,
+		node.regeneratorHotGasInput, node.regeneratorHotMassRateInput,
+	}
 }
 
 func (node *regenerativeGasGeneratorNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.complexGasOutput, node.heatExchangerHotOutput}
+	return []graph.Port{
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+
+		node.regeneratorHotTemperatureOutput, node.regeneratorHotPressureOutput,
+		node.regeneratorHotGasOutput, node.regeneratorHotMassRateOutput,
+	}
 }
 
 func (node *regenerativeGasGeneratorNode) Burner() constructive.BurnerNode {
@@ -115,35 +158,80 @@ func (node *regenerativeGasGeneratorNode) ContextDefined() bool {
 	return true
 }
 
-func (node *regenerativeGasGeneratorNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
+func (node *regenerativeGasGeneratorNode) CompressorInput() nodes.ComplexGasSink {
+	var c = node.turboCascade.Compressor()
+	return helper.NewPseudoComplexGasSink(
+		c.GasInput(), c.TemperatureInput(), c.PressureInput(), c.MassRateInput(),
+	)
 }
 
-func (node *regenerativeGasGeneratorNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
+func (node *regenerativeGasGeneratorNode) TurbineOutput() nodes.ComplexGasSource {
+	var t = node.turboCascade.Turbine()
+	return helper.NewPseudoComplexGasSource(
+		t.GasOutput(), t.TemperatureOutput(), t.PowerOutput(), t.MassRateOutput(),
+	)
 }
 
-func (node *regenerativeGasGeneratorNode) HeatExchangerHotInput() graph.Port {
-	return node.heatExchangerHotInput
+func (node *regenerativeGasGeneratorNode) HeatExchangerHotInput() nodes.ComplexGasSink {
+	return node.regenerator.HotInput()
 }
 
-func (node *regenerativeGasGeneratorNode) HeatExchangerHotOutput() graph.Port {
-	return node.heatExchangerHotOutput
+func (node *regenerativeGasGeneratorNode) HeatExchangerHotOutput() nodes.ComplexGasSource {
+	return node.regenerator.HotOutput()
 }
 
 func (node *regenerativeGasGeneratorNode) readInput() {
-	node.turboCascade.CompressorComplexGasInput().SetState(node.complexGasInput.GetState())
-	node.regenerator.HotInput().SetState(node.heatExchangerHotInput.GetState())
+	var c = node.turboCascade.Compressor()
+	graph.SetAll(
+		[]graph.PortState{
+			node.gasInput.GetState(), node.temperatureInput.GetState(),
+			node.pressureInput.GetState(), node.massRateInput.GetState(),
+		},
+		[]graph.Port{
+			c.GasInput(), c.TemperatureInput(), c.PressureInput(), c.MassRateInput(),
+		},
+	)
+
+	var rSink = node.regenerator.HotInput()
+	graph.SetAll(
+		[]graph.PortState{
+			node.regeneratorHotGasInput.GetState(), node.regeneratorHotTemperatureInput.GetState(),
+			node.regeneratorHotPressureInput.GetState(), node.regeneratorHotMassRateInput.GetState(),
+		},
+		[]graph.Port{
+			rSink.GasInput(), rSink.TemperatureInput(), rSink.PressureInput(), rSink.MassRateInput(),
+		},
+	)
 }
 
 func (node *regenerativeGasGeneratorNode) writeOutput() {
-	node.complexGasOutput.SetState(node.turboCascade.TurbineComplexGasOutput().GetState())
-	node.heatExchangerHotOutput.SetState(node.regenerator.HotOutput().GetState())
+	var tSource = node.turboCascade.TurbineComplexGasOutput()
+	graph.SetAll(
+		[]graph.PortState{
+			tSource.GasOutput().GetState(), tSource.TemperatureOutput().GetState(),
+			tSource.PressureOutput().GetState(), tSource.MassRateOutput().GetState(),
+		},
+		[]graph.Port{
+			node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+		},
+	)
+
+	var hSource = node.regenerator.HotOutput()
+	graph.SetAll(
+		[]graph.PortState{
+			hSource.GasOutput().GetState(), hSource.TemperatureOutput().GetState(),
+			hSource.PressureOutput().GetState(), hSource.MassRateOutput().GetState(),
+		},
+		[]graph.Port{
+			node.regeneratorHotGasOutput, node.regeneratorHotTemperatureOutput,
+			node.regeneratorHotPressureOutput, node.regeneratorHotMassRateOutput,
+		},
+	)
 }
 
 func (node *regenerativeGasGeneratorNode) linkPorts() {
-	graph.Link(node.turboCascade.CompressorComplexGasOutput(), node.regeneratorPressureDrop.ComplexGasInput())
-	graph.Link(node.regeneratorPressureDrop.ComplexGasOutput(), node.regenerator.ColdInput())
-	graph.Link(node.regenerator.ColdOutput(), node.burner.ComplexGasInput())
-	graph.Link(node.burner.ComplexGasOutput(), node.turboCascade.TurbineComplexGasInput())
+	nodes.LinkComplexOutToIn(node.turboCascade.CompressorComplexGasOutput(), node.regeneratorPressureDrop)
+	nodes.LinkComplexOutToIn(node.regeneratorPressureDrop, node.regenerator.ColdInput())
+	nodes.LinkComplexOutToIn(node.regenerator.ColdOutput(), node.burner)
+	nodes.LinkComplexOutToIn(node.burner, node.turboCascade.TurbineComplexGasInput())
 }

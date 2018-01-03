@@ -15,10 +15,7 @@ import (
 type CompressorNode interface {
 	graph.Node
 
-	nodes.GasChannel
-	nodes.PressureChannel
-	nodes.TemperatureChannel
-	nodes.MassRateChannel
+	nodes.ComplexGasChannel
 
 	nodes.PowerSource
 	nodes.PressureIn

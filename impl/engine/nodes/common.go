@@ -19,24 +19,36 @@ type PowerSink interface {
 	PowerInput() graph.Port
 }
 
+type ComplexGasChannel interface {
+	ComplexGasSink
+	ComplexGasSource
+}
+
+type ComplexGasSource interface {
+	GasSource
+	TemperatureSource
+	PressureSource
+	MassRateSource
+}
+
+type ComplexGasSink interface {
+	GasSink
+	TemperatureSink
+	PressureSink
+	MassRateSink
+}
+
 type MassRateChannel interface {
 	MassRateInput() graph.Port
 	MassRateOutput() graph.Port
 }
 
-type MassRateRelChannel interface {
-	MassRateRelSource
-	MassRateRelSink
+type MassRateSource interface {
+	MassRateOutput() graph.Port
 }
 
-type MassRateRelSource interface {
-	MassRateRelOutput() graph.Port
-	MassRateRelOut() float64
-}
-
-type MassRateRelSink interface {
-	MassRateRelInput() graph.Port
-	MassRateRelIn() float64
+type MassRateSink interface {
+	MassRateInput() graph.Port
 }
 
 type GasChannel interface {
@@ -118,4 +130,29 @@ func IsDataSource(port graph.Port) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func LinkComplexInToOut(node1 ComplexGasSink, node2 ComplexGasSource) {
+	LinkComplexOutToIn(node2, node1)
+}
+
+func LinkComplexOutToIn(node1 ComplexGasSource, node2 ComplexGasSink) {
+	graph.LinkAll(
+		[]graph.Port{node1.GasOutput(), node1.TemperatureOutput(), node1.PressureOutput(), node1.MassRateOutput()},
+		[]graph.Port{node2.GasInput(), node2.TemperatureInput(), node2.PressureInput(), node2.MassRateInput()},
+	)
+}
+
+func LinkComplexOutToOut(node1 ComplexGasSource, node2 ComplexGasSource) {
+	graph.LinkAll(
+		[]graph.Port{node1.GasOutput(), node1.TemperatureOutput(), node1.PressureOutput(), node1.MassRateOutput()},
+		[]graph.Port{node2.GasOutput(), node2.TemperatureOutput(), node2.PressureOutput(), node2.MassRateOutput()},
+	)
+}
+
+func LinkComplexInToIn(node1 ComplexGasSink, node2 ComplexGasSink) {
+	graph.LinkAll(
+		[]graph.Port{node1.GasInput(), node1.TemperatureInput(), node1.PressureInput(), node1.MassRateInput()},
+		[]graph.Port{node2.GasInput(), node2.TemperatureInput(), node2.PressureInput(), node2.MassRateInput()},
+	)
 }

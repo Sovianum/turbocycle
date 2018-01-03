@@ -34,8 +34,11 @@ func NewGasGeneratorNode(
 
 	result.linkPorts()
 
-	result.complexGasInput = graph.NewAttachedPort(result)
-	result.complexGasOutput = graph.NewAttachedPort(result)
+	graph.AttachAllPorts(
+		result,
+		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+	)
 
 	return result
 }
@@ -43,11 +46,50 @@ func NewGasGeneratorNode(
 type gasGeneratorNode struct {
 	graph.BaseNode
 
-	complexGasInput  graph.Port
-	complexGasOutput graph.Port
+	temperatureInput graph.Port
+	pressureInput    graph.Port
+	gasInput         graph.Port
+	massRateInput    graph.Port
+
+	temperatureOutput graph.Port
+	pressureOutput    graph.Port
+	gasOutput         graph.Port
+	massRateOutput    graph.Port
 
 	burner       constructive.BurnerNode
 	turboCascade TurboCascadeNode
+}
+
+func (node *gasGeneratorNode) GasInput() graph.Port {
+	return node.gasInput
+}
+
+func (node *gasGeneratorNode) TemperatureInput() graph.Port {
+	return node.temperatureInput
+}
+
+func (node *gasGeneratorNode) PressureInput() graph.Port {
+	return node.pressureInput
+}
+
+func (node *gasGeneratorNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
+func (node *gasGeneratorNode) GasOutput() graph.Port {
+	return node.gasOutput
+}
+
+func (node *gasGeneratorNode) TemperatureOutput() graph.Port {
+	return node.temperatureOutput
+}
+
+func (node *gasGeneratorNode) PressureOutput() graph.Port {
+	return node.pressureOutput
+}
+
+func (node *gasGeneratorNode) MassRateOutput() graph.Port {
+	return node.massRateOutput
 }
 
 func (node *gasGeneratorNode) GetName() string {
@@ -55,15 +97,22 @@ func (node *gasGeneratorNode) GetName() string {
 }
 
 func (node *gasGeneratorNode) GetPorts() []graph.Port {
-	return []graph.Port{node.complexGasInput, node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *gasGeneratorNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.complexGasInput}
+	return []graph.Port{
+		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
+	}
 }
 
 func (node *gasGeneratorNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.complexGasOutput}
+	return []graph.Port{
+		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
+	}
 }
 
 func (node *gasGeneratorNode) Burner() constructive.BurnerNode {
@@ -89,23 +138,33 @@ func (node *gasGeneratorNode) Process() error {
 	return nil
 }
 
-func (node *gasGeneratorNode) ComplexGasInput() graph.Port {
-	return node.complexGasInput
-}
-
-func (node *gasGeneratorNode) ComplexGasOutput() graph.Port {
-	return node.complexGasOutput
-}
-
 func (node *gasGeneratorNode) readInput() {
-	node.turboCascade.CompressorComplexGasInput().SetState(node.complexGasInput.GetState())
+	var cInput = node.turboCascade.CompressorComplexGasInput()
+	graph.SetAll(
+		[]graph.PortState{
+			node.gasInput.GetState(), node.temperatureInput.GetState(),
+			node.pressureInput.GetState(), node.massRateInput.GetState(),
+		},
+		[]graph.Port{
+			cInput.GasInput(), cInput.TemperatureInput(), cInput.PressureInput(), cInput.MassRateInput(),
+		},
+	)
 }
 
 func (node *gasGeneratorNode) writeOutput() {
-	node.complexGasOutput.SetState(node.turboCascade.TurbineComplexGasOutput().GetState())
+	var tOutput = node.turboCascade.TurbineComplexGasOutput()
+	graph.SetAll(
+		[]graph.PortState{
+			tOutput.GasOutput().GetState(), tOutput.TemperatureOutput().GetState(),
+			tOutput.PressureOutput().GetState(), tOutput.MassRateOutput().GetState(),
+		},
+		[]graph.Port{
+			node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+		},
+	)
 }
 
 func (node *gasGeneratorNode) linkPorts() {
-	graph.Link(node.turboCascade.CompressorComplexGasOutput(), node.burner.ComplexGasInput())
-	graph.Link(node.burner.ComplexGasOutput(), node.turboCascade.TurbineComplexGasInput())
+	nodes.LinkComplexOutToIn(node.turboCascade.CompressorComplexGasOutput(), node.burner)
+	nodes.LinkComplexOutToIn(node.burner, node.turboCascade.TurbineComplexGasInput())
 }
