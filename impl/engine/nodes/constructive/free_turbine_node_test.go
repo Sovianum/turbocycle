@@ -29,7 +29,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(inputGas), states.NewTemperaturePortState(tInFreeT),
-			states.NewPressurePortState(pInFreeT), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(pInFreeT), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			turbine.GasInput(), turbine.TemperatureInput(), turbine.PressureInput(), turbine.MassRateInput(),

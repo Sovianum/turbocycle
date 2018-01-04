@@ -69,7 +69,7 @@ type compressorNode struct {
 
 // while calculating labour function takes massRateRel into account
 func CompressorLabour(node CompressorNode) float64 {
-	var massRateRel = node.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = node.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return node.LSpecific() * massRateRel
 }
 

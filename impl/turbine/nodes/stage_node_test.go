@@ -70,7 +70,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 	))
 	suite.node.TemperatureInput().SetState(states.NewTemperaturePortState(tg))
 	suite.node.PressureInput().SetState(states.NewPressurePortState(pg))
-	suite.node.MassRateInput().SetState(states2.NewMassRatePortState(massRate))
+	suite.node.MassRateInput().SetState(states.NewMassRatePortState(massRate))
 
 	suite.pack = new(DataPack)
 }

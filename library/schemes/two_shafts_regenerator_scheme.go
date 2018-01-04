@@ -70,12 +70,12 @@ func (scheme *twoShaftsRegeneratorScheme) Compressor() constructive.CompressorNo
 func (scheme *twoShaftsRegeneratorScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
-	var massRateRel = turbine.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = turbine.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return lSpecific * massRateRel
 }
 
 func (scheme *twoShaftsRegeneratorScheme) GetFuelMassRateRel() float64 {
-	var massRateRel = scheme.burner.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = scheme.burner.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return scheme.burner.GetFuelRateRel() * massRateRel
 }
 

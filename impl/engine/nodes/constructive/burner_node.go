@@ -36,7 +36,7 @@ type BurnerNode interface {
 
 // while calculating labour function takes massRateRel into account
 func FuelMassRate(node BurnerNode) float64 {
-	var massRateRel = node.GasInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = node.GasInput().GetState().(states.MassRatePortState).MassRate
 	return node.GetFuelRateRel() * massRateRel
 }
 
@@ -197,12 +197,12 @@ func (node *burnerNode) Process() error {
 	var gasOut = node.outletGas
 	var tStagOut = node.tgStag
 	var pStagOut = node.pStagIn() * node.sigma
-	var massRateRelOut = node.massRateInput.GetState().(states.MassRateRelPortState).MassRateRel * (1 + fuelMassRateRel)
+	var massRateRelOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * (1 + fuelMassRateRel)
 
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gasOut), states.NewTemperaturePortState(tStagOut),
-			states.NewPressurePortState(pStagOut), states.NewMassRateRelPortState(massRateRelOut),
+			states.NewPressurePortState(pStagOut), states.NewMassRatePortState(massRateRelOut),
 		},
 		[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
 	)

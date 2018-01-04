@@ -53,7 +53,7 @@ func getTestCompressor() CompressorNode {
 			states.NewGasPortState(gases.GetAir()),
 			states.NewTemperaturePortState(tA),
 			states.NewPressurePortState(pA),
-			states.NewMassRateRelPortState(1),
+			states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			compressor.GasInput(), compressor.TemperatureInput(),

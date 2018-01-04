@@ -31,7 +31,7 @@ func TestBurnerNode_Process(t *testing.T) {
 			states.NewGasPortState(gases.GetAir()),
 			states.NewTemperaturePortState(tInBurn),
 			states.NewPressurePortState(pInBurn),
-			states.NewMassRateRelPortState(1),
+			states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			bn.GasInput(), bn.TemperatureInput(), bn.PressureInput(), bn.MassRateInput(),

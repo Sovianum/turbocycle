@@ -31,7 +31,7 @@ func (node *massRateRelSourceNode) GetName() string {
 }
 
 func (node *massRateRelSourceNode) Process() error {
-	node.getOutput().SetState(states.NewMassRateRelPortState(node.massRateRel))
+	node.getOutput().SetState(states.NewMassRatePortState(node.massRateRel))
 	return nil
 }
 

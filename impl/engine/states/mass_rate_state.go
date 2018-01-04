@@ -7,40 +7,40 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 )
 
-type MassRateRelPortState struct {
-	MassRateRel float64 `json:"mass_rate_rel"`
+type MassRatePortState struct {
+	MassRate float64 `json:"mass_rate"`
 }
 
-func NewMassRateRelPortState(massRateRel float64) MassRateRelPortState {
-	return MassRateRelPortState{MassRateRel: massRateRel}
+func NewMassRatePortState(massRateRel float64) MassRatePortState {
+	return MassRatePortState{MassRate: massRateRel}
 }
 
-func (state MassRateRelPortState) MarshalJSON() ([]byte, error) {
+func (state MassRatePortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		MassRateRel float64 `json:"mass_rate_rel"`
+		MassRateRel float64 `json:"mass_rate"`
 	}{
-		MassRateRel: state.MassRateRel,
+		MassRateRel: state.MassRate,
 	})
 }
 
-func (state MassRateRelPortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
+func (state MassRatePortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
 	switch v := another.(type) {
-	case MassRateRelPortState:
-		var casted = another.(MassRateRelPortState)
+	case MassRatePortState:
+		var casted = another.(MassRatePortState)
 
-		return NewMassRateRelPortState(
-			common.Lerp(state.MassRateRel, casted.MassRateRel, relaxCoef),
+		return NewMassRatePortState(
+			common.Lerp(state.MassRate, casted.MassRate, relaxCoef),
 		), nil
 	default:
-		return nil, common.GetTypeError("MassRateRelPortState", v)
+		return nil, common.GetTypeError("MassRatePortState", v)
 	}
 }
 
-func (state MassRateRelPortState) MaxResidual(another graph.PortState) (float64, error) {
+func (state MassRatePortState) MaxResidual(another graph.PortState) (float64, error) {
 	switch v := another.(type) {
-	case MassRateRelPortState:
-		return common.GetRelResidual(state.MassRateRel, another.(MassRateRelPortState).MassRateRel), nil
+	case MassRatePortState:
+		return common.GetRelResidual(state.MassRate, another.(MassRatePortState).MassRate), nil
 	default:
-		return 0, common.GetTypeError("MassRateRelPortState", v)
+		return 0, common.GetTypeError("MassRatePortState", v)
 	}
 }

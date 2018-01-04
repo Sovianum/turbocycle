@@ -111,7 +111,7 @@ func (node *freeTurbineNode) TStatOut() float64 {
 }
 
 func (node *freeTurbineNode) MassRateRel() float64 {
-	return node.massRateOutput.GetState().(states.MassRateRelPortState).MassRateRel
+	return node.massRateOutput.GetState().(states.MassRatePortState).MassRate
 }
 
 func (node *freeTurbineNode) LeakMassRateRel() float64 {
@@ -158,7 +158,7 @@ func (node *freeTurbineNode) Process() error {
 	node.pressureOutput.SetState(states.NewPressurePortState(node.pStagOut()))
 	node.gasOutput.SetState(states.NewGasPortState(node.inputGas()))
 	node.massRateOutput.SetState(
-		states.NewMassRateRelPortState(node.massRateInput.GetState().(states.MassRateRelPortState).MassRateRel *
+		states.NewMassRatePortState(node.massRateInput.GetState().(states.MassRatePortState).MassRate *
 			node.massRateRelFactor()),
 	)
 

@@ -17,7 +17,7 @@ func TestRegeneratorNode_Process_ColdMode(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(300),
-			states.NewPressurePortState(1e5), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(1e5), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			coldInput.GasInput(), coldInput.TemperatureInput(),
@@ -29,7 +29,7 @@ func TestRegeneratorNode_Process_ColdMode(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(800),
-			states.NewPressurePortState(1e5), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(1e5), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			hotInput.GasInput(), hotInput.TemperatureInput(),
@@ -56,7 +56,7 @@ func TestRegeneratorNode_Process_HotMode(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(300),
-			states.NewPressurePortState(1e5), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(1e5), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			coldInput.GasInput(), coldInput.TemperatureInput(),
@@ -68,7 +68,7 @@ func TestRegeneratorNode_Process_HotMode(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(800),
-			states.NewPressurePortState(1e5), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(1e5), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			hotInput.GasInput(), hotInput.TemperatureInput(),

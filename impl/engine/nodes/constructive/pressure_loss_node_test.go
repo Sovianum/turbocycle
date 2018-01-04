@@ -44,7 +44,7 @@ func TestPressureLossNode_Process_Inflow(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(tA),
-			states.NewPressurePortState(pA), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(pA), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			pressureLossNode.GasInput(), pressureLossNode.TemperatureInput(),
@@ -92,7 +92,7 @@ func TestPressureLossNode_Process_Outflow(t *testing.T) {
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(tA),
-			states.NewPressurePortState(pA), states.NewMassRateRelPortState(1),
+			states.NewPressurePortState(pA), states.NewMassRatePortState(1),
 		},
 		[]graph.Port{
 			pressureLossNode.GasOutput(), pressureLossNode.TemperatureOutput(),

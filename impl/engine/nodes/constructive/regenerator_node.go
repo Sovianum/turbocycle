@@ -188,10 +188,10 @@ func (node *regeneratorNode) getNewTOut(
 }
 
 func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
-	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRateRelPortState).MassRateRel
+	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRatePortState).MassRate
 	var hotGas = node.hotGasInput.GetState().(states.GasPortState).Gas
 
-	var coldMassRate = node.coldMassRateInput.GetState().(states.MassRateRelPortState).MassRateRel
+	var coldMassRate = node.coldMassRateInput.GetState().(states.MassRatePortState).MassRate
 	var coldGas = node.coldGasInput.GetState().(states.GasPortState).Gas
 
 	var hotHeatRate = hotMassRate * gases.CpMean(hotGas, node.tStagHotIn(), tStagHotOutCurr, nodes.DefaultN)
@@ -204,10 +204,10 @@ func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHo
 }
 
 func (node *regeneratorNode) getNewTOutSigmaByHotSide(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
-	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRateRelPortState).MassRateRel
+	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRatePortState).MassRate
 	var hotGas = node.hotGasInput.GetState().(states.GasPortState).Gas
 
-	var coldMassRate = node.coldMassRateInput.GetState().(states.MassRateRelPortState).MassRateRel
+	var coldMassRate = node.coldMassRateInput.GetState().(states.MassRatePortState).MassRate
 	var coldGas = node.coldGasInput.GetState().(states.GasPortState).Gas
 
 	var hotHeatRate = hotMassRate * gases.CpMean(hotGas, node.tStagHotIn(), tStagHotOutCurr, nodes.DefaultN)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
 type DimensionPortState struct {
@@ -25,7 +26,7 @@ func (state DimensionPortState) Mix(another graph.PortState, relaxCoef float64) 
 	switch v := another.(type) {
 	case DimensionPortState:
 		var casted = another.(DimensionPortState)
-		return NewMassRatePortState(common.Lerp(state.Dimension, casted.Dimension, relaxCoef)), nil
+		return states.NewMassRatePortState(common.Lerp(state.Dimension, casted.Dimension, relaxCoef)), nil
 	default:
 		return nil, common.GetTypeError("DimensionPortState", v)
 	}

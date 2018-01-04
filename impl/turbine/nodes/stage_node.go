@@ -34,7 +34,7 @@ func InitFromTurbineNode(stage TurbineStageNode, turbine constructive.TurbineNod
 	stage.GasInput().SetState(states.NewGasPortState(turbine.InputGas()))
 	stage.TemperatureInput().SetState(states.NewTemperaturePortState(turbine.TStagIn()))
 	stage.PressureInput().SetState(states.NewPressurePortState(turbine.PStagIn()))
-	stage.MassRateInput().SetState(states2.NewMassRatePortState(massRate))
+	stage.MassRateInput().SetState(states.NewMassRatePortState(massRate))
 	stage.SetAlpha1FirstStage(alpha1)
 }
 
@@ -212,7 +212,7 @@ func (node *turbineStageNode) Process() error {
 
 	node.temperatureOutput.SetState(states.NewTemperaturePortState(node.pack.T2Stag))
 	node.pressureOutput.SetState(states.NewPressurePortState(node.pack.P2Stag))
-	node.massRateOutput.SetState(states2.NewMassRatePortState(node.massRate())) // mass rate is constant
+	node.massRateOutput.SetState(states.NewMassRatePortState(node.massRate())) // mass rate is constant
 	node.velocityOutput.SetState(states2.NewVelocityPortState(node.pack.RotorOutletTriangle, states2.OutletTriangleType))
 	return nil
 }
@@ -904,7 +904,7 @@ func (node *turbineStageNode) t0(pack *DataPack) {
 // below are private accessors
 
 func (node *turbineStageNode) massRate() float64 {
-	return node.massRateInput.GetState().(states2.MassRatePortState).MassRate
+	return node.massRateInput.GetState().(states.MassRatePortState).MassRate
 }
 
 func (node *turbineStageNode) p0Stag() float64 {

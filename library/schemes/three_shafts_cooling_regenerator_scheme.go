@@ -84,7 +84,7 @@ func (scheme *threeShaftsCoolingRegeneratorScheme) InitGasGeneratorCompressor(ga
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gas), states.NewTemperaturePortState(tStag),
-			states.NewPressurePortState(pStag), states.NewMassRateRelPortState(massRate),
+			states.NewPressurePortState(pStag), states.NewMassRatePortState(massRate),
 		},
 		[]graph.Port{
 			b.GasInput(), b.TemperatureInput(), b.PressureInput(), b.MassRateInput(),
@@ -97,7 +97,7 @@ func (scheme *threeShaftsCoolingRegeneratorScheme) InitGasGeneratorHeatExchanger
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gas), states.NewTemperaturePortState(tStag),
-			states.NewPressurePortState(pStag), states.NewMassRateRelPortState(massRate),
+			states.NewPressurePortState(pStag), states.NewMassRatePortState(massRate),
 		},
 		[]graph.Port{
 			b.GasInput(), b.TemperatureInput(), b.PressureInput(), b.MassRateInput(),
@@ -108,13 +108,13 @@ func (scheme *threeShaftsCoolingRegeneratorScheme) InitGasGeneratorHeatExchanger
 func (scheme *threeShaftsCoolingRegeneratorScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
-	var massRateRel = turbine.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = turbine.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return lSpecific * massRateRel
 }
 
 func (scheme *threeShaftsCoolingRegeneratorScheme) GetFuelMassRateRel() float64 {
 	var burner = scheme.regenerativeGasGenerator.Burner()
-	var massRateRel = burner.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = burner.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return burner.GetFuelRateRel() * massRateRel
 }
 

@@ -31,7 +31,7 @@ func TestBlockedTurbineNode_Process(t *testing.T) {
 	var gasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT))
 	var pressureState = states.NewPressurePortState(pBlockedT)
 	var temperatureState = states.NewTemperaturePortState(tBlockedT)
-	var massRateState = states.NewMassRateRelPortState(1)
+	var massRateState = states.NewMassRatePortState(1)
 
 	var err = graph.SetAll(
 		[]graph.PortState{gasState, pressureState, temperatureState, massRateState},

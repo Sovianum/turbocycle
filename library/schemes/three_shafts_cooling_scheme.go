@@ -74,13 +74,13 @@ func (scheme *threeShaftsCoolerScheme) HighPressureCompressor() constructive.Com
 func (scheme *threeShaftsCoolerScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
-	var massRateRel = turbine.MassRateOutput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = turbine.MassRateOutput().GetState().(states.MassRatePortState).MassRate
 	return lSpecific * massRateRel
 }
 
 func (scheme *threeShaftsCoolerScheme) GetFuelMassRateRel() float64 {
 	var burner = scheme.gasGenerator.Burner()
-	var massRateRel = burner.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	var massRateRel = burner.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return burner.GetFuelRateRel() * massRateRel
 }
 

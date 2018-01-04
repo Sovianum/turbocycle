@@ -98,12 +98,12 @@ func (node *blockedTurbineNode) Process() error {
 	var piTStag = node.piTStag(tStagOut)
 	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN))
 	var pStagOut = node.pStagIn() / (piTStag * pi)
-	var massRateRelOut = node.massRateInput.GetState().(states.MassRateRelPortState).MassRateRel * node.massRateRelFactor()
+	var massRateRelOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * node.massRateRelFactor()
 
 	node.temperatureOutput.SetState(states.NewTemperaturePortState(tStagOut))
 	node.pressureOutput.SetState(states.NewPressurePortState(pStagOut))
 	node.gasOutput.SetState(states.NewGasPortState(node.inputGas()))
-	node.massRateOutput.SetState(states.NewMassRateRelPortState(massRateRelOut))
+	node.massRateOutput.SetState(states.NewMassRatePortState(massRateRelOut))
 
 	node.powerOutput.SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
 
@@ -131,7 +131,7 @@ func (node *blockedTurbineNode) TStatOut() float64 {
 }
 
 func (node *blockedTurbineNode) MassRateRel() float64 {
-	return node.massRateOutput.GetState().(states.MassRateRelPortState).MassRateRel
+	return node.massRateOutput.GetState().(states.MassRatePortState).MassRate
 }
 
 func (node *blockedTurbineNode) LeakMassRateRel() float64 {

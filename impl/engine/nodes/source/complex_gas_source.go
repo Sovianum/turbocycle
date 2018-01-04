@@ -81,6 +81,6 @@ func (node *complexGasSourceNode) Process() error {
 	node.gasOutput.SetState(states.NewGasPortState(node.gas))
 	node.temperatureOutput.SetState(states.NewTemperaturePortState(node.tStag))
 	node.pressureOutput.SetState(states.NewPressurePortState(node.pStag))
-	node.massRateOutput.SetState(states.NewMassRateRelPortState(node.massRate))
+	node.massRateOutput.SetState(states.NewMassRatePortState(node.massRate))
 	return nil
 }
