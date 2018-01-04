@@ -11,8 +11,8 @@ type MassRatePortState struct {
 	MassRate float64 `json:"mass_rate"`
 }
 
-func NewMassRatePortState(massRateRel float64) MassRatePortState {
-	return MassRatePortState{MassRate: massRateRel}
+func NewMassRatePortState(massRate float64) MassRatePortState {
+	return MassRatePortState{MassRate: massRate}
 }
 
 func (state MassRatePortState) MarshalJSON() ([]byte, error) {

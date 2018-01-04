@@ -6,6 +6,19 @@ const (
 	DefaultN = 50
 )
 
+type RPMChannel interface {
+	RPMSink
+	RPMSource
+}
+
+type RPMSource interface {
+	RPMOutput() graph.Port
+}
+
+type RPMSink interface {
+	RPMInput() graph.Port
+}
+
 type PowerChannel interface {
 	PowerSink
 	PowerSource
