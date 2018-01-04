@@ -9,7 +9,7 @@ import (
 
 type MassRateRelSourceNode interface {
 	graph.Node
-	nodes.MassRateRelSource
+	nodes.MassRateSource
 }
 
 func NewMassRateRelSourceNode(massRateRel float64) MassRateRelSourceNode {
@@ -35,10 +35,10 @@ func (node *massRateRelSourceNode) Process() error {
 	return nil
 }
 
-func (node *massRateRelSourceNode) MassRateRelOut() float64 {
+func (node *massRateRelSourceNode) MassRateOut() float64 {
 	return node.massRateRel
 }
 
-func (node *massRateRelSourceNode) MassRateRelOutput() graph.Port {
+func (node *massRateRelSourceNode) MassRateOutput() graph.Port {
 	return node.getOutput()
 }

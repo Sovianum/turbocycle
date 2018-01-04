@@ -24,8 +24,6 @@ func NewTwoShaftsScheme(
 		gasGenerator:          gasGenerator,
 		compressorTurbinePipe: compressorTurbinePipe,
 		freeTurbineBlock:      freeTurbineBlock,
-		gasSink:               sink.NewComplexGasSinkNode(),
-		powerSink:             sink.NewPowerSinkNode(),
 	}
 }
 
@@ -40,8 +38,12 @@ type twoShaftsScheme struct {
 	gasGenerator          compose.GasGeneratorNode
 	compressorTurbinePipe constructive.PressureLossNode
 	freeTurbineBlock      compose.FreeTurbineBlockNode
-	gasSink               sink.ComplexGasSinkNode
-	powerSink             nodes.PowerSink
+
+	gasSink         sink.SinkNode
+	temperatureSink sink.SinkNode
+	pressureSink    sink.SinkNode
+	massRateSink    sink.SinkNode
+	powerSink       sink.SinkNode
 }
 
 func (scheme *twoShaftsScheme) Compressor() constructive.CompressorNode {
@@ -51,12 +53,12 @@ func (scheme *twoShaftsScheme) Compressor() constructive.CompressorNode {
 func (scheme *twoShaftsScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
-	var massRateRel = turbine.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	var massRateRel = turbine.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
 	return lSpecific * massRateRel
 }
 
 func (scheme *twoShaftsScheme) GetFuelMassRateRel() float64 {
-	var massRateRel = scheme.gasGenerator.Burner().ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	var massRateRel = scheme.gasGenerator.Burner().MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
 	return scheme.gasGenerator.Burner().GetFuelRateRel() * massRateRel
 }
 
@@ -69,15 +71,21 @@ func (scheme *twoShaftsScheme) GetNetwork() (graph.Network, graph.GraphError) {
 
 	return graph.NewNetwork([]graph.Node{
 		scheme.gasSource, scheme.inletPressureDrop, scheme.gasGenerator,
-		scheme.compressorTurbinePipe, scheme.freeTurbineBlock, scheme.gasSink,
+		scheme.compressorTurbinePipe, scheme.freeTurbineBlock,
+		scheme.gasSink, scheme.temperatureSink, scheme.pressureSink, scheme.massRateSink, scheme.powerSink,
 	})
 }
 
 func (scheme *twoShaftsScheme) linkPorts() {
-	graph.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
-	graph.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.gasGenerator.ComplexGasInput())
-	graph.Link(scheme.gasGenerator.ComplexGasOutput(), scheme.compressorTurbinePipe.ComplexGasInput())
-	graph.Link(scheme.compressorTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
-	graph.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.gasSink.ComplexGasInput())
-	graph.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
+	nodes.LinkComplexOutToIn(scheme.gasSource, scheme.inletPressureDrop)
+	nodes.LinkComplexOutToIn(scheme.inletPressureDrop, scheme.gasGenerator)
+	nodes.LinkComplexOutToIn(scheme.gasGenerator, scheme.compressorTurbinePipe)
+	nodes.LinkComplexOutToIn(scheme.compressorTurbinePipe, scheme.freeTurbineBlock)
+
+	var turbine = scheme.freeTurbineBlock
+	scheme.gasSink = sink.SinkPort(turbine.GasOutput())
+	scheme.temperatureSink = sink.SinkPort(turbine.TemperatureOutput())
+	scheme.pressureSink = sink.SinkPort(turbine.PressureOutput())
+	scheme.massRateSink = sink.SinkPort(turbine.MassRateOutput())
+	scheme.powerSink = sink.SinkPort(scheme.freeTurbineBlock.PowerOutput())
 }

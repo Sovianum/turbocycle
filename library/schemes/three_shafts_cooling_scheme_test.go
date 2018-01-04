@@ -12,7 +12,7 @@ import (
 )
 
 func TestThreeShaftsCoolingScheme_GetNetwork_Smoke(t *testing.T) {
-	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5)
+	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5, 1)
 	var inletPressureDrop = constructive.NewPressureLossNode(0.98)
 	var middlePressureCascade = compose.NewTurboCascadeNode(
 		0.86, 5,

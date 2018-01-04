@@ -159,29 +159,37 @@ func (node *regenerativeGasGeneratorNode) ContextDefined() bool {
 }
 
 func (node *regenerativeGasGeneratorNode) CompressorInput() nodes.ComplexGasSink {
-	var c = node.turboCascade.Compressor()
 	return helper.NewPseudoComplexGasSink(
-		c.GasInput(), c.TemperatureInput(), c.PressureInput(), c.MassRateInput(),
+		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
 	)
 }
 
 func (node *regenerativeGasGeneratorNode) TurbineOutput() nodes.ComplexGasSource {
-	var t = node.turboCascade.Turbine()
 	return helper.NewPseudoComplexGasSource(
-		t.GasOutput(), t.TemperatureOutput(), t.PowerOutput(), t.MassRateOutput(),
+		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
 	)
 }
 
 func (node *regenerativeGasGeneratorNode) HeatExchangerHotInput() nodes.ComplexGasSink {
-	return node.regenerator.HotInput()
+	return helper.NewPseudoComplexGasSink(
+		node.regeneratorHotGasInput,
+		node.regeneratorHotTemperatureInput,
+		node.regeneratorHotPressureInput,
+		node.regeneratorHotMassRateInput,
+	)
 }
 
 func (node *regenerativeGasGeneratorNode) HeatExchangerHotOutput() nodes.ComplexGasSource {
-	return node.regenerator.HotOutput()
+	return helper.NewPseudoComplexGasSource(
+		node.regeneratorHotGasOutput,
+		node.regeneratorHotTemperatureOutput,
+		node.regeneratorHotPressureOutput,
+		node.regeneratorHotMassRateOutput,
+	)
 }
 
 func (node *regenerativeGasGeneratorNode) readInput() {
-	var c = node.turboCascade.Compressor()
+	var c = node.turboCascade.CompressorComplexGasInput()
 	graph.SetAll(
 		[]graph.PortState{
 			node.gasInput.GetState(), node.temperatureInput.GetState(),

@@ -11,7 +11,7 @@ type CycleBreakNode interface {
 	DataSourcePort() graph.Port
 }
 
-func NewCycleBreakerNode(initialState graph.PortState) CycleBreakNode {
+func NewCycleBreakNode(initialState graph.PortState) CycleBreakNode {
 	var result = &cycleBreakNode{}
 	result.updatePort = graph.NewAttachedPort(result)
 	result.sourcePort = graph.NewAttachedPort(result)

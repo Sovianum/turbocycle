@@ -234,6 +234,17 @@ func (node *turboCascadeNode) readInput() {
 			node.compressor.PressureInput(), node.compressor.MassRateInput(),
 		},
 	)
+
+	graph.SetAll(
+		[]graph.PortState{
+			node.turbineGasInput.GetState(), node.turbineTemperatureInput.GetState(),
+			node.turbinePressureInput.GetState(), node.turbineMassRateInput.GetState(),
+		},
+		[]graph.Port{
+			node.turbine.GasInput(), node.turbine.TemperatureInput(),
+			node.turbine.PressureInput(), node.turbine.MassRateInput(),
+		},
+	)
 }
 
 func (node *turboCascadeNode) writeOutput() {

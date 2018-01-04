@@ -84,7 +84,7 @@ func (node *freeTurbineBlockNode) MassRateInput() graph.Port {
 }
 
 func (node *freeTurbineBlockNode) GasOutput() graph.Port {
-	return node.gasInput
+	return node.gasOutput
 }
 
 func (node *freeTurbineBlockNode) TemperatureOutput() graph.Port {
@@ -178,7 +178,7 @@ func (node *freeTurbineBlockNode) writeOutput() {
 	graph.SetAll(
 		[]graph.PortState{
 			node.turbine.GasOutput().GetState(), node.turbine.TemperatureOutput().GetState(),
-			node.turbine.PressureOutput().GetState(), node.massRateOutput.GetState(),
+			node.turbine.PressureOutput().GetState(), node.turbine.MassRateOutput().GetState(),
 		},
 		[]graph.Port{
 			node.gasOutput, node.temperatureOutput,

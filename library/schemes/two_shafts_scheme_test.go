@@ -12,7 +12,7 @@ import (
 )
 
 func TestTwoShaftsScheme_GetNetwork_Smoke(t *testing.T) {
-	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5)
+	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5, 1)
 	var inletPressureDrop = constructive.NewPressureLossNode(0.98)
 	var gasGenerator = compose.NewGasGeneratorNode(
 		0.86, 6, fuel.GetCH4(),

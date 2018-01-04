@@ -9,6 +9,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
+	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 func NewThreeShaftsRegeneratorScheme(
@@ -30,18 +31,21 @@ func NewThreeShaftsRegeneratorScheme(
 		highPressureTurbinePipe:      highPressureTurbinePipe,
 		middlePressureTurbinePipe:    middlePressureTurbinePipe,
 		freeTurbineBlock:             freeTurbineBlock,
-		gasSink:                      sink.NewComplexGasSinkNode(),
-		powerSink:                    sink.NewPowerSinkNode(),
-		breaker1:                     helper.NewCycleBreakerNode(states.StandardAtmosphereState()),
-		breaker2:                     helper.NewCycleBreakerNode(states.StandardAtmosphereState()),
+
+		breaker1: helper.NewComplexCycleBreakNode(
+			gases.GetAir(), states.StandardTemperature, states.StandardPressure, 1,
+		),
+		breaker2: helper.NewComplexCycleBreakNode(
+			gases.GetAir(), states.StandardTemperature, states.StandardPressure, 1,
+		),
 	}
 }
 
 type ThreeShaftsRegeneratorScheme interface {
 	Scheme
 	DoubleCompressor
-	InitGasGeneratorCompressor(state states.ComplexGasPortState)
-	InitGasGeneratorHeatExchanger(state states.ComplexGasPortState)
+	InitGasGeneratorCompressor(gas gases.Gas, tStag, pStag, massRate float64)
+	InitGasGeneratorHeatExchanger(gas gases.Gas, tStag, pStag, massRate float64)
 }
 
 type threeShaftsRegeneratorScheme struct {
@@ -53,10 +57,15 @@ type threeShaftsRegeneratorScheme struct {
 	highPressureTurbinePipe      constructive.PressureLossNode
 	middlePressureTurbinePipe    constructive.PressureLossNode
 	freeTurbineBlock             compose.FreeTurbineBlockNode
-	gasSink                      sink.ComplexGasSinkNode
-	powerSink                    nodes.PowerSink
-	breaker1                     helper.CycleBreakNode
-	breaker2                     helper.CycleBreakNode
+
+	gasSink         sink.SinkNode
+	temperatureSink sink.SinkNode
+	pressureSink    sink.SinkNode
+	massRateSink    sink.SinkNode
+	powerSink       sink.SinkNode
+
+	breaker1 helper.ComplexCycleBreakNode
+	breaker2 helper.ComplexCycleBreakNode
 }
 
 func (scheme *threeShaftsRegeneratorScheme) LowPressureCompressor() constructive.CompressorNode {
@@ -67,24 +76,43 @@ func (scheme *threeShaftsRegeneratorScheme) HighPressureCompressor() constructiv
 	return scheme.regenerativeGasGenerator.TurboCascade().Compressor()
 }
 
-func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorCompressor(state states.ComplexGasPortState) {
-	scheme.breaker1.DataSourcePort().SetState(state)
+func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorCompressor(gas gases.Gas, tStag, pStag, massRate float64) {
+	var b = scheme.breaker1
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gas), states.NewTemperaturePortState(tStag),
+			states.NewPressurePortState(pStag), states.NewMassRateRelPortState(massRate),
+		},
+		[]graph.Port{
+			b.GasInput(), b.TemperatureInput(), b.PressureInput(), b.MassRateInput(),
+		},
+	)
 }
 
-func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorHeatExchanger(state states.ComplexGasPortState) {
-	scheme.breaker2.DataSourcePort().SetState(state)
+func (scheme *threeShaftsRegeneratorScheme) InitGasGeneratorHeatExchanger(gas gases.Gas, tStag, pStag, massRate float64) {
+	var b = scheme.breaker2
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gas), states.NewTemperaturePortState(tStag),
+			states.NewPressurePortState(pStag), states.NewMassRateRelPortState(massRate),
+		},
+		[]graph.Port{
+			b.GasInput(), b.TemperatureInput(), b.PressureInput(), b.MassRateInput(),
+		},
+	)
 }
 
 func (scheme *threeShaftsRegeneratorScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
-	var massRateRel = turbine.ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
+	var massRateRel = turbine.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
 	return lSpecific * massRateRel
 }
 
 func (scheme *threeShaftsRegeneratorScheme) GetFuelMassRateRel() float64 {
-	var massRateRel = scheme.regenerativeGasGenerator.Burner().ComplexGasInput().GetState().(states.ComplexGasPortState).MassRateRel
-	return scheme.regenerativeGasGenerator.Burner().GetFuelRateRel() * massRateRel
+	var burner = scheme.regenerativeGasGenerator.Burner()
+	var massRateRel = burner.MassRateInput().GetState().(states.MassRateRelPortState).MassRateRel
+	return burner.GetFuelRateRel() * massRateRel
 }
 
 func (scheme *threeShaftsRegeneratorScheme) GetQLower() float64 {
@@ -98,23 +126,32 @@ func (scheme *threeShaftsRegeneratorScheme) GetNetwork() (graph.Network, graph.G
 		scheme.gasSource, scheme.inletPressureDrop, scheme.middlePressureCascade,
 		scheme.middlePressureCompressorPipe, scheme.regenerativeGasGenerator,
 		scheme.highPressureTurbinePipe, scheme.middlePressureTurbinePipe,
-		scheme.freeTurbineBlock, scheme.gasSink, scheme.breaker1, scheme.breaker2,
+		scheme.freeTurbineBlock,
+		scheme.gasSink, scheme.pressureSink, scheme.temperatureSink, scheme.massRateSink, scheme.powerSink,
+		scheme.breaker1, scheme.breaker2,
 	})
 }
 
 func (scheme *threeShaftsRegeneratorScheme) linkPorts() {
-	graph.Link(scheme.gasSource.ComplexGasOutput(), scheme.inletPressureDrop.ComplexGasInput())
-	graph.Link(scheme.inletPressureDrop.ComplexGasOutput(), scheme.middlePressureCascade.CompressorComplexGasInput())
+	nodes.LinkComplexOutToIn(scheme.gasSource, scheme.inletPressureDrop)
+	nodes.LinkComplexOutToIn(scheme.inletPressureDrop, scheme.middlePressureCascade.CompressorComplexGasInput())
 
-	graph.Link(scheme.middlePressureCascade.CompressorComplexGasOutput(), scheme.middlePressureCompressorPipe.ComplexGasInput())
-	graph.Link(scheme.middlePressureCompressorPipe.ComplexGasOutput(), scheme.breaker1.DataSourcePort())
-	graph.Link(scheme.breaker1.UpdatePort(), scheme.regenerativeGasGenerator.ComplexGasInput())
-	graph.Link(scheme.regenerativeGasGenerator.ComplexGasOutput(), scheme.highPressureTurbinePipe.ComplexGasInput())
-	graph.Link(scheme.highPressureTurbinePipe.ComplexGasOutput(), scheme.middlePressureCascade.TurbineComplexGasInput())
-	graph.Link(scheme.middlePressureCascade.TurbineComplexGasOutput(), scheme.middlePressureTurbinePipe.ComplexGasInput())
-	graph.Link(scheme.middlePressureTurbinePipe.ComplexGasOutput(), scheme.freeTurbineBlock.ComplexGasInput())
-	graph.Link(scheme.freeTurbineBlock.PowerOutput(), scheme.powerSink.PowerInput())
-	graph.Link(scheme.freeTurbineBlock.ComplexGasOutput(), scheme.breaker2.DataSourcePort())
-	graph.Link(scheme.breaker2.UpdatePort(), scheme.regenerativeGasGenerator.HeatExchangerHotInput())
-	graph.Link(scheme.regenerativeGasGenerator.HeatExchangerHotOutput(), scheme.gasSink.ComplexGasInput())
+	nodes.LinkComplexOutToIn(scheme.middlePressureCascade.CompressorComplexGasOutput(), scheme.middlePressureCompressorPipe)
+	nodes.LinkComplexOutToIn(scheme.middlePressureCompressorPipe, scheme.breaker1)
+	nodes.LinkComplexOutToIn(scheme.breaker1, scheme.regenerativeGasGenerator.CompressorInput())
+	nodes.LinkComplexOutToIn(scheme.regenerativeGasGenerator.TurbineOutput(), scheme.highPressureTurbinePipe)
+	nodes.LinkComplexOutToIn(scheme.highPressureTurbinePipe, scheme.middlePressureCascade.TurbineComplexGasInput())
+	nodes.LinkComplexOutToIn(scheme.middlePressureCascade.TurbineComplexGasOutput(), scheme.middlePressureTurbinePipe)
+	nodes.LinkComplexOutToIn(scheme.middlePressureTurbinePipe, scheme.freeTurbineBlock)
+
+	nodes.LinkComplexOutToIn(scheme.freeTurbineBlock, scheme.breaker2)
+	nodes.LinkComplexOutToIn(scheme.breaker2, scheme.regenerativeGasGenerator.HeatExchangerHotInput())
+
+	var hotOutput = scheme.regenerativeGasGenerator.HeatExchangerHotOutput()
+
+	scheme.powerSink = sink.SinkPort(scheme.freeTurbineBlock.PowerOutput())
+	scheme.gasSink = sink.SinkPort(hotOutput.GasOutput())
+	scheme.pressureSink = sink.SinkPort(hotOutput.PressureOutput())
+	scheme.temperatureSink = sink.SinkPort(hotOutput.TemperatureOutput())
+	scheme.massRateSink = sink.SinkPort(hotOutput.MassRateOutput())
 }

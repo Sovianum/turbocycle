@@ -16,7 +16,7 @@ import (
 )
 
 func TestThreeShaftsCoolingRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
-	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5)
+	var gasSource = source.NewComplexGasSourceNode(gases.GetAir(), 288, 1e5, 1)
 	var inletPressureDrop = constructive.NewPressureLossNode(0.98)
 	var middlePressureCascade = compose.NewTurboCascadeNode(
 		0.86, 5,
@@ -72,8 +72,8 @@ func TestThreeShaftsCoolingRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 		gasSource, inletPressureDrop, middlePressureCascade, cooler, regenerativeGasGenerator, middlePressureCompressorPipe,
 		highPressureTurbinePipe, middlePressureTurbinePipe, freeTurbineBlock,
 	)
-	scheme.InitGasGeneratorCompressor(states.NewComplexGasPortState(gases.GetAir(), 500, 5e5, 1))
-	scheme.InitGasGeneratorHeatExchanger(states.NewComplexGasPortState(gases.GetAir(), 900, 1e5, 1))
+	scheme.InitGasGeneratorCompressor(gases.GetAir(), 500, 5e5, 1)
+	scheme.InitGasGeneratorHeatExchanger(gases.GetAir(), 900, 1e5, 1)
 
 	var network, networkErr = scheme.GetNetwork()
 	assert.Nil(t, networkErr)
