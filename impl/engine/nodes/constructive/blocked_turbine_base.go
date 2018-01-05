@@ -159,17 +159,6 @@ func (node *baseBlockedTurbine) getNewTtStag(currTtStag, etaT float64) float64 {
 	return node.tStagIn() * (1 - (1-math.Pow(piTStag, (1-k)/k))*etaT)
 }
 
-func (node *baseBlockedTurbine) piTStag(tStagOut, etaT float64) float64 {
-	var k = gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
-	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
-
-	var labour = node.turbineLabour()
-	return math.Pow(
-		1-labour/(cp*node.tStagIn()*etaT),
-		k/(1-k),
-	)
-}
-
 func (node *baseBlockedTurbine) turbineLabour() float64 {
 	return -node.powerInput.GetState().(states.PowerPortState).LSpecific
 }

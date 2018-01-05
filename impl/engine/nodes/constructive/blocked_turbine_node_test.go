@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
@@ -65,7 +64,8 @@ func TestBlockedTurbineNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected pi_t %f, got %f", expectedPit, turbine.PiTStag()),
 	)
 
-	var expectedPt = turbine.PStagIn() / (turbine.PiTStag() * gdf.Pi(lambdaOut, kMean))
+	// labour is calculated by stagnation parameters
+	var expectedPt = turbine.PStagIn() / turbine.PiTStag()
 	assert.True(
 		t,
 		common.ApproxEqual(expectedPt, turbine.PStagOut(), 0.01),

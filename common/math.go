@@ -17,6 +17,33 @@ func Product(xArr []float64) float64 {
 	return result
 }
 
+func SolveIterativly(
+	f func(xCurr float64) (xNew float64, err error),
+	x0, precision float64, iterLimit int,
+) (float64, error) {
+	var xCurr = x0
+	var xNew, err = f(xCurr)
+	if err != nil {
+		return 0, err
+	}
+
+	var i = 0
+	for i < iterLimit && !Converged(xCurr, xNew, precision) {
+		i++
+
+		xCurr = xNew
+		xNew, err = f(xCurr)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	if Converged(xCurr, xNew, precision) {
+		return xNew, nil
+	}
+	return 0, fmt.Errorf("failed to converge")
+}
+
 func Converged(x0, x1, precision float64) bool {
 	return math.Abs(x0-x1)/math.Abs(x0) <= precision
 }
@@ -145,7 +172,7 @@ func LinSpace(x1, x2 float64, n int) []float64 {
 }
 
 func LinScale(x, xFromStart, xFromEnd, xToStart, xToEnd float64) float64 {
-	return (xToEnd - xToStart) / (xFromEnd - xFromStart) * (x - xFromStart) + xToStart
+	return (xToEnd-xToStart)/(xFromEnd-xFromStart)*(x-xFromStart) + xToStart
 }
 
 func Cross2(v1 mat.Vector, v2 mat.Vector) float64 {
@@ -156,5 +183,5 @@ func Cross2(v1 mat.Vector, v2 mat.Vector) float64 {
 		panic(fmt.Errorf("second argument has len = %d != 2", v1.Len()))
 	}
 
-	return v1.At(0, 0) * v2.At(1, 0) - v2.At(0, 0) * v1.At(1, 0)
+	return v1.At(0, 0)*v2.At(1, 0) - v2.At(0, 0)*v1.At(1, 0)
 }

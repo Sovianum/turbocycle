@@ -118,7 +118,7 @@ func (node *parametricCompressorNode) Process() error {
 		[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
 	)
 	node.powerOutput.SetState(
-		states.NewPowerPortState(-node.lSpecific() * node.massRate()),
+		states.NewPowerPortState(-node.lSpecific()),
 	)
 	node.rpmOutput.SetState(
 		states.NewRPMPortState(node.rpm()),

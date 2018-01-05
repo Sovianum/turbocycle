@@ -13,7 +13,7 @@ import (
 )
 
 type FreeTurbineNode interface {
-	TurbineNode
+	StaticTurbineNode
 }
 
 func NewFreeTurbineNode(

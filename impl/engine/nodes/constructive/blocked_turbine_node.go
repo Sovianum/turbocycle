@@ -1,8 +1,9 @@
 package constructive
 
 import (
+	"math"
+
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
@@ -10,8 +11,27 @@ import (
 )
 
 type BlockedTurbineNode interface {
-	TurbineNode
+	StaticTurbineNode
 	nodes.PowerSink
+}
+
+func NewSimpleBlockedTurbineNode(
+	etaT, lambdaOut,
+	leakMassRateCoef, coolMassRateCoef, inflowMassRateCoef,
+	precision float64,
+) BlockedTurbineNode {
+	return NewBlockedTurbineNode(
+		etaT, lambdaOut, precision,
+		func(TurbineNode) float64 {
+			return leakMassRateCoef
+		},
+		func(TurbineNode) float64 {
+			return coolMassRateCoef
+		},
+		func(TurbineNode) float64 {
+			return inflowMassRateCoef
+		},
+	)
 }
 
 func NewBlockedTurbineNode(
@@ -66,8 +86,7 @@ func (node *blockedTurbineNode) Process() error {
 	}
 
 	var piTStag = node.piTStag(tStagOut, node.etaT)
-	var pi = gdf.Pi(node.lambdaOut, gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN))
-	var pStagOut = node.pStagIn() / (piTStag * pi)
+	var pStagOut = node.pStagIn() / piTStag
 	var massRateRelOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * node.massRateRelFactor()
 
 	node.temperatureOutput.SetState(states.NewTemperaturePortState(tStagOut))
@@ -98,4 +117,16 @@ func (node *blockedTurbineNode) PiTStag() float64 {
 
 func (node *blockedTurbineNode) massRateRelFactor() float64 {
 	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
+}
+
+// here it is assumed that pressure drop is calculated by stagnation parameters
+func (node *baseBlockedTurbine) piTStag(tStagOut, etaT float64) float64 {
+	var k = gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
+	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
+
+	var labour = node.turbineLabour()
+	return math.Pow(
+		1-labour/(cp*node.tStagIn()*etaT),
+		k/(1-k),
+	)
 }

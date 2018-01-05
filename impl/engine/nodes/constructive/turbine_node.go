@@ -24,14 +24,16 @@ type TurbineNode interface {
 
 	PiTStag() float64
 	InputGas() gases.Gas
-	LambdaOut() float64
 	Eta() float64
 	LSpecific() float64
-	PStatOut() float64
-	TStatOut() float64
 	MassRateRel() float64
 	LeakMassRateRel() float64
 	CoolMassRateRel() float64
+}
+
+type StaticTurbineNode interface {
+	TurbineNode
+	LambdaOut() float64
 }
 
 func TurbineLabour(node TurbineNode) float64 {
@@ -42,14 +44,14 @@ type GasBiPole interface {
 	graph.Node
 }
 
-func TOut(node TurbineNode) float64 {
+func TOut(node StaticTurbineNode) float64 {
 	var tStag = node.TStagOut()
 	var k = gases.K(node.InputGas(), tStag)
 
 	return tStag * gdf.Tau(node.LambdaOut(), k)
 }
 
-func POut(node TurbineNode) float64 {
+func POut(node StaticTurbineNode) float64 {
 	var pStag = node.PStagOut()
 	var tStag = node.TStagOut()
 	var k = gases.K(node.InputGas(), tStag)
@@ -57,13 +59,13 @@ func POut(node TurbineNode) float64 {
 	return pStag * gdf.Pi(node.LambdaOut(), k)
 }
 
-func DensityOut(node TurbineNode) float64 {
+func DensityOut(node StaticTurbineNode) float64 {
 	return gases.Density(
 		node.InputGas(), TOut(node), POut(node),
 	)
 }
 
-func VelocityOut(node TurbineNode) float64 {
+func VelocityOut(node StaticTurbineNode) float64 {
 	var tStag = node.TStagOut()
 	var k = gases.K(node.InputGas(), tStag)
 	var r = node.InputGas().R()
@@ -71,7 +73,7 @@ func VelocityOut(node TurbineNode) float64 {
 	return gdf.ACrit(k, r, tStag) * node.LambdaOut()
 }
 
-func Ht(node TurbineNode) float64 {
+func Ht(node StaticTurbineNode) float64 {
 	var cp = gases.CpMean(node.InputGas(), node.TStagIn(), node.TStagOut(), nodes.DefaultN)
 	var k = gases.KMean(node.InputGas(), node.TStagIn(), node.TStagOut(), nodes.DefaultN)
 	var pi = gdf.Pi(node.LambdaOut(), k)
