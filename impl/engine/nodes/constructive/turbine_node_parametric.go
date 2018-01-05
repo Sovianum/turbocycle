@@ -14,18 +14,18 @@ import (
 
 type TurbineCharacteristic func(lambdaU, normPiStag float64) float64
 
-type ParametricBlockedTurbineNode interface {
+type ParametricTurbineNode interface {
 	TurbineNode
 	nodes.RPMSink
 	NormPiT() float64
 	SetNormPiT(normPiT float64)
 }
 
-func NewSimpleParametricBlockedTurbineNode(
+func NewSimpleParametricTurbineNode(
 	massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision,
 	leakMassRateCoef, coolMasRateCoef, inflowMassRateCoef float64,
 	normMassRateChar, normEtaChar TurbineCharacteristic,
-) ParametricBlockedTurbineNode {
+) ParametricTurbineNode {
 	return NewParametricBlockedTurbineNode(
 		massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision,
 		func(TurbineNode) float64 {
@@ -45,8 +45,8 @@ func NewParametricBlockedTurbineNode(
 	massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision float64,
 	leakMassRateFunc, coolMasRateFunc, inflowMassRateFunc func(TurbineNode) float64,
 	normMassRateChar, normEtaChar TurbineCharacteristic,
-) ParametricBlockedTurbineNode {
-	var result = &parametricBlockedTurbineNode{
+) ParametricTurbineNode {
+	var result = &parametricTurbineNode{
 		precision: precision,
 
 		t0: t0,
@@ -73,7 +73,7 @@ func NewParametricBlockedTurbineNode(
 	return result
 }
 
-type parametricBlockedTurbineNode struct {
+type parametricTurbineNode struct {
 	graph.BaseNode
 	*baseBlockedTurbine
 
@@ -99,18 +99,18 @@ type parametricBlockedTurbineNode struct {
 	precision float64
 }
 
-func (node *parametricBlockedTurbineNode) GetName() string {
+func (node *parametricTurbineNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "ParametricBlockedTurbine")
 }
 
-func (node *parametricBlockedTurbineNode) GetPorts() []graph.Port {
+func (node *parametricTurbineNode) GetPorts() []graph.Port {
 	return append(node.baseBlockedTurbine.GetPorts(), node.rpmInput)
 }
 
 // parametric turbine does not declare massRateInput as its required
 // port, cos massRate is its inner property which is balanced
 // with solver while solving the whole system
-func (node *parametricBlockedTurbineNode) GetRequirePorts() []graph.Port {
+func (node *parametricTurbineNode) GetRequirePorts() []graph.Port {
 	return []graph.Port{
 		node.baseBlockedTurbine.gasInput,
 		node.baseBlockedTurbine.temperatureInput,
@@ -119,7 +119,7 @@ func (node *parametricBlockedTurbineNode) GetRequirePorts() []graph.Port {
 	}
 }
 
-func (node *parametricBlockedTurbineNode) Process() error {
+func (node *parametricTurbineNode) Process() error {
 	var tStagOut, err = node.getTStagOut()
 	if err != nil {
 		return err
@@ -150,40 +150,40 @@ func (node *parametricBlockedTurbineNode) Process() error {
 	return nil
 }
 
-func (node *parametricBlockedTurbineNode) Eta() float64 {
+func (node *parametricTurbineNode) Eta() float64 {
 	return node.etaT()
 }
 
-func (node *parametricBlockedTurbineNode) NormPiT() float64 {
+func (node *parametricTurbineNode) NormPiT() float64 {
 	return node.normPiT
 }
 
-func (node *parametricBlockedTurbineNode) SetNormPiT(normPiT float64) {
+func (node *parametricTurbineNode) SetNormPiT(normPiT float64) {
 	node.normPiT = normPiT
 }
 
-func (node *parametricBlockedTurbineNode) LeakMassRateRel() float64 {
+func (node *parametricTurbineNode) LeakMassRateRel() float64 {
 	return node.leakMassRateFunc(node)
 }
 
-func (node *parametricBlockedTurbineNode) CoolMassRateRel() float64 {
+func (node *parametricTurbineNode) CoolMassRateRel() float64 {
 	return node.coolMasRateRel(node)
 }
 
-func (node *parametricBlockedTurbineNode) LSpecific() float64 {
+func (node *parametricTurbineNode) LSpecific() float64 {
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN)
 	return -cp * (node.tStagIn() - node.tStagOut())
 }
 
-func (node *parametricBlockedTurbineNode) PiTStag() float64 {
+func (node *parametricTurbineNode) PiTStag() float64 {
 	return node.piTStag()
 }
 
-func (node *parametricBlockedTurbineNode) RPMInput() graph.Port {
+func (node *parametricTurbineNode) RPMInput() graph.Port {
 	return node.rpmInput
 }
 
-func (node *parametricBlockedTurbineNode) getTStagOut() (float64, error) {
+func (node *parametricTurbineNode) getTStagOut() (float64, error) {
 	var t0, err = node.getNewTtStag(0.8 * node.tStagIn()) // TODO move 0.8 out of code
 	if err != nil {
 		return t0, err
@@ -191,7 +191,7 @@ func (node *parametricBlockedTurbineNode) getTStagOut() (float64, error) {
 	return common.SolveIterativly(node.getNewTtStag, t0, node.precision, nodes.DefaultN)
 }
 
-func (node *parametricBlockedTurbineNode) getNewTtStag(currTtStag float64) (float64, error) {
+func (node *parametricTurbineNode) getNewTtStag(currTtStag float64) (float64, error) {
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), currTtStag, nodes.DefaultN)
 	var tStagIn = node.tStagIn()
 	var result = tStagIn * (1 - (1-math.Pow(node.piTStag(), (1-k)/k))*node.etaT())
@@ -201,26 +201,26 @@ func (node *parametricBlockedTurbineNode) getNewTtStag(currTtStag float64) (floa
 	return result, nil
 }
 
-func (node *parametricBlockedTurbineNode) massRateRelFactor() float64 {
+func (node *parametricTurbineNode) massRateRelFactor() float64 {
 	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
 }
 
-func (node *parametricBlockedTurbineNode) etaT() float64 {
+func (node *parametricTurbineNode) etaT() float64 {
 	return node.normEtaChar(node.lambdaU(), node.normPiT) * node.eta0
 }
 
-func (node *parametricBlockedTurbineNode) massRate() float64 {
+func (node *parametricTurbineNode) massRate() float64 {
 	return MassRate(
 		node.normMassRate(), node.massRate0,
 		node.tStagIn(), node.t0, node.pStagIn(), node.p0,
 	)
 }
 
-func (node *parametricBlockedTurbineNode) normMassRate() float64 {
+func (node *parametricTurbineNode) normMassRate() float64 {
 	return node.normMassRateChar(node.lambdaU(), node.normPiT)
 }
 
-func (node *parametricBlockedTurbineNode) lambdaU() float64 {
+func (node *parametricTurbineNode) lambdaU() float64 {
 	var u = math.Pi * node.inletMeanDiameter * node.rpm() / 60
 
 	var r = node.inputGas().R()
@@ -229,10 +229,10 @@ func (node *parametricBlockedTurbineNode) lambdaU() float64 {
 	return u / aCrit
 }
 
-func (node *parametricBlockedTurbineNode) rpm() float64 {
+func (node *parametricTurbineNode) rpm() float64 {
 	return node.rpmInput.GetState().(states.RPMPortState).RPM
 }
 
-func (node *parametricBlockedTurbineNode) piTStag() float64 {
+func (node *parametricTurbineNode) piTStag() float64 {
 	return node.normPiT * node.piT0
 }

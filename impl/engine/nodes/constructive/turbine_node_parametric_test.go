@@ -22,7 +22,7 @@ const (
 )
 
 func TestParametricBlockedTurbineNode_Process_Smoke_Constant(t *testing.T) {
-	var turbine = getTestParametricBlockedTurbine(
+	var turbine = getTestParametricTurbine(
 		func(float64, float64) float64 { return 1. },
 		func(float64, float64) float64 { return 1. },
 	)
@@ -53,9 +53,13 @@ func TestParametricBlockedTurbineNode_Process_Smoke_Constant(t *testing.T) {
 }
 
 func TestParametricBlockedTurbineNode_Process_Smoke_NonLinear(t *testing.T) {
-	var turbine = getTestParametricBlockedTurbine(
-		func(normMassRate float64, normPiStag float64) float64 { return 1. },
-		func(normMassRate float64, normPiStag float64) float64 { return 1. },
+	var f = func(x float64) float64 { return 1 - 0.05*(1-x)*(1-x) }
+
+	var turbine = getTestParametricTurbine(
+		func(float64, float64) float64 { return 1. },
+		func(normMassRate float64, normPiStag float64) float64 {
+			return f(normMassRate)
+		},
 	)
 
 	var piTVariator = variator.FromCallables(
@@ -83,11 +87,12 @@ func TestParametricBlockedTurbineNode_Process_Smoke_NonLinear(t *testing.T) {
 		common.ApproxEqual(
 			piT, turbine.PiTStag(), 1e-2,
 		),
+		fmt.Sprintf("expected %.3f, got %.3f", piT, turbine.PiTStag()),
 	)
 }
 
-func getTestParametricBlockedTurbine(normMassRateChar, normEtaChar TurbineCharacteristic) ParametricBlockedTurbineNode {
-	var turbine = NewSimpleParametricBlockedTurbineNode(
+func getTestParametricTurbine(normMassRateChar, normEtaChar TurbineCharacteristic) ParametricTurbineNode {
+	var turbine = NewSimpleParametricTurbineNode(
 		massRate0, piT0, etaT0, states.StandardTemperature, states.StandardPressure,
 		1, 1e-3, 0, 0, 0,
 		normMassRateChar, normEtaChar,
