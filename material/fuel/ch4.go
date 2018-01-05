@@ -11,7 +11,7 @@ func GetCH4() GasFuel {
 
 type ch4 struct{}
 
-func (gas ch4) Cp(t float64) float64 {
+func (fuel ch4) Cp(t float64) float64 {
 	var tArr = []float64{
 		200, 225, 250, 275, 300,
 		325, 350, 375, 400, 450,
@@ -33,16 +33,15 @@ func (gas ch4) Cp(t float64) float64 {
 	return cp
 }
 
-func (gas ch4) AirMassTheory() float64 {
-	var oxygenMassFraction = 0.2315
-	return 2 / oxygenMassFraction * common.O2Weight / common.CH4Weight
+func (fuel ch4) GasMassTheory(gas gases.Gas) float64 {
+	return 2 / gas.OxygenMassFraction() * common.O2Weight / common.CH4Weight
 }
 
-func (gas ch4) QLower() float64 {
+func (fuel ch4) QLower() float64 {
 	return 49030e3
 }
 
-func (gas ch4) GetCombustionGas(alpha float64) gases.Gas {
+func (fuel ch4) GetCombustionGas(alpha float64) gases.Gas {
 	var factor = 1 / (1 + 2*common.O2AirFraction*common.CH4Weight/common.O2Weight)
 
 	var omegaN2 = factor * (common.N2AirFraction / alpha)

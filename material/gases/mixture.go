@@ -30,37 +30,40 @@ type mixture struct {
 	fractions []float64
 }
 
-func (m mixture) Cp(t float64) float64 {
-	var result float64 = 0
-	for i := range m.fractions {
-		result += m.gases[i].Cp(t) * m.fractions[i]
-	}
+func (m mixture) OxygenMassFraction() float64 {
+	return m.getParameter(func(gas Gas) float64 {
+		return gas.OxygenMassFraction()
+	})
+}
 
-	return result
+func (m mixture) Cp(t float64) float64 {
+	return m.getParameter(func(gas Gas) float64 {
+		return gas.Cp(t)
+	})
 }
 
 func (m mixture) Mu(t float64) float64 {
-	var result float64 = 0
-	for i := range m.fractions {
-		result += m.gases[i].Mu(t) * m.fractions[i]
-	}
-
-	return result
+	return m.getParameter(func(gas Gas) float64 {
+		return gas.Mu(t)
+	})
 }
 
 func (m mixture) Lambda(t float64) float64 {
-	var result float64 = 0
-	for i := range m.fractions {
-		result += m.gases[i].Lambda(t) * m.fractions[i]
-	}
-
-	return result
+	return m.getParameter(func(gas Gas) float64 {
+		return gas.Lambda(t)
+	})
 }
 
 func (m mixture) R() float64 {
+	return m.getParameter(func(gas Gas) float64 {
+		return gas.R()
+	})
+}
+
+func (m mixture) getParameter(f func(gas Gas) float64) float64 {
 	var result float64 = 0
 	for i := range m.fractions {
-		result += m.gases[i].R() * m.fractions[i]
+		result += f(m.gases[i]) * m.fractions[i]
 	}
 
 	return result

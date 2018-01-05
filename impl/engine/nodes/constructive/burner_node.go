@@ -227,7 +227,8 @@ func (node *burnerNode) getFuelParameters(initAlpha float64) (float64, float64, 
 }
 
 func (node *burnerNode) getNextAlpha(currAlpha float64) float64 {
-	return 1 / (node.getFuelMassRateRel(currAlpha) * node.fuel.AirMassTheory())
+	var gasMassTheory = node.fuel.GasMassTheory(node.inletGas())
+	return 1 / (node.getFuelMassRateRel(currAlpha) * gasMassTheory)
 }
 
 func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {

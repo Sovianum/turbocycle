@@ -22,6 +22,10 @@ func GetH2OVapour() Gas {
 
 type air struct{}
 
+func (air) OxygenMassFraction() float64 {
+	return 0.2315
+}
+
 func (air) Cp(t float64) float64 {
 	// TODO check last value (taken at random)
 	var tArr = []float64{
@@ -80,7 +84,9 @@ func (air) Lambda(t float64) float64 {
 	return common.InterpTolerate(t, tArr, kArr)
 }
 
-type nitrogen struct{}
+type nitrogen struct {
+	noOxygen
+}
 
 func (nitrogen) Cp(t float64) float64 {
 	var tArr = []float64{
@@ -132,7 +138,9 @@ func (nitrogen) Lambda(t float64) float64 {
 	return common.InterpTolerate(t, tArr, lambdaArr)
 }
 
-type co2 struct{}
+type co2 struct {
+	noOxygen
+}
 
 func (co2) Cp(t float64) float64 {
 	var tArr = []float64{
@@ -180,7 +188,9 @@ func (co2) Lambda(t float64) float64 {
 	return common.InterpTolerate(t, tArr, lambdaArr)
 }
 
-type h2oVapour struct{}
+type h2oVapour struct {
+	noOxygen
+}
 
 func (h2oVapour) Cp(t float64) float64 {
 	var tArr = []float64{

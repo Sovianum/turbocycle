@@ -7,7 +7,7 @@ import (
 
 type GasFuel interface {
 	Cp(t float64) float64
-	AirMassTheory() float64
+	GasMassTheory(gas gases.Gas) float64
 	QLower() float64
 	GetCombustionGas(alpha float64) gases.Gas
 }

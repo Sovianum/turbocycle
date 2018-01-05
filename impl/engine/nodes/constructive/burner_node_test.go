@@ -65,7 +65,8 @@ func TestBurnerNode_Process(t *testing.T) {
 		fmt.Sprintf("Expected g_m %f, got %f", expectedFuelRate, bn.GetFuelRateRel()),
 	)
 
-	var expectedAlpha = 1 / (expectedFuelRate * fuel.GetCH4().AirMassTheory())
+	var gasMassTheory = fuel.GetCH4().GasMassTheory(gases.GetAir())
+	var expectedAlpha = 1 / (expectedFuelRate * gasMassTheory)
 	assert.True(
 		t,
 		common.ApproxEqual(expectedAlpha, bn.Alpha(), 0.1),

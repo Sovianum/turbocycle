@@ -2,7 +2,18 @@ package gases
 
 import "github.com/Sovianum/turbocycle/common"
 
+type Oxidizer interface {
+	OxygenMassFraction() float64
+}
+
+type noOxygen struct{}
+
+func (noOxygen) OxygenMassFraction() float64 {
+	return 0
+}
+
 type Gas interface {
+	Oxidizer
 	Cp(t float64) float64
 	R() float64
 	Mu(t float64) float64
