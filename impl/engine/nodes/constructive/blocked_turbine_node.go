@@ -1,6 +1,7 @@
 package constructive
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -13,6 +14,7 @@ import (
 type BlockedTurbineNode interface {
 	StaticTurbineNode
 	nodes.PowerSink
+	nodes.MassRateSink
 }
 
 func NewSimpleBlockedTurbineNode(
@@ -48,12 +50,17 @@ func NewBlockedTurbineNode(
 	}
 
 	result.baseBlockedTurbine = NewBaseBlockedTurbine(result, precision)
+	result.powerInput = graph.NewAttachedPort(result)
+	result.massRateInput = graph.NewAttachedPort(result)
 	return result
 }
 
 type blockedTurbineNode struct {
 	graph.BaseNode
 	*baseBlockedTurbine
+
+	powerInput    graph.Port
+	massRateInput graph.Port
 
 	etaT              float64
 	precision         float64
@@ -63,24 +70,29 @@ type blockedTurbineNode struct {
 	inflowMassRateRel func(TurbineNode) float64
 }
 
+func (node *blockedTurbineNode) LSpecific() float64 {
+	return node.turbineLabour()
+}
+
 func (node *blockedTurbineNode) LambdaOut() float64 {
 	return node.lambdaOut
-}
-
-func (node *blockedTurbineNode) PStatOut() float64 {
-	return node.pStatOut(node.lambdaOut)
-}
-
-func (node *blockedTurbineNode) TStatOut() float64 {
-	return node.tStatOut(node.lambdaOut)
 }
 
 func (node *blockedTurbineNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "BlockedTurbine")
 }
 
+func (node *blockedTurbineNode) GetPorts() []graph.Port {
+	return append(node.baseBlockedTurbine.GetPorts(), node.massRateInput, node.powerInput)
+}
+
+func (node *blockedTurbineNode) GetRequirePorts() []graph.Port {
+	return append(node.baseBlockedTurbine.GetPorts(), node.massRateInput, node.powerInput)
+}
+
 func (node *blockedTurbineNode) Process() error {
-	var tStagOut, err = node.getTStagOut(node.turbineLabour())
+	//var tStagOut, err = node.getTStagOut(node.turbineLabour())
+	var tStagOut, err = node.getTStagOut()
 	if err != nil {
 		return err
 	}
@@ -115,12 +127,20 @@ func (node *blockedTurbineNode) PiTStag() float64 {
 	return node.piTStag(node.tStagOut(), node.etaT)
 }
 
+func (node *blockedTurbineNode) PowerInput() graph.Port {
+	return node.powerInput
+}
+
+func (node *blockedTurbineNode) MassRateInput() graph.Port {
+	return node.massRateInput
+}
+
 func (node *blockedTurbineNode) massRateRelFactor() float64 {
 	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
 }
 
 // here it is assumed that pressure drop is calculated by stagnation parameters
-func (node *baseBlockedTurbine) piTStag(tStagOut, etaT float64) float64 {
+func (node *blockedTurbineNode) piTStag(tStagOut, etaT float64) float64 {
 	var k = gases.KMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
 
@@ -129,4 +149,25 @@ func (node *baseBlockedTurbine) piTStag(tStagOut, etaT float64) float64 {
 		1-labour/(cp*node.tStagIn()*etaT),
 		k/(1-k),
 	)
+}
+
+func (node *blockedTurbineNode) getTStagOut() (float64, error) {
+	var t0, err = node.getNewTtStag(0.8 * node.tStagIn()) // TODO move 0.8 out of code
+	if err != nil {
+		return 0, err
+	}
+	return common.SolveIterativly(node.getNewTtStag, t0, node.precision, nodes.DefaultN)
+}
+
+func (node *blockedTurbineNode) getNewTtStag(currTtStag float64) (float64, error) {
+	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), currTtStag, nodes.DefaultN)
+	var tTStag = node.tStagIn() - node.turbineLabour()/cp
+	if math.IsNaN(tTStag) {
+		return 0, fmt.Errorf("nan obtained while calculating TtStag")
+	}
+	return tTStag, nil
+}
+
+func (node *blockedTurbineNode) turbineLabour() float64 {
+	return -node.powerInput.GetState().(states.PowerPortState).LSpecific
 }

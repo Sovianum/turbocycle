@@ -71,6 +71,7 @@ func TestParametricCompressorNode_Process_Smoke_NonLinear(t *testing.T) {
 
 	var massRate = 45.
 	var systemCall = func() (*mat.VecDense, error) {
+		compressor.Process()
 		return mat.NewVecDense(1, []float64{compressor.MassRate() - massRate}), nil
 	}
 

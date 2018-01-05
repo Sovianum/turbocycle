@@ -35,6 +35,7 @@ func NewCompressorNode(etaPol, piStag, precision float64) CompressorNode {
 		piStag:    piStag,
 	}
 	result.baseCompressor = newBaseCompressor(result, precision)
+	result.massRateInput = graph.NewAttachedPort(result)
 	return result
 }
 
@@ -42,6 +43,8 @@ func NewCompressorNode(etaPol, piStag, precision float64) CompressorNode {
 type compressorNode struct {
 	graph.BaseNode
 	*baseCompressor
+
+	massRateInput graph.Port
 
 	etaPol    float64 // politropic efficiency
 	precision float64
@@ -56,6 +59,14 @@ func CompressorLabour(node CompressorNode) float64 {
 
 func (node *compressorNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Compressor")
+}
+
+func (node *compressorNode) GetPorts() []graph.Port {
+	return append(node.baseCompressor.GetPorts(), node.massRateInput)
+}
+
+func (node *compressorNode) GetRequirePorts() []graph.Port {
+	return append(node.baseCompressor.GetPorts(), node.massRateInput)
 }
 
 func (node *compressorNode) PiStag() float64 {
@@ -112,6 +123,10 @@ func (node *compressorNode) Process() error {
 	node.powerOutput.SetState(states.NewPowerPortState(-node.lSpecific()))
 
 	return nil
+}
+
+func (node *compressorNode) MassRateInput() graph.Port {
+	return node.massRateInput
 }
 
 func (node *compressorNode) etaAd(tStagOut float64) float64 {

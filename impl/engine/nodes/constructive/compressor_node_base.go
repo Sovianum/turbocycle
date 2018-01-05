@@ -20,7 +20,7 @@ func newBaseCompressor(compressorNode graph.Node, precision float64) *baseCompre
 	graph.AttachAllPorts(
 		compressorNode,
 		&result.powerOutput,
-		&result.gasInput, &result.temperatureInput, &result.pressureInput, &result.massRateInput,
+		&result.gasInput, &result.temperatureInput, &result.pressureInput,
 		&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
 	)
 
@@ -34,7 +34,6 @@ type baseCompressor struct {
 	gasInput         graph.Port
 	temperatureInput graph.Port
 	pressureInput    graph.Port
-	massRateInput    graph.Port
 
 	gasOutput         graph.Port
 	temperatureOutput graph.Port
@@ -70,10 +69,6 @@ func (node *baseCompressor) TemperatureInput() graph.Port {
 	return node.temperatureInput
 }
 
-func (node *baseCompressor) MassRateInput() graph.Port {
-	return node.massRateInput
-}
-
 func (node *baseCompressor) MassRateOutput() graph.Port {
 	return node.massRateOutput
 }
@@ -81,14 +76,14 @@ func (node *baseCompressor) MassRateOutput() graph.Port {
 func (node *baseCompressor) GetPorts() []graph.Port {
 	return []graph.Port{
 		node.powerOutput,
-		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
+		node.gasInput, node.temperatureInput, node.pressureInput,
 		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
 	}
 }
 
 func (node *baseCompressor) GetRequirePorts() []graph.Port {
 	return []graph.Port{
-		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
+		node.gasInput, node.temperatureInput, node.pressureInput,
 	}
 }
 

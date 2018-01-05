@@ -1,6 +1,7 @@
 package constructive
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -15,15 +16,34 @@ type TurbineCharacteristic func(lambdaU, normPiStag float64) float64
 
 type ParametricBlockedTurbineNode interface {
 	TurbineNode
-	nodes.PowerSink
 	nodes.RPMSink
 	NormPiT() float64
 	SetNormPiT(normPiT float64)
 }
 
+func NewSimpleParametricBlockedTurbineNode(
+	massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision,
+	leakMassRateCoef, coolMasRateCoef, inflowMassRateCoef float64,
+	normMassRateChar, normEtaChar TurbineCharacteristic,
+) ParametricBlockedTurbineNode {
+	return NewParametricBlockedTurbineNode(
+		massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision,
+		func(TurbineNode) float64 {
+			return leakMassRateCoef
+		},
+		func(TurbineNode) float64 {
+			return coolMasRateCoef
+		},
+		func(TurbineNode) float64 {
+			return inflowMassRateCoef
+		},
+		normMassRateChar, normEtaChar,
+	)
+}
+
 func NewParametricBlockedTurbineNode(
 	massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision float64,
-	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(TurbineNode) float64,
+	leakMassRateFunc, coolMasRateFunc, inflowMassRateFunc func(TurbineNode) float64,
 	normMassRateChar, normEtaChar TurbineCharacteristic,
 ) ParametricBlockedTurbineNode {
 	var result = &parametricBlockedTurbineNode{
@@ -39,8 +59,8 @@ func NewParametricBlockedTurbineNode(
 		inletMeanDiameter: inletMeanDiameter,
 
 		leakMassRateFunc:  leakMassRateFunc,
-		coolMasRateRel:    coolMasRateRel,
-		inflowMassRateRel: inflowMassRateRel,
+		coolMasRateRel:    coolMasRateFunc,
+		inflowMassRateRel: inflowMassRateFunc,
 
 		normMassRateChar: normMassRateChar,
 		normEtaChar:      normEtaChar,
@@ -95,13 +115,12 @@ func (node *parametricBlockedTurbineNode) GetRequirePorts() []graph.Port {
 		node.baseBlockedTurbine.gasInput,
 		node.baseBlockedTurbine.temperatureInput,
 		node.baseBlockedTurbine.pressureInput,
-		node.baseBlockedTurbine.powerInput,
 		node.rpmInput,
 	}
 }
 
 func (node *parametricBlockedTurbineNode) Process() error {
-	var tStagOut, err = node.getTStagOut(node.turbineLabour())
+	var tStagOut, err = node.getTStagOut()
 	if err != nil {
 		return err
 	}
@@ -109,7 +128,10 @@ func (node *parametricBlockedTurbineNode) Process() error {
 	var piTStag = node.piTStag()
 	var pStagOut = node.pStagIn() / piTStag
 
-	var massRateOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * node.massRateRelFactor()
+	var massRateOut = node.massRate() * node.massRateRelFactor()
+
+	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
+	var lSpecific = -cp * (node.tStagIn() - tStagOut)
 
 	graph.SetAll(
 		[]graph.PortState{
@@ -117,7 +139,7 @@ func (node *parametricBlockedTurbineNode) Process() error {
 			states.NewTemperaturePortState(tStagOut),
 			states.NewPressurePortState(pStagOut),
 			states.NewMassRatePortState(massRateOut),
-			states.NewPowerPortState(node.turbineLabour()), // TODO maybe need to pass sum of labours
+			states.NewPowerPortState(lSpecific),
 		},
 		[]graph.Port{
 			node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
@@ -148,6 +170,11 @@ func (node *parametricBlockedTurbineNode) CoolMassRateRel() float64 {
 	return node.coolMasRateRel(node)
 }
 
+func (node *parametricBlockedTurbineNode) LSpecific() float64 {
+	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), node.tStagOut(), nodes.DefaultN)
+	return -cp * (node.tStagIn() - node.tStagOut())
+}
+
 func (node *parametricBlockedTurbineNode) PiTStag() float64 {
 	return node.piTStag()
 }
@@ -156,12 +183,30 @@ func (node *parametricBlockedTurbineNode) RPMInput() graph.Port {
 	return node.rpmInput
 }
 
+func (node *parametricBlockedTurbineNode) getTStagOut() (float64, error) {
+	var t0, err = node.getNewTtStag(0.8 * node.tStagIn()) // TODO move 0.8 out of code
+	if err != nil {
+		return t0, err
+	}
+	return common.SolveIterativly(node.getNewTtStag, t0, node.precision, nodes.DefaultN)
+}
+
+func (node *parametricBlockedTurbineNode) getNewTtStag(currTtStag float64) (float64, error) {
+	var k = gases.KMean(node.inputGas(), node.tStagIn(), currTtStag, nodes.DefaultN)
+	var tStagIn = node.tStagIn()
+	var result = tStagIn * (1 - (1-math.Pow(node.piTStag(), (1-k)/k))*node.etaT())
+	if math.IsNaN(result) {
+		return 0, fmt.Errorf("nan obtained while calculating tStagOut")
+	}
+	return result, nil
+}
+
 func (node *parametricBlockedTurbineNode) massRateRelFactor() float64 {
 	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
 }
 
 func (node *parametricBlockedTurbineNode) etaT() float64 {
-	return node.normEtaChar(node.lambdaU(), node.normPiT) * node.piT0
+	return node.normEtaChar(node.lambdaU(), node.normPiT) * node.eta0
 }
 
 func (node *parametricBlockedTurbineNode) massRate() float64 {

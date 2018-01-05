@@ -20,7 +20,7 @@ type TurbineNode interface {
 	nodes.GasChannel
 	nodes.PressureChannel
 	nodes.TemperatureChannel
-	nodes.MassRateChannel
+	nodes.MassRateSource
 
 	PiTStag() float64
 	InputGas() gases.Gas

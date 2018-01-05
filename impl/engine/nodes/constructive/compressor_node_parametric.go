@@ -15,7 +15,9 @@ type CompressorCharFunc func(normMassRate, normPiStag float64) float64
 type ParametricCompressorNode interface {
 	graph.Node
 
-	nodes.ComplexGasChannel
+	nodes.TemperatureChannel
+	nodes.PressureChannel
+	nodes.GasChannel
 	nodes.PowerSource
 	nodes.RPMSource
 
@@ -129,17 +131,6 @@ func (node *parametricCompressorNode) Process() error {
 
 func (node *parametricCompressorNode) GetPorts() []graph.Port {
 	return append(node.baseCompressor.GetPorts(), node.rpmOutput)
-}
-
-// parametric compressor does not declare massRateInput as its required
-// port, cos massRate is its inner property which is balanced
-// with solver while solving the whole system
-func (node *parametricCompressorNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{
-		node.baseCompressor.gasInput,
-		node.baseCompressor.temperatureInput,
-		node.baseCompressor.pressureInput,
-	}
 }
 
 func (node *parametricCompressorNode) GetUpdatePorts() []graph.Port {
