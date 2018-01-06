@@ -57,7 +57,7 @@ func (suite *GapCalculatorTestSuite) SetupTest() {
 	var dMean = 0.6467
 	var gasMassRate float64 = 439
 	var gasDensity = gases.Density(suite.gas, suite.tGas, suite.pGas)
-	var alpha1 = common.ToRadians(21 + 1 / 6)
+	var alpha1 = common.ToRadians(21 + 1/6)
 	var area = math.Pi * dMean * suite.bladeLength
 	suite.ca = gasMassRate / (area * gasDensity * math.Sin(alpha1))
 

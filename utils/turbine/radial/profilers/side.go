@@ -3,11 +3,11 @@ package profilers
 import "github.com/Sovianum/turbocycle/impl/turbine/states"
 
 func NewInletSide(profiler Profiler) Side {
-	return inletSide{profiler:profiler}
+	return inletSide{profiler: profiler}
 }
 
 func NewOutletSide(profiler Profiler) Side {
-	return outletSide{profiler:profiler}
+	return outletSide{profiler: profiler}
 }
 
 type Side interface {
@@ -29,5 +29,3 @@ type outletSide struct {
 func (side outletSide) Triangle(hRel float64) states.VelocityTriangle {
 	return side.profiler.OutletTriangle(hRel)
 }
-
-

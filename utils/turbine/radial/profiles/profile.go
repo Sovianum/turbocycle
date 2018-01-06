@@ -88,19 +88,19 @@ func NewBladeProfile(
 	inletCurveFactor, outletCurveFactor float64,
 ) BladeProfile {
 	var psLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletPSPoint, outletPSPoint, inletPSAngle, math.Pi - outletPSAngle,
+		inletPSPoint, outletPSPoint, inletPSAngle, math.Pi-outletPSAngle,
 	))
 	var ssLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletSSPoint, outletSSPoint, inletSSAngle, math.Pi - outletSSAngle,
+		inletSSPoint, outletSSPoint, inletSSAngle, math.Pi-outletSSAngle,
 	))
 	var meanLine = geom.NewTransformableCurve(geom.NewBezier2FromOrientedPoints(
-		inletMeanPoint, outletMeanPoint, inletMeanAngle, math.Pi - outletMeanAngle,
+		inletMeanPoint, outletMeanPoint, inletMeanAngle, math.Pi-outletMeanAngle,
 	))
 	var inletEdge = geom.NewTransformableCurve(geom.NewBezier3FromOrientedPoints(
-		inletPSPoint, inletSSPoint, math.Pi + inletPSAngle, inletSSAngle, inletCurveFactor,
+		inletPSPoint, inletSSPoint, math.Pi+inletPSAngle, inletSSAngle, inletCurveFactor,
 	))
 	var outletEdge = geom.NewTransformableCurve(geom.NewBezier3FromOrientedPoints(
-		outletPSPoint, outletSSPoint, math.Pi - outletPSAngle, -outletSSAngle, outletCurveFactor,
+		outletPSPoint, outletSSPoint, math.Pi-outletPSAngle, -outletSSAngle, outletCurveFactor,
 	))
 
 	return &bladeProfile{
@@ -182,8 +182,8 @@ func CircularSegment(profile BladeProfile) geom.Segment {
 	}
 
 	var partialSum float64 = 0
-	var partialSums = make([]float64, len(weightedLength) - 1)
-	for i, length := range weightedLength[:len(weightedLength) - 1] {
+	var partialSums = make([]float64, len(weightedLength)-1)
+	for i, length := range weightedLength[:len(weightedLength)-1] {
 		partialSum += length
 		partialSums[i] = partialSum / totalLength
 	}
@@ -231,8 +231,8 @@ func radialPoint(startPoint *mat.VecDense, angle float64, radius float64, direct
 	if math.Sin(angle) < 0 {
 		direction *= -1
 	}
-	var x = startPoint.At(0, 0) - direction * radius*math.Sin(angle)
-	var y = startPoint.At(1, 0) + direction * radius*math.Cos(angle)
+	var x = startPoint.At(0, 0) - direction*radius*math.Sin(angle)
+	var y = startPoint.At(1, 0) + direction*radius*math.Cos(angle)
 	return mat.NewVecDense(2, []float64{x, y})
 }
 

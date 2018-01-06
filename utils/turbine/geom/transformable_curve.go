@@ -9,13 +9,13 @@ type TransformableCurve interface {
 
 func NewTransformableCurve(curve Curve) TransformableCurve {
 	return &transformableCurve{
-		curve:curve,
-		combinator:NewCombinator(),
+		curve:      curve,
+		combinator: NewCombinator(),
 	}
 }
 
 type transformableCurve struct {
-	curve Curve
+	curve      Curve
 	combinator Combinator
 }
 

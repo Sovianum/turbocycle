@@ -65,8 +65,8 @@ type DataPack struct {
 	MassRateCooler float64
 
 	ReGas    float64
-	NuGas float64
-	NuCoef float64
+	NuGas    float64
+	NuCoef   float64
 	AlphaGas float64
 
 	BladeHeat float64

@@ -5,7 +5,7 @@ import "math"
 func TRel(hRel float64, gen BladingGeometryGenerator) float64 {
 	var factor1 = math.Pi / float64(gen.BladeNumber())
 	var factor2 = gen.Elongation() / gen.LRelOut()
-	var factor3 = 1 - (1 - 2 * hRel) * gen.LRelOut()
+	var factor3 = 1 - (1-2*hRel)*gen.LRelOut()
 	return factor1 * factor2 * factor3
 }
 

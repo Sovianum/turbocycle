@@ -11,29 +11,29 @@ import (
 )
 
 func TestInterpPoint(t *testing.T) {
-	var testCases = []struct{
-		point1 *mat.VecDense
-		point2 *mat.VecDense
-		interpFactor float64
+	var testCases = []struct {
+		point1        *mat.VecDense
+		point2        *mat.VecDense
+		interpFactor  float64
 		expectedPoint *mat.VecDense
 	}{
 		{
-			point1:   mat.NewVecDense(2, []float64{0, 0}),
-			point2:   mat.NewVecDense(2, []float64{1, 1}),
-			interpFactor:0,
-			expectedPoint:mat.NewVecDense(2, []float64{0, 0}),
+			point1:        mat.NewVecDense(2, []float64{0, 0}),
+			point2:        mat.NewVecDense(2, []float64{1, 1}),
+			interpFactor:  0,
+			expectedPoint: mat.NewVecDense(2, []float64{0, 0}),
 		},
 		{
-			point1:   mat.NewVecDense(2, []float64{0, 0}),
-			point2:   mat.NewVecDense(2, []float64{1, 1}),
-			interpFactor:1,
-			expectedPoint:mat.NewVecDense(2, []float64{1, 1}),
+			point1:        mat.NewVecDense(2, []float64{0, 0}),
+			point2:        mat.NewVecDense(2, []float64{1, 1}),
+			interpFactor:  1,
+			expectedPoint: mat.NewVecDense(2, []float64{1, 1}),
 		},
 		{
-			point1:   mat.NewVecDense(2, []float64{0, 0}),
-			point2:   mat.NewVecDense(2, []float64{1, 1}),
-			interpFactor:0.5,
-			expectedPoint:mat.NewVecDense(2, []float64{0.5, 0.5}),
+			point1:        mat.NewVecDense(2, []float64{0, 0}),
+			point2:        mat.NewVecDense(2, []float64{1, 1}),
+			interpFactor:  0.5,
+			expectedPoint: mat.NewVecDense(2, []float64{0.5, 0.5}),
 		},
 	}
 

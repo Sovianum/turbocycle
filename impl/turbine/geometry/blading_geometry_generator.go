@@ -25,7 +25,7 @@ func NewGeneratorFromTotalAndMeanAngles(lRelOut, elongation, deltaRel, totalAngl
 		deltaRel:   deltaRel,
 		gammaIn:    gammaIn,
 		gammaOut:   gammaOut,
-		approxTRel:approxTRel,
+		approxTRel: approxTRel,
 	}
 }
 
