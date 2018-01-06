@@ -61,8 +61,8 @@ func TestBurnerNode_Process(t *testing.T) {
 	//todo make more precise calculations above to increase test accuracy
 	assert.True(
 		t,
-		common.ApproxEqual(expectedFuelRate, bn.GetFuelRateRel(), 0.1),
-		fmt.Sprintf("Expected g_m %f, got %f", expectedFuelRate, bn.GetFuelRateRel()),
+		common.ApproxEqual(expectedFuelRate, bn.FuelRateRel(), 0.1),
+		fmt.Sprintf("Expected g_m %f, got %f", expectedFuelRate, bn.FuelRateRel()),
 	)
 
 	var gasMassTheory = fuel.GetCH4().GasMassTheory(gases.GetAir())

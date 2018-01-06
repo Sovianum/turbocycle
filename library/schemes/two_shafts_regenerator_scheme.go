@@ -76,7 +76,7 @@ func (scheme *twoShaftsRegeneratorScheme) GetSpecificPower() float64 {
 
 func (scheme *twoShaftsRegeneratorScheme) GetFuelMassRateRel() float64 {
 	var massRateRel = scheme.burner.MassRateInput().GetState().(states.MassRatePortState).MassRate
-	return scheme.burner.GetFuelRateRel() * massRateRel
+	return scheme.burner.FuelRateRel() * massRateRel
 }
 
 func (scheme *twoShaftsRegeneratorScheme) GetQLower() float64 {

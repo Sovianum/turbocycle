@@ -139,7 +139,7 @@ func (scheme *threeShaftsScheme) GetSpecificPower() float64 {
 func (scheme *threeShaftsScheme) GetFuelMassRateRel() float64 {
 	var burner = scheme.gasGenerator.Burner()
 	var massRateRel = burner.MassRateInput().GetState().(states.MassRatePortState).MassRate
-	return burner.GetFuelRateRel() * massRateRel
+	return burner.FuelRateRel() * massRateRel
 }
 
 func (scheme *threeShaftsScheme) GetQLower() float64 {
