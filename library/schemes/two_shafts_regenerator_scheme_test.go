@@ -39,7 +39,7 @@ func TestTwoShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 			return 0
 		}, 0.9,
 	)
-	var regenerator = constructive.NewRegeneratorNode(0.8, 0.05, constructive.SigmaByColdSide)
+	var regenerator = constructive.NewRegeneratorNode(0.8, 0.05)
 
 	var scheme = NewTwoShaftsRegeneratorScheme(
 		gasSource, inletPressureDrop, turboCascade, burner, compressorTurbinePipe, freeTurbineBlock, regenerator,

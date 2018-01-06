@@ -37,7 +37,7 @@ func NewRegenerativeGasGeneratorNode(
 			etaM, precision,
 		),
 		burner:                  constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
-		regenerator:             constructive.NewRegeneratorNode(sigmaRegenerator, precision, constructive.SigmaByColdSide),
+		regenerator:             constructive.NewRegeneratorNode(sigmaRegenerator, precision),
 		regeneratorPressureDrop: constructive.NewPressureLossNode(sigmaRegeneratorPipe),
 	}
 

@@ -1,19 +1,12 @@
 package constructive
 
 import (
-	"fmt"
-
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
-)
-
-const (
-	SigmaByHotSide  = "sigmaByHotSide"
-	SigmaByColdSide = "sigmaByColdSide"
 )
 
 type RegeneratorNode interface {
@@ -28,11 +21,10 @@ type RegeneratorNode interface {
 	Sigma() float64
 }
 
-func NewRegeneratorNode(sigma, precision float64, mode string) RegeneratorNode {
+func NewRegeneratorNode(sigma, precision float64) RegeneratorNode {
 	var result = &regeneratorNode{
 		sigma:     sigma,
 		precision: precision,
-		mode:      mode,
 	}
 
 	graph.AttachAllPorts(
@@ -76,7 +68,6 @@ type regeneratorNode struct {
 
 	sigma     float64
 	precision float64
-	mode      string
 }
 
 func (node *regeneratorNode) HotInput() nodes.ComplexGasSink {
@@ -135,15 +126,7 @@ func (node *regeneratorNode) Sigma() float64 {
 }
 
 func (node *regeneratorNode) Process() error {
-	var iterFunc func(float64, float64) (float64, float64)
-	switch node.mode {
-	case SigmaByColdSide:
-		iterFunc = node.getNewTOutSigmaByColdSide
-	case SigmaByHotSide:
-		iterFunc = node.getNewTOutSigmaByHotSide
-	default:
-		return fmt.Errorf("invalid Regenerator node state: %s", node.mode)
-	}
+	var iterFunc = node.getNewTOutIter
 
 	var tStagColdOut, tStagHotOut = node.getNewTOut(node.tStagColdIn(), node.tStagHotIn(), iterFunc)
 	graph.SetAll(
@@ -187,7 +170,7 @@ func (node *regeneratorNode) getNewTOut(
 	return
 }
 
-func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
+func (node *regeneratorNode) getNewTOutIter(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
 	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRatePortState).MassRate
 	var hotGas = node.hotGasInput.GetState().(states.GasPortState).Gas
 
@@ -200,22 +183,6 @@ func (node *regeneratorNode) getNewTOutSigmaByColdSide(tStagColdOutCurr, tStagHo
 
 	tStagColdOut = node.tStagColdIn() + node.sigma*(node.tStagHotIn()-node.tStagColdIn())
 	tStagHotOut = node.sigma/heatRateFactor*node.tStagColdIn() + (1-node.sigma/heatRateFactor)*node.tStagHotIn()
-	return
-}
-
-func (node *regeneratorNode) getNewTOutSigmaByHotSide(tStagColdOutCurr, tStagHotOutCurr float64) (tStagColdOut, tStagHotOut float64) {
-	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRatePortState).MassRate
-	var hotGas = node.hotGasInput.GetState().(states.GasPortState).Gas
-
-	var coldMassRate = node.coldMassRateInput.GetState().(states.MassRatePortState).MassRate
-	var coldGas = node.coldGasInput.GetState().(states.GasPortState).Gas
-
-	var hotHeatRate = hotMassRate * gases.CpMean(hotGas, node.tStagHotIn(), tStagHotOutCurr, nodes.DefaultN)
-	var coldHeatRate = coldMassRate * gases.CpMean(coldGas, node.tStagColdIn(), tStagColdOutCurr, nodes.DefaultN)
-	var heatRateFactor = hotHeatRate / coldHeatRate
-
-	tStagHotOut = node.tStagColdIn() + node.sigma*(node.tStagHotIn()-node.tStagColdIn())
-	tStagColdOut = node.tStagColdIn() + heatRateFactor*node.sigma*(node.tStagHotIn()-node.tStagColdIn())
 	return
 }
 
