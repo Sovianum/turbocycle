@@ -12,7 +12,7 @@ import (
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
-type TurbineCharacteristic func(lambdaU, normPiStag float64) float64
+type TurbineCharFunc func(lambdaU, normPiStag float64) float64
 
 type ParametricTurbineNode interface {
 	TurbineNode
@@ -25,9 +25,9 @@ type ParametricTurbineNode interface {
 func NewSimpleParametricTurbineNode(
 	massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision,
 	leakMassRateCoef, coolMasRateCoef, inflowMassRateCoef float64,
-	normMassRateChar, normEtaChar TurbineCharacteristic,
+	normMassRateChar, normEtaChar TurbineCharFunc,
 ) ParametricTurbineNode {
-	return NewParametricBlockedTurbineNode(
+	return NewParametricTurbineNode(
 		massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision,
 		func(TurbineNode) float64 {
 			return leakMassRateCoef
@@ -42,10 +42,10 @@ func NewSimpleParametricTurbineNode(
 	)
 }
 
-func NewParametricBlockedTurbineNode(
+func NewParametricTurbineNode(
 	massRate0, piT0, eta0, t0, p0, inletMeanDiameter, precision float64,
 	leakMassRateFunc, coolMasRateFunc, inflowMassRateFunc func(TurbineNode) float64,
-	normMassRateChar, normEtaChar TurbineCharacteristic,
+	normMassRateChar, normEtaChar TurbineCharFunc,
 ) ParametricTurbineNode {
 	var result = &parametricTurbineNode{
 		precision: precision,
@@ -86,8 +86,8 @@ type parametricTurbineNode struct {
 	coolMasRateRel    func(TurbineNode) float64
 	inflowMassRateRel func(TurbineNode) float64
 
-	normMassRateChar TurbineCharacteristic
-	normEtaChar      TurbineCharacteristic
+	normMassRateChar TurbineCharFunc
+	normEtaChar      TurbineCharFunc
 
 	t0 float64
 	p0 float64

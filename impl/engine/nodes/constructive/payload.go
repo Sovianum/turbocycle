@@ -19,7 +19,7 @@ type Payload interface {
 	Power() float64
 }
 
-func NewPayload(powerCharacteristic func(normRpm float64) float64, rpm0, power0 float64) Payload {
+func NewPayload(rpm0, power0 float64, powerCharacteristic func(normRpm float64) float64) Payload {
 	var result = &payload{
 		powerCharacteristic: powerCharacteristic,
 

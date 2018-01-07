@@ -122,8 +122,8 @@ func (suite *SysCallTestSuite) SetupTest() {
 
 	graph.Link(suite.assembler.GetVectorPort(), suite.out.GetRequirePorts()[0])
 
-	suite.assembler.GetPairPort(suite.nodeC.GetUpdatePorts()[0])
-	suite.assembler.GetPairPort(suite.nodeD.GetUpdatePorts()[0])
+	suite.assembler.AddInputPorts(suite.nodeC.GetUpdatePorts()[0])
+	suite.assembler.AddInputPorts(suite.nodeD.GetUpdatePorts()[0])
 
 	var err error = nil
 	suite.network, err = graph.NewNetwork([]graph.Node{

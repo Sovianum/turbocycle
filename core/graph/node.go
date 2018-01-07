@@ -11,6 +11,10 @@ type Node interface {
 	ContextDefined() bool
 }
 
+func NewBaseNode() *BaseNode {
+	return &BaseNode{}
+}
+
 type BaseNode struct {
 	name string
 }

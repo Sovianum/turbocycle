@@ -7,6 +7,48 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 )
 
+func NewEquality(port1, port2 graph.Port) graph.ReduceNode {
+	var groupReduceFunc = func(curr float64, port graph.Port) (float64, error) {
+		var val = port.GetState().Value()
+		var floatVal, ok = val.(float64)
+
+		if !ok {
+			return 0, common.GetTypeError("float64", val)
+		}
+
+		return curr * floatVal, nil
+	}
+
+	var factor = 1.
+	var totalReduceFunc = func(curr, new float64) (float64, error) {
+		var result = curr + new*factor
+		factor *= -1
+		return result, nil
+	}
+
+	var result = graph.NewReduceNode(
+		groupReduceFunc, totalReduceFunc, 1, 0,
+	)
+	result.AddPortGroup(port1, port2)
+	return result
+}
+
+func NewSum(ports ...graph.Port) graph.ReduceNode {
+	var result = NewMultiAdder()
+	for _, port := range ports {
+		result.AddPortGroup(port)
+	}
+	return result
+}
+
+func NewMultiAdderFromPorts(ports [][]graph.Port) graph.ReduceNode {
+	var result = NewMultiAdder()
+	for _, group := range ports {
+		result.AddPortGroup(group...)
+	}
+	return result
+}
+
 func NewMultiAdder() graph.ReduceNode {
 	var groupReduceFunc = func(curr float64, port graph.Port) (float64, error) {
 		var val = port.GetState().Value()

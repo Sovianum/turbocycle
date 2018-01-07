@@ -14,6 +14,7 @@ type ReduceNode interface {
 func NewReduceNode(groupReduceFunc PortReduceFunc, totalReduceFunc FloatReduceFunc, groupInit, totalInit float64) ReduceNode {
 	var result = &reduceNode{
 		inputPorts:  make([]Port, 0),
+		pairPorts:   make([]Port, 0),
 		groupLimits: []int{0},
 
 		groupReduceFunc: groupReduceFunc,
@@ -30,6 +31,7 @@ type reduceNode struct {
 	*BaseNode
 
 	inputPorts  []Port
+	pairPorts   []Port
 	groupLimits []int
 
 	outputPort Port
@@ -48,6 +50,12 @@ func (node *reduceNode) OutputPort() Port {
 func (node *reduceNode) AddPortGroup(ports ...Port) {
 	node.groupLimits = append(node.groupLimits, len(node.inputPorts)+len(ports))
 	node.inputPorts = append(node.inputPorts, ports...)
+
+	for _, port := range ports {
+		var pairPort = NewAttachedPort(node)
+		Link(port, pairPort)
+		node.pairPorts = append(node.pairPorts, pairPort)
+	}
 }
 
 func (node *reduceNode) GetName() string {

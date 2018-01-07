@@ -11,8 +11,8 @@ import (
 // vector. the order of adding is preserved
 type VectorAssemblerNode interface {
 	Node
-	GetPairPort(outerPort Port) Port
-	DeletePairPort(outerPort Port)
+	AddInputPorts(outerPorts ...Port)
+	DeleteInputPorts(outerPorts ...Port)
 	GetVectorPort() Port
 }
 
@@ -67,10 +67,26 @@ func (node *vectorAssemblerNode) GetPorts() []Port {
 	return ports
 }
 
-func (node *vectorAssemblerNode) GetPairPort(outerPort Port) Port {
-	var portId, ok = node.outerPortMap[outerPort]
+func (node *vectorAssemblerNode) AddInputPorts(outerPorts ...Port) {
+	for _, port := range outerPorts {
+		node.addInputPort(port)
+	}
+}
+
+func (node *vectorAssemblerNode) DeleteInputPorts(outerPorts ...Port) {
+	for _, port := range outerPorts {
+		node.deleteInputPort(port)
+	}
+}
+
+func (node *vectorAssemblerNode) GetVectorPort() Port {
+	return node.vectorPort
+}
+
+func (node *vectorAssemblerNode) addInputPort(outerPort Port) {
+	var _, ok = node.outerPortMap[outerPort]
 	if ok {
-		return node.inputPortMap[portId]
+		return
 	}
 
 	node.portCnt++
@@ -78,21 +94,15 @@ func (node *vectorAssemblerNode) GetPairPort(outerPort Port) Port {
 	var port = NewAttachedPort(node)
 	node.inputPortMap[node.portCnt] = port
 	Link(port, outerPort)
-
-	return port
 }
 
-func (node *vectorAssemblerNode) DeletePairPort(outerPort Port) {
+func (node *vectorAssemblerNode) deleteInputPort(outerPort Port) {
 	var id, ok = node.outerPortMap[outerPort]
 	if !ok {
 		return
 	}
 	delete(node.outerPortMap, outerPort)
 	delete(node.inputPortMap, id)
-}
-
-func (node *vectorAssemblerNode) GetVectorPort() Port {
-	return node.vectorPort
 }
 
 func (node *vectorAssemblerNode) getInputPorts() []Port {

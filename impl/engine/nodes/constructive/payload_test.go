@@ -18,7 +18,7 @@ func TestPayload_Process_Linear(t *testing.T) {
 		return 1 - (normRpm-1)*1e5
 	}
 
-	var node = NewPayload(f, rpm0, power0)
+	var node = NewPayload(rpm0, power0, f)
 
 	var normRpm = 0.5
 	node.SetNormRPM(normRpm)
@@ -34,7 +34,7 @@ func TestPayload_Process_Linear_Solver(t *testing.T) {
 		return normRpm
 	}
 
-	var node = NewPayload(f, rpm0, power0)
+	var node = NewPayload(rpm0, power0, f)
 
 	var v = variator.FromCallables(node.NormRPM, node.SetNormRPM)
 	var systemCall = func() (*mat.VecDense, error) {

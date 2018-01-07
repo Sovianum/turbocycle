@@ -91,7 +91,7 @@ func TestParametricBlockedTurbineNode_Process_Smoke_NonLinear(t *testing.T) {
 	)
 }
 
-func getTestParametricTurbine(normMassRateChar, normEtaChar TurbineCharacteristic) ParametricTurbineNode {
+func getTestParametricTurbine(normMassRateChar, normEtaChar TurbineCharFunc) ParametricTurbineNode {
 	var turbine = NewSimpleParametricTurbineNode(
 		massRate0, piT0, etaT0, states.StandardTemperature, states.StandardPressure,
 		1, 1e-3, 0, 0, 0,
