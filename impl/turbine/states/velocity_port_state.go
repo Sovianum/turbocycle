@@ -26,6 +26,10 @@ func NewVelocityPortState(triangle VelocityTriangle, triangleType string) Veloci
 	}
 }
 
+func (state VelocityPortState) Value() interface{} {
+	return state.Triangle
+}
+
 func (state VelocityPortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Triangle VelocityTriangle

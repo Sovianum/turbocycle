@@ -15,6 +15,10 @@ func NewPressurePortState(pStag float64) PressurePortState {
 	return PressurePortState{PStag: pStag}
 }
 
+func (state PressurePortState) Value() interface{} {
+	return state.PStag
+}
+
 func (state PressurePortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		PStag float64 `json:"p_stag"`

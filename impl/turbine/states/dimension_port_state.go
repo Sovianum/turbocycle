@@ -16,6 +16,10 @@ func NewDiameterPortState(diameter float64) DimensionPortState {
 	return DimensionPortState{Dimension: diameter}
 }
 
+func (state DimensionPortState) Value() interface{} {
+	return state.Dimension
+}
+
 func (state DimensionPortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Diameter float64 `json:"diameter"`

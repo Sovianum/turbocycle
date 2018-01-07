@@ -15,6 +15,10 @@ func NewPowerPortState(lSpecific float64) PowerPortState {
 	return PowerPortState{LSpecific: lSpecific}
 }
 
+func (state PowerPortState) Value() interface{} {
+	return state.LSpecific
+}
+
 func StandardPowerState() PowerPortState {
 	return NewPowerPortState(0)
 }

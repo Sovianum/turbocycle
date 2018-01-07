@@ -15,6 +15,10 @@ func NewMassRatePortState(massRate float64) MassRatePortState {
 	return MassRatePortState{MassRate: massRate}
 }
 
+func (state MassRatePortState) Value() interface{} {
+	return state.MassRate
+}
+
 func (state MassRatePortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		MassRateRel float64 `json:"mass_rate"`

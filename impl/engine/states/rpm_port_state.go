@@ -13,6 +13,10 @@ type RPMPortState struct {
 	RPM float64
 }
 
+func (state RPMPortState) Value() interface{} {
+	return state.RPM
+}
+
 func (state RPMPortState) Mix(another graph.PortState, relaxCoef float64) (graph.PortState, error) {
 	switch v := another.(type) {
 	case PowerPortState:

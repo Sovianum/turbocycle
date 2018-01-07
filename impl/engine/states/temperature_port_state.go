@@ -15,6 +15,10 @@ func NewTemperaturePortState(tStag float64) TemperaturePortState {
 	return TemperaturePortState{TStag: tStag}
 }
 
+func (state TemperaturePortState) Value() interface{} {
+	return state.TStag
+}
+
 func (state TemperaturePortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		TStag float64 `json:"t_stag"`

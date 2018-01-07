@@ -15,6 +15,10 @@ type VectorPortState struct {
 	Vec *mat.VecDense
 }
 
+func (state VectorPortState) Value() interface{} {
+	return state.Vec
+}
+
 func (state VectorPortState) Mix(another PortState, relaxCoef float64) (PortState, error) {
 	switch v := another.(type) {
 	case VectorPortState:

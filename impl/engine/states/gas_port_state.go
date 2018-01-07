@@ -17,6 +17,10 @@ func NewGasPortState(gas gases.Gas) GasPortState {
 	}
 }
 
+func (state GasPortState) Value() interface{} {
+	return state.Gas
+}
+
 func (state GasPortState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct{}{})
 }

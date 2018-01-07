@@ -14,6 +14,10 @@ type NumberPortState struct {
 	Num float64
 }
 
+func (state NumberPortState) Value() interface{} {
+	return state.Num
+}
+
 func (state NumberPortState) Mix(another PortState, relaxCoef float64) (PortState, error) {
 	switch v := another.(type) {
 	case NumberPortState:

@@ -12,6 +12,10 @@ type TestPortState struct {
 	val float64
 }
 
+func (state TestPortState) Value() interface{} {
+	return state.val
+}
+
 func (state TestPortState) Mix(another PortState, relaxCoef float64) (PortState, error) {
 	return TestPortState{
 		val: common.Lerp(state.val, another.(TestPortState).val, relaxCoef),
