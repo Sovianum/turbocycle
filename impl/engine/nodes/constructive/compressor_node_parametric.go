@@ -74,7 +74,6 @@ func NewParametricCompressorNode(
 }
 
 type parametricCompressorNode struct {
-	graph.BaseNode
 	*baseCompressor
 
 	rpmOutput     graph.Port
@@ -124,7 +123,10 @@ func (node *parametricCompressorNode) Process() error {
 		},
 		[]graph.Port{
 			node.massRateInput,
-			node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+			node.gasOutput,
+			node.temperatureOutput,
+			node.pressureOutput,
+			node.massRateOutput,
 		},
 	)
 	node.powerOutput.SetState(

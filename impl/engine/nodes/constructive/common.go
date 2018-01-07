@@ -19,8 +19,8 @@ func NewEquality(port1, port2 graph.Port) graph.ReduceNode {
 		return curr * floatVal, nil
 	}
 
-	var factor = 1.
 	var totalReduceFunc = func(curr, new float64) (float64, error) {
+		var factor = 1.
 		var result = curr + new*factor
 		factor *= -1
 		return result, nil

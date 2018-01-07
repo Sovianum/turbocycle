@@ -5,7 +5,6 @@ import (
 	"github.com/Sovianum/turbocycle/core/math"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -31,8 +30,6 @@ func NewSingleShaftScheme(
 		burner:     burner,
 		turbine:    turbine,
 		payload:    payload,
-
-		hub: helper.NewHubNode(),
 
 		gasSource:            source.NewGasSourceNode(gas),
 		temperatureSource:    source.NewTemperatureSourceNode(tAtm),
@@ -63,8 +60,6 @@ type singleShaftScheme struct {
 	turbine    c.ParametricTurbineNode
 	payload    c.Payload
 
-	hub helper.HubNode
-
 	gasSource            source.GasSourceNode
 	temperatureSource    source.TemperatureSourceNode
 	inputPressureSource  source.PressureSourceNode
@@ -87,10 +82,12 @@ type singleShaftScheme struct {
 
 func (scheme *singleShaftScheme) GetNetwork() (graph.Network, error) {
 	var nodes = []graph.Node{
-		scheme.compressor, scheme.burner, scheme.turbine, scheme.payload,
-		scheme.hub, scheme.gasSource, scheme.temperatureSource,
+		scheme.gasSource, scheme.temperatureSource,
 		scheme.inputPressureSource, scheme.outputPressureSource,
-		scheme.burnerTemperatureSource, scheme.massRateEq, scheme.powerEq,
+		scheme.burnerTemperatureSource,
+		scheme.compressor, scheme.burner,
+		scheme.turbine, scheme.payload,
+		scheme.massRateEq, scheme.powerEq,
 		scheme.rpmEq, scheme.pressureEq, scheme.temperatureEq,
 		scheme.assembler,
 	}
@@ -117,9 +114,9 @@ func (scheme *singleShaftScheme) Payload() c.Payload {
 func (scheme *singleShaftScheme) linkPorts() {
 	graph.LinkAll(
 		[]graph.Port{
-			scheme.inputPressureSource.PressureOutput(),
-			scheme.temperatureSource.TemperatureOutput(),
 			scheme.gasSource.GasOutput(),
+			scheme.temperatureSource.TemperatureOutput(),
+			scheme.inputPressureSource.PressureOutput(),
 		},
 		[]graph.Port{
 			scheme.compressor.GasInput(),
@@ -127,6 +124,7 @@ func (scheme *singleShaftScheme) linkPorts() {
 			scheme.compressor.PressureInput(),
 		},
 	)
+	sink.SinkPort(scheme.compressor.MassRateInput())
 
 	graph.LinkAll(
 		[]graph.Port{
@@ -143,12 +141,10 @@ func (scheme *singleShaftScheme) linkPorts() {
 		},
 	)
 
-	graph.Link(scheme.burner.TemperatureOutput(), scheme.hub.Inlet())
-
 	graph.LinkAll(
 		[]graph.Port{
 			scheme.burner.GasOutput(),
-			scheme.hub.Outlet1(),
+			scheme.burner.TemperatureOutput(),
 			scheme.burner.PressureOutput(),
 		},
 		[]graph.Port{
@@ -158,9 +154,8 @@ func (scheme *singleShaftScheme) linkPorts() {
 		},
 	)
 
-	graph.Link(scheme.turbine.RPMInput(), scheme.compressor.RPMOutput())
+	graph.Link(scheme.compressor.RPMOutput(), scheme.turbine.RPMInput())
 
-	sink.SinkPort(scheme.compressor.MassRateInput())
 	sink.SinkPort(scheme.turbine.TemperatureOutput())
 	sink.SinkPort(scheme.turbine.GasOutput())
 }
@@ -170,24 +165,33 @@ func (scheme *singleShaftScheme) setEquations() {
 		scheme.burner.MassRateOutput(),
 		scheme.turbine.MassRateInput(),
 	)
+	scheme.massRateEq.SetName("massRateEq")
+
 	// todo check sign of specific labour of payload
 	scheme.powerEq = c.NewMultiAdderFromPorts([][]graph.Port{
 		{scheme.turbine.PowerOutput(), scheme.turbine.MassRateOutput()},
-		{scheme.compressor.PowerOutput(), scheme.compressor.MassRateOutput()},
+		{scheme.compressor.PowerOutput(), graph.NewWeakPort(scheme.compressor.MassRateOutput())},
 		{scheme.payload.PowerOutput()},
 	})
+	scheme.powerEq.SetName("powerEq")
+
 	scheme.rpmEq = c.NewEquality(
 		scheme.payload.RPMOutput(),
-		scheme.turbine.RPMInput(),
+		graph.NewWeakPort(scheme.turbine.RPMInput()),
 	)
+	scheme.rpmEq.SetName("rpmEq")
+
 	scheme.pressureEq = c.NewEquality(
 		scheme.turbine.PressureOutput(),
 		scheme.outputPressureSource.PressureOutput(),
 	)
+	scheme.pressureEq.SetName("pressureEq")
+
 	scheme.temperatureEq = c.NewEquality(
 		scheme.burnerTemperatureSource.TemperatureOutput(),
-		scheme.hub.Outlet2(),
+		graph.NewWeakPort(scheme.burner.TemperatureOutput()),
 	)
+	scheme.temperatureEq.SetName("temperatureEq")
 
 	scheme.assembler.AddInputPorts(
 		scheme.massRateEq.OutputPort(),

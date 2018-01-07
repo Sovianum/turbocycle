@@ -38,7 +38,7 @@ func TestNewSingleShaftScheme_Smoke(t *testing.T) {
 	assert.Nil(t, err)
 
 	var converged = false
-	converged, err = network.Solve(1, 1, 100, 1e-3)
+	converged, err = network.Solve(1, 2, 100, 1e-3)
 
 	assert.True(t, converged)
 	assert.Nil(t, err)

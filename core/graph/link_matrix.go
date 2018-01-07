@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -225,4 +226,20 @@ func getInaccessibleErrMsg(nodes []Node) string {
 		nodeNames[i] = node.GetName()
 	}
 	return inaccessibleNodesMsg + ": " + strings.Join(nodeNames, ", ")
+}
+
+func sprintMatrix(m [][]bool) string {
+	var result = ""
+	for _, row := range m {
+		var rowStr = ""
+		for _, col := range row {
+			if !col {
+				rowStr += "_ "
+			} else {
+				rowStr += "+ "
+			}
+		}
+		result += fmt.Sprintf("%s\n", rowStr)
+	}
+	return result
 }

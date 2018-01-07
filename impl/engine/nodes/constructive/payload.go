@@ -35,7 +35,7 @@ func NewPayload(rpm0, power0 float64, powerCharacteristic func(normRpm float64) 
 }
 
 type payload struct {
-	*graph.BaseNode
+	graph.BaseNode
 
 	rpmOutput   graph.Port
 	powerOutput graph.Port

@@ -22,7 +22,7 @@ func (state RPMPortState) Mix(another graph.PortState, relaxCoef float64) (graph
 	case PowerPortState:
 		var casted = another.(RPMPortState)
 
-		return NewPowerPortState(
+		return NewRPMPortState(
 			common.Lerp(state.RPM, casted.RPM, relaxCoef),
 		), nil
 	default:
@@ -32,7 +32,7 @@ func (state RPMPortState) Mix(another graph.PortState, relaxCoef float64) (graph
 
 func (state RPMPortState) MaxResidual(another graph.PortState) (float64, error) {
 	switch v := another.(type) {
-	case PowerPortState:
+	case RPMPortState:
 		return common.GetRelResidual(state.RPM, another.(RPMPortState).RPM), nil
 	default:
 		return 0, common.GetTypeError("RPMPortState", v)

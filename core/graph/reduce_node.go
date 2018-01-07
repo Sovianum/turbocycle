@@ -28,7 +28,7 @@ func NewReduceNode(groupReduceFunc PortReduceFunc, totalReduceFunc FloatReduceFu
 }
 
 type reduceNode struct {
-	*BaseNode
+	BaseNode
 
 	inputPorts  []Port
 	pairPorts   []Port
@@ -89,7 +89,7 @@ func (node *reduceNode) Process() error {
 }
 
 func (node *reduceNode) GetRequirePorts() []Port {
-	return node.inputPorts
+	return node.pairPorts
 }
 
 func (node *reduceNode) GetUpdatePorts() []Port {
