@@ -20,6 +20,7 @@ type ParametricCompressorNode interface {
 	nodes.GasChannel
 	nodes.PowerSource
 	nodes.RPMSource
+	nodes.MassRateChannel
 
 	nodes.PressureIn
 	nodes.PressureOut
@@ -67,6 +68,7 @@ func NewParametricCompressorNode(
 
 	result.baseCompressor = newBaseCompressor(result, precision)
 	result.rpmOutput = graph.NewAttachedPort(result)
+	result.massRateInput = graph.NewAttachedPort(result)
 
 	return result
 }
@@ -75,7 +77,8 @@ type parametricCompressorNode struct {
 	graph.BaseNode
 	*baseCompressor
 
-	rpmOutput graph.Port
+	rpmOutput     graph.Port
+	massRateInput graph.Port
 
 	normEtaCharacteristic CompressorCharFunc
 	normRpmCharacteristic CompressorCharFunc
@@ -110,14 +113,19 @@ func (node *parametricCompressorNode) Process() error {
 	}
 	var pStagOut = node.pStagIn() * node.piStag()
 
+	var massRate = node.massRate()
 	graph.SetAll(
 		[]graph.PortState{
+			states.NewMassRatePortState(massRate),
 			node.gasInput.GetState(),
 			states.NewTemperaturePortState(tStagOut),
 			states.NewPressurePortState(pStagOut),
-			states.NewMassRatePortState(node.massRate()),
+			states.NewMassRatePortState(massRate),
 		},
-		[]graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput},
+		[]graph.Port{
+			node.massRateInput,
+			node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
+		},
 	)
 	node.powerOutput.SetState(
 		states.NewPowerPortState(-node.lSpecific()),
@@ -130,15 +138,19 @@ func (node *parametricCompressorNode) Process() error {
 }
 
 func (node *parametricCompressorNode) GetPorts() []graph.Port {
-	return append(node.baseCompressor.GetPorts(), node.rpmOutput)
+	return append(node.baseCompressor.GetPorts(), node.rpmOutput, node.massRateInput)
 }
 
 func (node *parametricCompressorNode) GetUpdatePorts() []graph.Port {
-	return append(node.baseCompressor.GetUpdatePorts(), node.rpmOutput)
+	return append(node.baseCompressor.GetUpdatePorts(), node.rpmOutput, node.massRateInput)
 }
 
 func (node *parametricCompressorNode) RPMOutput() graph.Port {
 	return node.rpmOutput
+}
+
+func (node *parametricCompressorNode) MassRateInput() graph.Port {
+	return node.massRateInput
 }
 
 func (node *parametricCompressorNode) PiStag() float64 {
