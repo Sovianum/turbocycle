@@ -17,6 +17,7 @@ type TurbineCharacteristic func(lambdaU, normPiStag float64) float64
 type ParametricTurbineNode interface {
 	TurbineNode
 	nodes.RPMSink
+	nodes.MassRateSink
 	NormPiT() float64
 	SetNormPiT(normPiT float64)
 }
@@ -70,6 +71,7 @@ func NewParametricBlockedTurbineNode(
 
 	result.baseBlockedTurbine = NewBaseBlockedTurbine(result, precision)
 	result.rpmInput = graph.NewAttachedPort(result)
+	result.massRateInput = graph.NewAttachedPort(result)
 	return result
 }
 
@@ -77,7 +79,8 @@ type parametricTurbineNode struct {
 	graph.BaseNode
 	*baseBlockedTurbine
 
-	rpmInput graph.Port
+	rpmInput      graph.Port
+	massRateInput graph.Port
 
 	leakMassRateFunc  func(TurbineNode) float64
 	coolMasRateRel    func(TurbineNode) float64
@@ -104,19 +107,18 @@ func (node *parametricTurbineNode) GetName() string {
 }
 
 func (node *parametricTurbineNode) GetPorts() []graph.Port {
-	return append(node.baseBlockedTurbine.GetPorts(), node.rpmInput)
+	return append(node.baseBlockedTurbine.GetPorts(), node.rpmInput, node.massRateInput)
 }
 
 // parametric turbine does not declare massRateInput as its required
 // port, cos massRate is its inner property which is balanced
 // with solver while solving the whole system
+func (node *parametricTurbineNode) GetUpdatePorts() []graph.Port {
+	return append(node.baseBlockedTurbine.GetPorts(), node.massRateInput)
+}
+
 func (node *parametricTurbineNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{
-		node.baseBlockedTurbine.gasInput,
-		node.baseBlockedTurbine.temperatureInput,
-		node.baseBlockedTurbine.pressureInput,
-		node.rpmInput,
-	}
+	return append(node.baseBlockedTurbine.GetRequirePorts(), node.rpmInput)
 }
 
 func (node *parametricTurbineNode) Process() error {
@@ -128,13 +130,16 @@ func (node *parametricTurbineNode) Process() error {
 	var piTStag = node.piTStag()
 	var pStagOut = node.pStagIn() / piTStag
 
-	var massRateOut = node.massRate() * node.massRateRelFactor()
+	var massRateIn = node.massRate()
+	var massRateOut = massRateIn * node.massRateRelFactor()
 
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
 	var lSpecific = -cp * (node.tStagIn() - tStagOut)
 
 	graph.SetAll(
 		[]graph.PortState{
+			states.NewMassRatePortState(massRateIn),
+
 			node.gasInput.GetState(),
 			states.NewTemperaturePortState(tStagOut),
 			states.NewPressurePortState(pStagOut),
@@ -142,6 +147,7 @@ func (node *parametricTurbineNode) Process() error {
 			states.NewPowerPortState(lSpecific),
 		},
 		[]graph.Port{
+			node.massRateInput,
 			node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
 			node.powerOutput,
 		},
@@ -181,6 +187,10 @@ func (node *parametricTurbineNode) PiTStag() float64 {
 
 func (node *parametricTurbineNode) RPMInput() graph.Port {
 	return node.rpmInput
+}
+
+func (node *parametricTurbineNode) MassRateInput() graph.Port {
+	return node.massRateInput
 }
 
 func (node *parametricTurbineNode) getTStagOut() (float64, error) {
