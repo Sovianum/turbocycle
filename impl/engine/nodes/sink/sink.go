@@ -11,6 +11,14 @@ func NewSinkNode() SinkNode {
 	return result
 }
 
+func SinkAll(ports ...graph.Port) []SinkNode {
+	var result = make([]SinkNode, len(ports))
+	for i, port := range ports {
+		result[i] = SinkPort(port)
+	}
+	return result
+}
+
 func SinkPort(port graph.Port) SinkNode {
 	var node = NewSinkNode()
 	graph.Link(node.Input(), port)

@@ -15,6 +15,8 @@ type SingleShaftScheme interface {
 	Burner() c.ParametricBurnerNode
 	Turbine() c.ParametricTurbineNode
 	Payload() c.Payload
+	Assembler() graph.VectorAssemblerNode
+	Variators() []variator.Variator
 	GetNetwork() (graph.Network, error)
 }
 
@@ -78,6 +80,14 @@ type singleShaftScheme struct {
 	variators []variator.Variator
 
 	solver math.Solver
+}
+
+func (scheme *singleShaftScheme) Variators() []variator.Variator {
+	return scheme.variators
+}
+
+func (scheme *singleShaftScheme) Assembler() graph.VectorAssemblerNode {
+	return scheme.assembler
 }
 
 func (scheme *singleShaftScheme) GetNetwork() (graph.Network, error) {

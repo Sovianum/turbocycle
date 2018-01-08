@@ -3,16 +3,20 @@ package parametric
 import (
 	"testing"
 
+	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
+	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
+	"gonum.org/v1/gonum/mat"
 )
 
 const (
-	massRate0        = 50
-	piTC0            = 2
-	piC0             = 10
+	cMassRate0       = 3
+	tMassRate0       = 20
+	piTC0            = 14
+	piC0             = 15
 	etaTC0           = 0.9
 	etaC0            = 0.85
 	rpm0             = 1e5
@@ -23,13 +27,13 @@ const (
 	etaBurn          = 0.99
 	lambdaIn0        = 0.2
 	tStagIn0         = 500
-	fuelMassRateRel0 = 0.02
-	power0           = 1e6
+	fuelMassRateRel0 = 0.03
+	power0           = 4.47e6
 	precision        = 1e-3
 
 	pAtm = 1e5
 	tAtm = 288
-	tGas = 1800
+	tGas = 1700
 )
 
 func TestNewSingleShaftScheme_Smoke(t *testing.T) {
@@ -41,6 +45,20 @@ func TestNewSingleShaftScheme_Smoke(t *testing.T) {
 	converged, err = network.Solve(1, 2, 100, 1e-3)
 
 	assert.True(t, converged)
+	assert.Nil(t, err)
+
+	var sysCall = variator.SysCallFromNetwork(
+		network, scheme.Assembler().GetVectorPort(), 1, 2, 100, 1e-3,
+	)
+	var variators = scheme.Variators()
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
+
+	var variatorSolver = variator.NewVariatorSolver(sysCall, variators, solverGen)
+
+	_, err = variatorSolver.Solve(
+		mat.NewVecDense(5, []float64{0.8, 0.8, 0.02, 1, 1}),
+		1e-6, 100,
+	)
 	assert.Nil(t, err)
 }
 
@@ -74,15 +92,15 @@ func getTestScheme(
 	powerChar func(normRPM float64) float64,
 ) SingleShaftScheme {
 	var compressor = c.NewParametricCompressorNode(
-		massRate0, piC0, rpm0, etaC0, t0, p0, precision,
+		cMassRate0, piC0, rpm0, etaC0, t0, p0, precision,
 		compressorNormEtaChar, compressorNormRpmChar,
 	)
 	var burner = c.NewParametricBurnerNode(
 		fuel.GetCH4(), tFuel, t0, etaBurn, lambdaIn0, p0*piC0, tStagIn0,
-		massRate0, fuelMassRateRel0, precision, burnerSigmaFunc,
+		cMassRate0, fuelMassRateRel0, precision, burnerSigmaFunc,
 	)
 	var turbine = c.NewSimpleParametricTurbineNode(
-		massRate0, piTC0, etaTC0, t0, p0, dMean, precision,
+		tMassRate0, piTC0, etaTC0, t0, p0, dMean, precision,
 		0, 0, 0,
 		turbineNormMassRateChar, turbineNormEtaChar,
 	)
