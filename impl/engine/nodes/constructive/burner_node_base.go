@@ -2,6 +2,7 @@ package constructive
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -16,10 +17,16 @@ func newBaseBurner(node graph.Node, fuel fuel.GasFuel, etaBurn, tFuel, t0, preci
 		precision: precision,
 	}
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		node,
-		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
-		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+			&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.GasInputTag, nodes.MassRateInputTag,
+			nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.GasOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 	return result
 }

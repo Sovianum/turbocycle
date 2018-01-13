@@ -39,19 +39,27 @@ func NewTurboCascadeNode(
 
 	result.linkPorts()
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.compressorGasInput, &result.compressorTemperatureInput,
-		&result.compressorPressureInput, &result.compressorMassRateInput,
+		[]*graph.Port{
+			&result.compressorGasInput, &result.compressorTemperatureInput,
+			&result.compressorPressureInput, &result.compressorMassRateInput,
 
-		&result.compressorGasOutput, &result.compressorTemperatureOutput,
-		&result.compressorPressureOutput, &result.compressorMassRateOutput,
+			&result.compressorGasOutput, &result.compressorTemperatureOutput,
+			&result.compressorPressureOutput, &result.compressorMassRateOutput,
 
-		&result.turbineGasInput, &result.turbineTemperatureInput,
-		&result.turbinePressureInput, &result.turbineMassRateInput,
+			&result.turbineGasInput, &result.turbineTemperatureInput,
+			&result.turbinePressureInput, &result.turbineMassRateInput,
 
-		&result.turbineGasOutput, &result.turbineTemperatureOutput,
-		&result.turbinePressureOutput, &result.turbineMassRateOutput,
+			&result.turbineGasOutput, &result.turbineTemperatureOutput,
+			&result.turbinePressureOutput, &result.turbineMassRateOutput,
+		},
+		[]string{
+			"compGasInput", "compTempInput", "compPressureInput", "compMassRateInput",
+			"compGasOutput", "compTempOutput", "compPressureOutput", "compMassRateOutput",
+			"turbGasInput", "turbTempInput", "turbPressureInput", "turbMassRateInput",
+			"turbGasOutput", "turbTempOutput", "turbPressureOutput", "turbMassRateOutput",
+		},
 	)
 
 	return result

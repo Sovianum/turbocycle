@@ -13,8 +13,8 @@ type CycleBreakNode interface {
 
 func NewCycleBreakNode(initialState graph.PortState) CycleBreakNode {
 	var result = &cycleBreakNode{}
-	result.updatePort = graph.NewAttachedPort(result)
-	result.sourcePort = graph.NewAttachedPort(result)
+	result.updatePort = graph.NewAttachedPortWithTag(result, "updatePort")
+	result.sourcePort = graph.NewAttachedPortWithTag(result, "sourcePort")
 	result.sourcePort.SetState(initialState)
 	return result
 }

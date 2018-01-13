@@ -2,7 +2,6 @@ package parametric
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"
-	"github.com/Sovianum/turbocycle/core/math"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
@@ -76,10 +75,7 @@ type singleShaftScheme struct {
 	temperatureEq graph.ReduceNode
 
 	assembler graph.VectorAssemblerNode
-
 	variators []variator.Variator
-
-	solver math.Solver
 }
 
 func (scheme *singleShaftScheme) Variators() []variator.Variator {
@@ -178,11 +174,11 @@ func (scheme *singleShaftScheme) setEquations() {
 	scheme.massRateEq.SetName("massRateEq")
 
 	// todo check sign of specific labour of payload
-	scheme.powerEq = c.NewMultiAdderFromPorts([][]graph.Port{
-		{scheme.turbine.PowerOutput(), scheme.turbine.MassRateOutput()},
-		{scheme.compressor.PowerOutput(), graph.NewWeakPort(scheme.compressor.MassRateOutput())},
-		{scheme.payload.PowerOutput()},
-	})
+	scheme.powerEq = c.NewMultiAdderFromPorts(
+		[]graph.Port{scheme.turbine.PowerOutput(), scheme.turbine.MassRateOutput()},
+		[]graph.Port{scheme.compressor.PowerOutput(), graph.NewWeakPort(scheme.compressor.MassRateOutput())},
+		[]graph.Port{scheme.payload.PowerOutput()},
+	)
 	scheme.powerEq.SetName("powerEq")
 
 	scheme.rpmEq = c.NewEquality(

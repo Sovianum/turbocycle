@@ -2,60 +2,6 @@ package graph
 
 import "fmt"
 
-type Port interface {
-	GetState() PortState
-	SetState(state PortState)
-	GetInnerNode() Node
-	SetInnerNode(Node)
-	GetOuterNode() Node
-	SetOuterNode(Node)
-	GetLinkPort() Port
-	SetLinkPort(Port)
-}
-
-type portType struct {
-	state     PortState
-	innerNode Node
-	outerNode Node
-	linkPort  Port
-}
-
-func NewPort() Port {
-	return &portType{
-		state:     nil,
-		innerNode: nil,
-		outerNode: nil,
-		linkPort:  nil,
-	}
-}
-
-func SetAll(states []PortState, ports []Port) error {
-	if len1, len2 := len(states), len(ports); len1 != len2 {
-		return fmt.Errorf("length of states %d is not equal to the length of ports %d", len1, len2)
-	}
-	for i := 0; i != len(states); i++ {
-		ports[i].SetState(states[i])
-	}
-	return nil
-}
-
-func AttachAllPorts(node Node, ports ...*Port) {
-	for i := range ports {
-		*ports[i] = NewAttachedPort(node)
-	}
-}
-
-func NewAttachedPort(node Node) Port {
-	var port = &portType{
-		state:     nil,
-		innerNode: nil,
-		outerNode: nil,
-		linkPort:  nil,
-	}
-	port.SetInnerNode(node)
-	return port
-}
-
 func Link(port1 Port, port2 Port) {
 	port1.SetLinkPort(port2)
 	port2.SetLinkPort(port1)
@@ -73,6 +19,84 @@ func LinkAll(ports1, ports2 []Port) error {
 		Link(ports1[i], ports2[i])
 	}
 	return nil
+}
+
+func SetAll(states []PortState, ports []Port) error {
+	if len1, len2 := len(states), len(ports); len1 != len2 {
+		return fmt.Errorf("length of states %d is not equal to the length of ports %d", len1, len2)
+	}
+	for i := 0; i != len(states); i++ {
+		ports[i].SetState(states[i])
+	}
+	return nil
+}
+
+func AttachAllWithTags(node Node, ports []*Port, tags []string) {
+	AttachAll(node, ports...)
+	for i, portPtr := range ports {
+		(*portPtr).SetTag(tags[i])
+	}
+}
+
+func AttachAll(node Node, ports ...*Port) {
+	for i := range ports {
+		*ports[i] = NewAttachedPort(node)
+	}
+}
+
+type Port interface {
+	GetState() PortState
+	SetState(state PortState)
+	GetInnerNode() Node
+	SetInnerNode(Node)
+	GetOuterNode() Node
+	SetOuterNode(Node)
+	GetLinkPort() Port
+	SetLinkPort(Port)
+	GetTag() string
+	SetTag(string)
+}
+
+func NewAttachedPortWithTag(node Node, tag string) Port {
+	var result = NewAttachedPort(node)
+	result.SetTag(tag)
+	return result
+}
+
+func NewAttachedPort(node Node) Port {
+	var port = &portType{
+		state:     nil,
+		innerNode: nil,
+		outerNode: nil,
+		linkPort:  nil,
+	}
+	port.SetInnerNode(node)
+	return port
+}
+
+func NewPort() Port {
+	return &portType{
+		state:     nil,
+		innerNode: nil,
+		outerNode: nil,
+		linkPort:  nil,
+	}
+}
+
+type portType struct {
+	state     PortState
+	innerNode Node
+	outerNode Node
+	linkPort  Port
+	tag       string
+}
+
+func (port *portType) GetTag() string {
+	return port.tag
+}
+
+func (port *portType) SetTag(tag string) {
+	port.tag = tag
 }
 
 func (port *portType) GetState() PortState {

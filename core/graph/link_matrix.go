@@ -206,10 +206,12 @@ func (m *graphMatrix) at(i, j int) bool {
 
 func getUnconnectedErrMsg(ports []Port) string {
 	var nodeNames = make([]string, len(ports))
+	var portTags = make([]string, len(ports))
 	for i, port := range ports {
 		nodeNames[i] = port.GetInnerNode().GetName()
+		portTags[i] = port.GetTag()
 	}
-	return unconnectedPortsMsg + ": " + strings.Join(nodeNames, ", ")
+	return unconnectedPortsMsg + " nodes: " + strings.Join(nodeNames, ", ") + " tags: " + strings.Join(portTags, ", ")
 }
 
 func getUndefinedErrMsg(nodes []Node) string {

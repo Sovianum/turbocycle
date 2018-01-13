@@ -14,9 +14,9 @@ type HubNode interface {
 
 func NewHubNode() HubNode {
 	var result = &hubNode{}
-	result.inlet = graph.NewAttachedPort(result)
-	result.outlet1 = graph.NewAttachedPort(result)
-	result.outlet2 = graph.NewAttachedPort(result)
+	result.inlet = graph.NewAttachedPortWithTag(result, "inlet")
+	result.outlet1 = graph.NewAttachedPortWithTag(result, "outlet1")
+	result.outlet2 = graph.NewAttachedPortWithTag(result, "outlet2")
 	return result
 }
 

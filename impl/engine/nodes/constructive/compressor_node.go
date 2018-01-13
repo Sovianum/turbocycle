@@ -35,7 +35,7 @@ func NewCompressorNode(etaPol, piStag, precision float64) CompressorNode {
 		piStag:    piStag,
 	}
 	result.baseCompressor = newBaseCompressor(result, precision)
-	result.massRateInput = graph.NewAttachedPort(result)
+	result.massRateInput = graph.NewAttachedPortWithTag(result, nodes.MassRateInputTag)
 	return result
 }
 

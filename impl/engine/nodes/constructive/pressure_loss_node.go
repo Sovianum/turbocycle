@@ -41,10 +41,16 @@ func NewPressureLossNode(sigma float64) PressureLossNode {
 		contextDefined: false,
 	}
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
-		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+			&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.GasInputTag, nodes.MassRateInputTag,
+			nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.GasOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 
 	return result
@@ -264,5 +270,8 @@ func (node *pressureLossNode) getMode() (string, error) {
 	if !inputIsSource && outputIsSource {
 		return pressureLossOutflow, nil
 	}
-	return "", fmt.Errorf("inconsistent pressure loss node state")
+	if !inputIsSource && !outputIsSource {
+		return "", fmt.Errorf("neither endpoint is pressure source")
+	}
+	return "", fmt.Errorf("both endpoints are pressure sources")
 }

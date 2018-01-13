@@ -15,10 +15,16 @@ type ComplexCycleBreakNode interface {
 
 func NewComplexCycleBreakNode(gas gases.Gas, tStag, pStag, massRate float64) ComplexCycleBreakNode {
 	var result = &complexCycleBreakNode{}
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
-		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+			&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.GasInputTag, nodes.MassRateInputTag,
+			nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.GasOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 
 	graph.SetAll(

@@ -50,8 +50,8 @@ func NewBlockedTurbineNode(
 	}
 
 	result.baseBlockedTurbine = NewBaseBlockedTurbine(result, precision)
-	result.powerInput = graph.NewAttachedPort(result)
-	result.massRateInput = graph.NewAttachedPort(result)
+	result.powerInput = graph.NewAttachedPortWithTag(result, nodes.PowerInputTag)
+	result.massRateInput = graph.NewAttachedPortWithTag(result, nodes.MassRateInputTag)
 	return result
 }
 

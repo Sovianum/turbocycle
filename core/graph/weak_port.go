@@ -11,6 +11,14 @@ type weakPort struct {
 	linkPort  Port
 }
 
+func (p *weakPort) GetTag() string {
+	return p.referencePort.GetTag()
+}
+
+func (p *weakPort) SetTag(tag string) {
+	p.referencePort.SetTag(tag)
+}
+
 func (p *weakPort) GetState() PortState {
 	return p.referencePort.GetState()
 }

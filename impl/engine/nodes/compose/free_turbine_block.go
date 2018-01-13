@@ -34,11 +34,18 @@ func NewFreeTurbineBlock(
 	}
 	result.linkPorts()
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.powerOutput,
-		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
-		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.powerOutput,
+			&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+			&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.PowerInputTag,
+			nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.GasInputTag, nodes.MassRateInputTag,
+			nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.GasOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 
 	return result

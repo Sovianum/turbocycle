@@ -70,8 +70,8 @@ func NewParametricTurbineNode(
 	}
 
 	result.baseBlockedTurbine = NewBaseBlockedTurbine(result, precision)
-	result.rpmInput = graph.NewAttachedPort(result)
-	result.massRateInput = graph.NewAttachedPort(result)
+	result.rpmInput = graph.NewAttachedPortWithTag(result, nodes.RPMInputTag)
+	result.massRateInput = graph.NewAttachedPortWithTag(result, nodes.MassRateInputTag)
 	return result
 }
 

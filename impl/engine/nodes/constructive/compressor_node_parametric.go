@@ -67,8 +67,8 @@ func NewParametricCompressorNode(
 	}
 
 	result.baseCompressor = newBaseCompressor(result, precision)
-	result.rpmOutput = graph.NewAttachedPort(result)
-	result.massRateInput = graph.NewAttachedPort(result)
+	result.rpmOutput = graph.NewAttachedPortWithTag(result, nodes.RPMOutputTag)
+	result.massRateInput = graph.NewAttachedPortWithTag(result, nodes.MassRateInputTag)
 
 	return result
 }

@@ -22,10 +22,16 @@ func NewCoolerNode(tOut float64, sigma float64) CoolerNode {
 		sigma: sigma,
 	}
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.gasInput, &result.temperatureInput, &result.pressureInput, &result.massRateInput,
-		&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.gasInput, &result.temperatureInput, &result.pressureInput, &result.massRateInput,
+			&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.GasInputTag, nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.MassRateInputTag,
+			nodes.GasOutputTag, nodes.TemperatureOutputTag, nodes.PowerOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 
 	return result

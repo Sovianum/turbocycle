@@ -2,6 +2,7 @@ package constructive
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
@@ -10,11 +11,18 @@ func NewBaseBlockedTurbine(node graph.Node, precision float64) *baseBlockedTurbi
 	var result = &baseBlockedTurbine{
 		precision: precision,
 	}
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		node,
-		&result.powerOutput,
-		&result.temperatureInput, &result.pressureInput, &result.gasInput,
-		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.powerOutput,
+			&result.temperatureInput, &result.pressureInput, &result.gasInput,
+			&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.PowerOutputTag,
+			nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.GasInputTag,
+			nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.GasOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 	return result
 }

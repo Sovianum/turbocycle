@@ -10,12 +10,20 @@ import (
 func newBaseRegenerator(node graph.Node) *baseRegenerator {
 	var result = &baseRegenerator{}
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		node,
-		&result.hotTemperatureInput, &result.hotPressureInput, &result.hotGasInput, &result.hotMassRateInput,
-		&result.hotTemperatureOutput, &result.hotPressureOutput, &result.hotGasOutput, &result.hotMassRateOutput,
-		&result.coldTemperatureInput, &result.coldPressureInput, &result.coldGasInput, &result.coldMassRateInput,
-		&result.coldTemperatureOutput, &result.coldPressureOutput, &result.coldGasOutput, &result.coldMassRateOutput,
+		[]*graph.Port{
+			&result.hotTemperatureInput, &result.hotPressureInput, &result.hotGasInput, &result.hotMassRateInput,
+			&result.hotTemperatureOutput, &result.hotPressureOutput, &result.hotGasOutput, &result.hotMassRateOutput,
+			&result.coldTemperatureInput, &result.coldPressureInput, &result.coldGasInput, &result.coldMassRateInput,
+			&result.coldTemperatureOutput, &result.coldPressureOutput, &result.coldGasOutput, &result.coldMassRateOutput,
+		},
+		[]string{
+			"hotTemperatureInput", "hotPressureInput", "hotGasInput", "hotMassRateInput",
+			"hotTemperatureOutput", "hotPressureOutput", "hotGasOutput", "hotMassRateOutput",
+			"coldTemperatureInput", "coldPressureInput", "coldGasInput", "coldMassRateInput",
+			"coldTemperatureOutput", "coldPressureOutput", "coldGasOutput", "coldMassRateOutput",
+		},
 	)
 	return result
 }

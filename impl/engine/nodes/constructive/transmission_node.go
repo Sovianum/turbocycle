@@ -7,6 +7,8 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
+// Transmission nodes transmits energy DEMAND, not the energy supply
+// so its power input must be attached to compressor
 type TransmissionNode interface {
 	graph.Node
 	nodes.PowerChannel
@@ -18,8 +20,8 @@ func NewTransmissionNode(etaM float64) TransmissionNode {
 		etaM: etaM,
 	}
 
-	result.powerInput = graph.NewAttachedPort(result)
-	result.powerOutput = graph.NewAttachedPort(result)
+	result.powerInput = graph.NewAttachedPortWithTag(result, nodes.PowerInputTag)
+	result.powerOutput = graph.NewAttachedPortWithTag(result, nodes.PowerOutputTag)
 
 	return result
 }

@@ -45,7 +45,7 @@ func NewSum(ports ...graph.Port) graph.ReduceNode {
 	return result
 }
 
-func NewMultiAdderFromPorts(ports [][]graph.Port) graph.ReduceNode {
+func NewMultiAdderFromPorts(ports ...[]graph.Port) graph.ReduceNode {
 	var result = NewMultiAdder()
 	for _, group := range ports {
 		result.AddPortGroup(group...)

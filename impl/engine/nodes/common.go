@@ -3,7 +3,19 @@ package nodes
 import "github.com/Sovianum/turbocycle/core/graph"
 
 const (
-	DefaultN = 50
+	DefaultN             = 50
+	RPMInputTag          = "rpmInput"
+	RPMOutputTag         = "rpmOutput"
+	PowerInputTag        = "powerInput"
+	PowerOutputTag       = "powerOutput"
+	GasInputTag          = "gasInput"
+	GasOutputTag         = "gasOutput"
+	PressureInputTag     = "pressureInput"
+	PressureOutputTag    = "pressureOutput"
+	TemperatureInputTag  = "temperatureInput"
+	TemperatureOutputTag = "temperatureOutput"
+	MassRateInputTag     = "massRateInput"
+	MassRateOutputTag    = "massRateOutput"
 )
 
 type RPMChannel interface {

@@ -20,9 +20,14 @@ func NewComplexGasSourceNode(gas gases.Gas, tStag, pStag, massRate float64) Comp
 		pStag:    pStag,
 		massRate: massRate,
 	}
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.GasOutputTag, nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 	return result
 }

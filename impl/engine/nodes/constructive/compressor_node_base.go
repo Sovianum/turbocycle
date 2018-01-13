@@ -17,11 +17,18 @@ func newBaseCompressor(compressorNode graph.Node, precision float64) *baseCompre
 	}
 
 	// ports are attached to compressorNode instead of result cos baseCompressor is not a node
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		compressorNode,
-		&result.powerOutput,
-		&result.gasInput, &result.temperatureInput, &result.pressureInput,
-		&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.powerOutput,
+			&result.gasInput, &result.temperatureInput, &result.pressureInput,
+			&result.gasOutput, &result.temperatureOutput, &result.pressureOutput, &result.massRateOutput,
+		},
+		[]string{
+			nodes.PowerOutputTag,
+			nodes.GasInputTag, nodes.TemperatureInputTag, nodes.PressureInputTag,
+			nodes.GasOutputTag, nodes.TemperatureOutputTag, nodes.PowerOutputTag, nodes.MassRateOutputTag,
+		},
 	)
 
 	return result

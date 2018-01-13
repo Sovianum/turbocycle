@@ -41,16 +41,25 @@ func NewRegenerativeGasGeneratorNode(
 		regeneratorPressureDrop: constructive.NewPressureLossNode(sigmaRegeneratorPipe),
 	}
 
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
-		&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
+		[]*graph.Port{
+			&result.temperatureInput, &result.pressureInput, &result.gasInput, &result.massRateInput,
+			&result.temperatureOutput, &result.pressureOutput, &result.gasOutput, &result.massRateOutput,
 
-		&result.regeneratorHotTemperatureInput, &result.regeneratorHotPressureInput,
-		&result.regeneratorHotGasInput, &result.regeneratorHotMassRateInput,
+			&result.regeneratorHotTemperatureInput, &result.regeneratorHotPressureInput,
+			&result.regeneratorHotGasInput, &result.regeneratorHotMassRateInput,
 
-		&result.regeneratorHotTemperatureOutput, &result.regeneratorHotPressureOutput,
-		&result.regeneratorHotGasOutput, &result.regeneratorHotMassRateOutput,
+			&result.regeneratorHotTemperatureOutput, &result.regeneratorHotPressureOutput,
+			&result.regeneratorHotGasOutput, &result.regeneratorHotMassRateOutput,
+		},
+		[]string{
+			nodes.TemperatureInputTag, nodes.PressureInputTag, nodes.GasInputTag, nodes.MassRateInputTag,
+			nodes.TemperatureOutputTag, nodes.PressureOutputTag, nodes.GasOutputTag, nodes.MassRateOutputTag,
+
+			"regHotTempInput", "regHotPressureInput", "regHotGasInput", "regHotMassRateInput",
+			"regHotTempOutput", "regHotPressureOutput", "regHotGasOutput", "regHotMassRateOutput",
+		},
 	)
 
 	result.linkPorts()

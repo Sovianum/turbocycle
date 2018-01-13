@@ -27,9 +27,14 @@ func NewPayload(rpm0, power0 float64, powerCharacteristic func(normRpm float64) 
 		power0:  power0,
 		normRpm: 1,
 	}
-	graph.AttachAllPorts(
+	graph.AttachAllWithTags(
 		result,
-		&result.rpmOutput, &result.powerOutput,
+		[]*graph.Port{
+			&result.rpmOutput, &result.powerOutput,
+		},
+		[]string{
+			nodes.RPMOutputTag, nodes.PowerOutputTag,
+		},
 	)
 	return result
 }
