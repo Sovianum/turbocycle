@@ -143,8 +143,12 @@ func (node *parametricCompressorNode) GetPorts() []graph.Port {
 	return append(node.baseCompressor.GetPorts(), node.rpmOutput, node.massRateInput)
 }
 
-func (node *parametricCompressorNode) GetUpdatePorts() []graph.Port {
-	return append(node.baseCompressor.GetUpdatePorts(), node.rpmOutput, node.massRateInput)
+func (node *parametricCompressorNode) GetUpdatePorts() ([]graph.Port, error) {
+	var ports, err = node.baseCompressor.GetUpdatePorts()
+	if err != nil {
+		return nil, err
+	}
+	return append(ports, node.rpmOutput, node.massRateInput), nil
 }
 
 func (node *parametricCompressorNode) RPMOutput() graph.Port {

@@ -146,7 +146,7 @@ func IsDataSource(port graph.Port) (bool, error) {
 		return false, nil
 	}
 
-	var updatePorts = outerNode.GetUpdatePorts()
+	var updatePorts, _ = outerNode.GetUpdatePorts()
 
 	for _, port := range updatePorts {
 		if port == linkPort {

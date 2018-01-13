@@ -121,7 +121,7 @@ func (node *turboCascadeNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *turboCascadeNode) GetRequirePorts() []graph.Port {
+func (node *turboCascadeNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.compressorGasInput,
 		node.compressorTemperatureInput,
@@ -132,10 +132,10 @@ func (node *turboCascadeNode) GetRequirePorts() []graph.Port {
 		node.turbineTemperatureInput,
 		node.turbinePressureInput,
 		node.turbineMassRateInput,
-	}
+	}, nil
 }
 
-func (node *turboCascadeNode) GetUpdatePorts() []graph.Port {
+func (node *turboCascadeNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.compressorGasOutput,
 		node.compressorTemperatureOutput,
@@ -146,7 +146,7 @@ func (node *turboCascadeNode) GetUpdatePorts() []graph.Port {
 		node.turbineTemperatureOutput,
 		node.turbinePressureOutput,
 		node.turbineMassRateOutput,
-	}
+	}, nil
 }
 
 func (node *turboCascadeNode) Compressor() constructive.CompressorNode {

@@ -43,12 +43,12 @@ func (node *transmissionNode) GetPorts() []graph.Port {
 	return []graph.Port{node.powerInput, node.powerOutput}
 }
 
-func (node *transmissionNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.powerInput}
+func (node *transmissionNode) GetRequirePorts() ([]graph.Port, error) {
+	return []graph.Port{node.powerInput}, nil
 }
 
-func (node *transmissionNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.powerOutput}
+func (node *transmissionNode) GetUpdatePorts() ([]graph.Port, error) {
+	return []graph.Port{node.powerOutput}, nil
 }
 
 func (node *transmissionNode) Eta() float64 {

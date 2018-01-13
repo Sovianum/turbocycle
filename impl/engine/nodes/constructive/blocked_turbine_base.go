@@ -52,17 +52,17 @@ func (node *baseBlockedTurbine) GetPorts() []graph.Port {
 	}
 }
 
-func (node *baseBlockedTurbine) GetRequirePorts() []graph.Port {
+func (node *baseBlockedTurbine) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureInput, node.pressureInput, node.gasInput,
-	}
+	}, nil
 }
 
-func (node *baseBlockedTurbine) GetUpdatePorts() []graph.Port {
+func (node *baseBlockedTurbine) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.powerOutput,
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *baseBlockedTurbine) MassRateRel() float64 {

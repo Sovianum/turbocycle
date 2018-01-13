@@ -40,8 +40,8 @@ func (suite *SysCallTestSuite) SetupTest() {
 	suite.nodeA = graph.NewTestNodeWithoutAction(1, 2, true)
 	suite.nodeA.SetName("a")
 	suite.nodeA.SetAction(func() error {
-		var requiredPorts = suite.nodeA.GetRequirePorts()
-		var updatePorts = suite.nodeA.GetUpdatePorts()
+		var requiredPorts, _ = suite.nodeA.GetRequirePorts()
+		var updatePorts, _ = suite.nodeA.GetUpdatePorts()
 
 		var portI1 = requiredPorts[0]
 		var portA1, portA2 = updatePorts[0], updatePorts[1]
@@ -58,8 +58,8 @@ func (suite *SysCallTestSuite) SetupTest() {
 	suite.nodeB = graph.NewTestNodeWithoutAction(1, 2, true)
 	suite.nodeB.SetName("b")
 	suite.nodeB.SetAction(func() error {
-		var requiredPorts = suite.nodeB.GetRequirePorts()
-		var updatePorts = suite.nodeB.GetUpdatePorts()
+		var requiredPorts, _ = suite.nodeB.GetRequirePorts()
+		var updatePorts, _ = suite.nodeB.GetUpdatePorts()
 
 		var portI2 = requiredPorts[0]
 		var portB1, portB2 = updatePorts[0], updatePorts[1]
@@ -76,8 +76,8 @@ func (suite *SysCallTestSuite) SetupTest() {
 	suite.nodeC = graph.NewTestNodeWithoutAction(2, 1, true)
 	suite.nodeC.SetName("c")
 	suite.nodeC.SetAction(func() error {
-		var requiredPorts = suite.nodeC.GetRequirePorts()
-		var updatePorts = suite.nodeC.GetUpdatePorts()
+		var requiredPorts, _ = suite.nodeC.GetRequirePorts()
+		var updatePorts, _ = suite.nodeC.GetUpdatePorts()
 
 		var portC1 = updatePorts[0]
 		var portA1, portB1 = requiredPorts[0], requiredPorts[1]
@@ -92,8 +92,8 @@ func (suite *SysCallTestSuite) SetupTest() {
 	suite.nodeD = graph.NewTestNodeWithoutAction(2, 1, true)
 	suite.nodeD.SetName("d")
 	suite.nodeD.SetAction(func() error {
-		var requiredPorts = suite.nodeD.GetRequirePorts()
-		var updatePorts = suite.nodeD.GetUpdatePorts()
+		var requiredPorts, _ = suite.nodeD.GetRequirePorts()
+		var updatePorts, _ = suite.nodeD.GetUpdatePorts()
 
 		var portD1 = updatePorts[0]
 		var portA2, portB2 = requiredPorts[0], requiredPorts[1]
@@ -111,19 +111,33 @@ func (suite *SysCallTestSuite) SetupTest() {
 	suite.out = graph.NewTestNodeWithoutAction(1, 0, true)
 	suite.out.SetName("out")
 
-	graph.Link(suite.nodeI1.GetUpdatePorts()[0], suite.nodeA.GetRequirePorts()[0])
-	graph.Link(suite.nodeI2.GetUpdatePorts()[0], suite.nodeB.GetRequirePorts()[0])
+	var i1Update, _ = suite.nodeI1.GetUpdatePorts()
+	var aRequire, _ = suite.nodeA.GetRequirePorts()
+	graph.Link(i1Update[0], aRequire[0])
 
-	graph.Link(suite.nodeA.GetUpdatePorts()[0], suite.nodeC.GetRequirePorts()[0])
-	graph.Link(suite.nodeB.GetUpdatePorts()[0], suite.nodeC.GetRequirePorts()[1])
+	var i2Update, _ = suite.nodeI2.GetUpdatePorts()
+	var bRequire, _ = suite.nodeB.GetRequirePorts()
+	graph.Link(i2Update[0], bRequire[0])
 
-	graph.Link(suite.nodeA.GetUpdatePorts()[1], suite.nodeD.GetRequirePorts()[0])
-	graph.Link(suite.nodeB.GetUpdatePorts()[1], suite.nodeD.GetRequirePorts()[1])
+	var aUpdate, _ = suite.nodeA.GetUpdatePorts()
+	var cRequire, _ = suite.nodeC.GetRequirePorts()
+	graph.Link(aUpdate[0], cRequire[0])
 
-	graph.Link(suite.assembler.GetVectorPort(), suite.out.GetRequirePorts()[0])
+	var bUpdate, _ = suite.nodeB.GetUpdatePorts()
+	var cUpdate, _ = suite.nodeC.GetRequirePorts()
+	graph.Link(bUpdate[0], cUpdate[1])
 
-	suite.assembler.AddInputPorts(suite.nodeC.GetUpdatePorts()[0])
-	suite.assembler.AddInputPorts(suite.nodeD.GetUpdatePorts()[0])
+	var dRequire, _ = suite.nodeD.GetRequirePorts()
+	graph.Link(aUpdate[1], dRequire[0])
+	graph.Link(bUpdate[1], dRequire[1])
+
+	var outRequire, _ = suite.out.GetRequirePorts()
+	graph.Link(suite.assembler.GetVectorPort(), outRequire[0])
+
+	suite.assembler.AddInputPorts(cUpdate[0])
+
+	var dUpdate, _ = suite.nodeD.GetUpdatePorts()
+	suite.assembler.AddInputPorts(dUpdate[0])
 
 	var err error = nil
 	suite.network, err = graph.NewNetwork([]graph.Node{
@@ -136,8 +150,11 @@ func (suite *SysCallTestSuite) SetupTest() {
 }
 
 func (suite *SysCallTestSuite) TestSysCall_OK() {
-	suite.nodeI1.GetUpdatePorts()[0].SetState(graph.NewNumberPortState(4))
-	suite.nodeI2.GetUpdatePorts()[0].SetState(graph.NewNumberPortState(2))
+	var i1Update, _ = suite.nodeI1.GetUpdatePorts()
+	var i2Update, _ = suite.nodeI2.GetUpdatePorts()
+
+	i1Update[0].SetState(graph.NewNumberPortState(4))
+	i2Update[0].SetState(graph.NewNumberPortState(2))
 
 	var sysCall = SysCallFromNetwork(
 		suite.network, suite.assembler.GetVectorPort(), 0.5, 3, 100, 1e-8,

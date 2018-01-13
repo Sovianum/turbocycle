@@ -46,14 +46,14 @@ type complexGasSourceNode struct {
 	massRate float64
 }
 
-func (node *complexGasSourceNode) GetRequirePorts() []graph.Port {
-	return make([]graph.Port, 0)
+func (node *complexGasSourceNode) GetRequirePorts() ([]graph.Port, error) {
+	return make([]graph.Port, 0), nil
 }
 
-func (node *complexGasSourceNode) GetUpdatePorts() []graph.Port {
+func (node *complexGasSourceNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *complexGasSourceNode) GetPorts() []graph.Port {

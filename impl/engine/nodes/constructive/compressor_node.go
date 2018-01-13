@@ -41,7 +41,6 @@ func NewCompressorNode(etaPol, piStag, precision float64) CompressorNode {
 
 // TODO add collector port
 type compressorNode struct {
-	graph.BaseNode
 	*baseCompressor
 
 	massRateInput graph.Port
@@ -65,8 +64,12 @@ func (node *compressorNode) GetPorts() []graph.Port {
 	return append(node.baseCompressor.GetPorts(), node.massRateInput)
 }
 
-func (node *compressorNode) GetRequirePorts() []graph.Port {
-	return append(node.baseCompressor.GetPorts(), node.massRateInput)
+func (node *compressorNode) GetRequirePorts() ([]graph.Port, error) {
+	var ports, err = node.baseCompressor.GetRequirePorts()
+	if err != nil {
+		return nil, err
+	}
+	return append(ports, node.massRateInput), nil
 }
 
 func (node *compressorNode) PiStag() float64 {

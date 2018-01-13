@@ -29,12 +29,12 @@ func (node *cycleBreakNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "CycleBreak")
 }
 
-func (node *cycleBreakNode) GetRequirePorts() []graph.Port {
-	return make([]graph.Port, 0)
+func (node *cycleBreakNode) GetRequirePorts() ([]graph.Port, error) {
+	return make([]graph.Port, 0), nil
 }
 
-func (node *cycleBreakNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.updatePort}
+func (node *cycleBreakNode) GetUpdatePorts() ([]graph.Port, error) {
+	return []graph.Port{node.updatePort}, nil
 }
 
 func (node *cycleBreakNode) GetPorts() []graph.Port {

@@ -82,16 +82,16 @@ func (node *freeTurbineNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *freeTurbineNode) GetRequirePorts() []graph.Port {
+func (node *freeTurbineNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput, node.pressureOutput,
-	}
+	}, nil
 }
 
-func (node *freeTurbineNode) GetUpdatePorts() []graph.Port {
+func (node *freeTurbineNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.powerOutput, node.temperatureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *freeTurbineNode) PowerOutput() graph.Port {

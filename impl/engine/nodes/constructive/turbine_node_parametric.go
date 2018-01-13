@@ -113,12 +113,20 @@ func (node *parametricTurbineNode) GetPorts() []graph.Port {
 // parametric turbine does not declare massRateInput as its required
 // port, cos massRate is its inner property which is balanced
 // with solver while solving the whole system
-func (node *parametricTurbineNode) GetUpdatePorts() []graph.Port {
-	return append(node.baseBlockedTurbine.GetPorts(), node.massRateInput)
+func (node *parametricTurbineNode) GetUpdatePorts() ([]graph.Port, error) {
+	var ports, err = node.baseBlockedTurbine.GetUpdatePorts()
+	if err != nil {
+		return nil, err
+	}
+	return append(ports, node.massRateInput), nil
 }
 
-func (node *parametricTurbineNode) GetRequirePorts() []graph.Port {
-	return append(node.baseBlockedTurbine.GetRequirePorts(), node.rpmInput)
+func (node *parametricTurbineNode) GetRequirePorts() ([]graph.Port, error) {
+	var ports, err = node.baseBlockedTurbine.GetRequirePorts()
+	if err != nil {
+		return nil, err
+	}
+	return append(ports, node.rpmInput), nil
 }
 
 func (node *parametricTurbineNode) Process() error {

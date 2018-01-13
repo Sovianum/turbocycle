@@ -86,8 +86,12 @@ func (node *blockedTurbineNode) GetPorts() []graph.Port {
 	return append(node.baseBlockedTurbine.GetPorts(), node.massRateInput, node.powerInput)
 }
 
-func (node *blockedTurbineNode) GetRequirePorts() []graph.Port {
-	return append(node.baseBlockedTurbine.GetPorts(), node.massRateInput, node.powerInput)
+func (node *blockedTurbineNode) GetRequirePorts() ([]graph.Port, error) {
+	var ports, err = node.baseBlockedTurbine.GetRequirePorts()
+	if err != nil {
+		return nil, err
+	}
+	return append(ports, node.massRateInput, node.powerInput), nil
 }
 
 func (node *blockedTurbineNode) Process() error {

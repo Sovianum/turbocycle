@@ -106,16 +106,16 @@ func (node *baseBurner) GetPorts() []graph.Port {
 	}
 }
 
-func (node *baseBurner) GetRequirePorts() []graph.Port {
+func (node *baseBurner) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
-	}
+	}, nil
 }
 
-func (node *baseBurner) GetUpdatePorts() []graph.Port {
+func (node *baseBurner) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *baseBurner) Fuel() fuel.GasFuel {

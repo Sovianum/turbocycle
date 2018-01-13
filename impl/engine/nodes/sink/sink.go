@@ -48,12 +48,12 @@ func (node *sinkNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Sink")
 }
 
-func (node *sinkNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.input}
+func (node *sinkNode) GetRequirePorts() ([]graph.Port, error) {
+	return []graph.Port{node.input}, nil
 }
 
-func (node *sinkNode) GetUpdatePorts() []graph.Port {
-	return make([]graph.Port, 0)
+func (node *sinkNode) GetUpdatePorts() ([]graph.Port, error) {
+	return make([]graph.Port, 0), nil
 }
 
 func (node *sinkNode) GetPorts() []graph.Port {

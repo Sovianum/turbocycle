@@ -118,36 +118,36 @@ func (node *pressureLossNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *pressureLossNode) GetRequirePorts() []graph.Port {
+func (node *pressureLossNode) GetRequirePorts() ([]graph.Port, error) {
 	var mode, err = node.getMode()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if mode == pressureLossInflow {
 		return []graph.Port{
 			node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
-		}
+		}, nil
 	}
 	return []graph.Port{
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
-func (node *pressureLossNode) GetUpdatePorts() []graph.Port {
+func (node *pressureLossNode) GetUpdatePorts() ([]graph.Port, error) {
 	var mode, err = node.getMode()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if mode == pressureLossOutflow {
 		return []graph.Port{
 			node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
-		}
+		}, nil
 	}
 	return []graph.Port{
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *pressureLossNode) ContextDefined() bool {

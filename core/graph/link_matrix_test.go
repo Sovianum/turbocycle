@@ -11,7 +11,9 @@ func TestNewGraphMatrix_UnconnectedPorts(t *testing.T) {
 	var _, err = newGraphMatrix(nodes)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, getUnconnectedErrMsg(nodes[0].GetRequirePorts()), err.Error())
+
+	var ports, _ = nodes[0].GetRequirePorts()
+	assert.Equal(t, getUnconnectedErrMsg(ports), err.Error())
 }
 
 func TestNewGraphMatrix_ContextUndefined(t *testing.T) {
@@ -26,7 +28,7 @@ func TestGraphMatrix_getFreeNodes(t *testing.T) {
 	var node1 = NewTestNodeWithoutAction(0, 1, true)
 	var node2 = NewTestNodeWithoutAction(1, 0, true)
 
-	Link(node1.GetUpdatePorts()[0], node2.GetRequirePorts()[0])
+	Link(node1.updatePorts[0], node2.requirePorts[0])
 
 	var matrix, err = newGraphMatrix([]Node{node1, node2})
 	assert.Nil(t, err)
@@ -39,7 +41,7 @@ func TestGraphMatrix_getFreeNodes(t *testing.T) {
 func TestGraphMatrix_GetCallOrder_OK(t *testing.T) {
 	var node1 = NewTestNodeWithoutAction(0, 1, true)
 	var node2 = NewTestNodeWithoutAction(1, 0, true)
-	Link(node1.GetUpdatePorts()[0], node2.GetRequirePorts()[0])
+	Link(node1.updatePorts[0], node2.requirePorts[0])
 
 	var matrix, err = newGraphMatrix([]Node{node1, node2})
 	assert.Nil(t, err)
@@ -54,8 +56,8 @@ func TestGraphMatrix_GetCallOrder_OK(t *testing.T) {
 func TestGraphMatrix_GetCallOrder_Cyclic(t *testing.T) {
 	var node1 = NewTestNodeWithoutAction(1, 1, true)
 	var node2 = NewTestNodeWithoutAction(1, 1, true)
-	Link(node1.GetUpdatePorts()[0], node2.GetRequirePorts()[0])
-	Link(node2.GetUpdatePorts()[0], node1.GetRequirePorts()[0])
+	Link(node1.updatePorts[0], node2.requirePorts[0])
+	Link(node2.updatePorts[0], node1.requirePorts[0])
 
 	var matrix, err = newGraphMatrix([]Node{node1, node2})
 	assert.Nil(t, err)

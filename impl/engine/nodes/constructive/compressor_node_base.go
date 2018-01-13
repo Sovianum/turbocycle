@@ -88,17 +88,17 @@ func (node *baseCompressor) GetPorts() []graph.Port {
 	}
 }
 
-func (node *baseCompressor) GetRequirePorts() []graph.Port {
+func (node *baseCompressor) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.gasInput, node.temperatureInput, node.pressureInput,
-	}
+	}, nil
 }
 
-func (node *baseCompressor) GetUpdatePorts() []graph.Port {
+func (node *baseCompressor) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.powerOutput,
 		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *baseCompressor) PowerOutput() graph.Port {

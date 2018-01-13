@@ -118,17 +118,17 @@ func (node *freeTurbineBlockNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *freeTurbineBlockNode) GetRequirePorts() []graph.Port {
+func (node *freeTurbineBlockNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
-	}
+	}, nil
 }
 
-func (node *freeTurbineBlockNode) GetUpdatePorts() []graph.Port {
+func (node *freeTurbineBlockNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.powerOutput,
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *freeTurbineBlockNode) FreeTurbine() constructive.FreeTurbineNode {

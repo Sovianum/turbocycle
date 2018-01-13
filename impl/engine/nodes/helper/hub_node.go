@@ -32,12 +32,12 @@ func (node *hubNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "Hub")
 }
 
-func (node *hubNode) GetRequirePorts() []graph.Port {
-	return []graph.Port{node.inlet}
+func (node *hubNode) GetRequirePorts() ([]graph.Port, error) {
+	return []graph.Port{node.inlet}, nil
 }
 
-func (node *hubNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.outlet1, node.outlet2}
+func (node *hubNode) GetUpdatePorts() ([]graph.Port, error) {
+	return []graph.Port{node.outlet1, node.outlet2}, nil
 }
 
 func (node *hubNode) GetPorts() []graph.Port {

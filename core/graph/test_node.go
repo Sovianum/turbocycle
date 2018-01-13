@@ -59,12 +59,12 @@ func (node *TestNode) Process() error {
 	return node.action()
 }
 
-func (node *TestNode) GetRequirePorts() []Port {
-	return node.requirePorts
+func (node *TestNode) GetRequirePorts() ([]Port, error) {
+	return node.requirePorts, nil
 }
 
-func (node *TestNode) GetUpdatePorts() []Port {
-	return node.updatePorts
+func (node *TestNode) GetUpdatePorts() ([]Port, error) {
+	return node.updatePorts, nil
 }
 
 func (node *TestNode) GetPorts() []Port {

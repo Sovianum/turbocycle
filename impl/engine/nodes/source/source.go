@@ -7,12 +7,12 @@ type sourceNode struct {
 	output graph.Port
 }
 
-func (node *sourceNode) GetRequirePorts() []graph.Port {
-	return make([]graph.Port, 0)
+func (node *sourceNode) GetRequirePorts() ([]graph.Port, error) {
+	return make([]graph.Port, 0), nil
 }
 
-func (node *sourceNode) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.output}
+func (node *sourceNode) GetUpdatePorts() ([]graph.Port, error) {
+	return []graph.Port{node.output}, nil
 }
 
 func (node *sourceNode) GetPorts() []graph.Port {

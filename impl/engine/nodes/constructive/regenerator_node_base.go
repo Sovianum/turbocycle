@@ -85,18 +85,18 @@ func (node *baseRegenerator) GetPorts() []graph.Port {
 	}
 }
 
-func (node *baseRegenerator) GetRequirePorts() []graph.Port {
+func (node *baseRegenerator) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.hotTemperatureInput, node.hotPressureInput, node.hotGasInput, node.hotMassRateInput,
 		node.coldTemperatureInput, node.coldPressureInput, node.coldGasInput, node.coldMassRateInput,
-	}
+	}, nil
 }
 
-func (node *baseRegenerator) GetUpdatePorts() []graph.Port {
+func (node *baseRegenerator) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.hotTemperatureOutput, node.hotPressureOutput, node.hotGasOutput, node.hotMassRateOutput,
 		node.coldTemperatureOutput, node.coldPressureOutput, node.coldGasOutput, node.coldMassRateOutput,
-	}
+	}, nil
 }
 
 func (node *baseRegenerator) tStagHotIn() float64 {

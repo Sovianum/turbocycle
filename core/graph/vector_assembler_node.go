@@ -53,12 +53,12 @@ func (node *vectorAssemblerNode) Process() error {
 	return nil
 }
 
-func (node *vectorAssemblerNode) GetRequirePorts() []Port {
-	return node.getInputPorts()
+func (node *vectorAssemblerNode) GetRequirePorts() ([]Port, error) {
+	return node.getInputPorts(), nil
 }
 
-func (node *vectorAssemblerNode) GetUpdatePorts() []Port {
-	return []Port{node.vectorPort}
+func (node *vectorAssemblerNode) GetUpdatePorts() ([]Port, error) {
+	return []Port{node.vectorPort}, nil
 }
 
 func (node *vectorAssemblerNode) GetPorts() []Port {

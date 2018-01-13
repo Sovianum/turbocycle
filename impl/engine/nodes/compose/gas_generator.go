@@ -109,16 +109,16 @@ func (node *gasGeneratorNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *gasGeneratorNode) GetRequirePorts() []graph.Port {
+func (node *gasGeneratorNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
-	}
+	}, nil
 }
 
-func (node *gasGeneratorNode) GetUpdatePorts() []graph.Port {
+func (node *gasGeneratorNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *gasGeneratorNode) Burner() constructive.BurnerNode {

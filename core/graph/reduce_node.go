@@ -88,12 +88,12 @@ func (node *reduceNode) Process() error {
 	return nil
 }
 
-func (node *reduceNode) GetRequirePorts() []Port {
-	return node.pairPorts
+func (node *reduceNode) GetRequirePorts() ([]Port, error) {
+	return node.pairPorts, nil
 }
 
-func (node *reduceNode) GetUpdatePorts() []Port {
-	return []Port{node.outputPort}
+func (node *reduceNode) GetUpdatePorts() ([]Port, error) {
+	return []Port{node.outputPort}, nil
 }
 
 func (node *reduceNode) GetPorts() []Port {

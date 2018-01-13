@@ -83,12 +83,12 @@ func (node *payload) Process() error {
 	return nil
 }
 
-func (node *payload) GetRequirePorts() []graph.Port {
-	return make([]graph.Port, 0)
+func (node *payload) GetRequirePorts() ([]graph.Port, error) {
+	return make([]graph.Port, 0), nil
 }
 
-func (node *payload) GetUpdatePorts() []graph.Port {
-	return []graph.Port{node.rpmOutput, node.powerOutput}
+func (node *payload) GetUpdatePorts() ([]graph.Port, error) {
+	return []graph.Port{node.rpmOutput, node.powerOutput}, nil
 }
 
 func (node *payload) GetPorts() []graph.Port {

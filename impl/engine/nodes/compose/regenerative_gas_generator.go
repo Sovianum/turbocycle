@@ -112,22 +112,22 @@ func (node *regenerativeGasGeneratorNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *regenerativeGasGeneratorNode) GetRequirePorts() []graph.Port {
+func (node *regenerativeGasGeneratorNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureInput, node.pressureInput, node.gasInput, node.massRateInput,
 
 		node.regeneratorHotTemperatureInput, node.regeneratorHotPressureInput,
 		node.regeneratorHotGasInput, node.regeneratorHotMassRateInput,
-	}
+	}, nil
 }
 
-func (node *regenerativeGasGeneratorNode) GetUpdatePorts() []graph.Port {
+func (node *regenerativeGasGeneratorNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureOutput, node.pressureOutput, node.gasOutput, node.massRateOutput,
 
 		node.regeneratorHotTemperatureOutput, node.regeneratorHotPressureOutput,
 		node.regeneratorHotGasOutput, node.regeneratorHotMassRateOutput,
-	}
+	}, nil
 }
 
 func (node *regenerativeGasGeneratorNode) Burner() constructive.BurnerNode {

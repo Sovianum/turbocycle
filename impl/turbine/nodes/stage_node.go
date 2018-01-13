@@ -184,24 +184,24 @@ func (node *turbineStageNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *turbineStageNode) GetRequirePorts() []graph.Port {
+func (node *turbineStageNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.gasInput,
 		node.pressureInput,
 		node.temperatureInput,
 		node.velocityInput,
 		node.massRateInput,
-	}
+	}, nil
 }
 
-func (node *turbineStageNode) GetUpdatePorts() []graph.Port {
+func (node *turbineStageNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.gasOutput,
 		node.pressureOutput,
 		node.temperatureOutput,
 		node.velocityOutput,
 		node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *turbineStageNode) Process() error {

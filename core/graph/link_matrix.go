@@ -111,7 +111,12 @@ func (m *graphMatrix) setEdges() GraphError {
 
 	for pair := range m.nodes.Iterate() {
 		var innerNode = pair.Val.(Node)
-		for _, port := range innerNode.GetRequirePorts() {
+		var requirePorts, portErr = innerNode.GetRequirePorts()
+		if portErr != nil {
+			return graphErrorFromPorts(portErr.Error(), nil)
+		}
+
+		for _, port := range requirePorts {
 			var outerNode = port.GetOuterNode()
 
 			var innerNodeId, _ = m.nodes.GetByVal(innerNode)

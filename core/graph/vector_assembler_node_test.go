@@ -14,7 +14,7 @@ func TestVectorAssemblerNode_GetPairPort(t *testing.T) {
 	node.AddInputPorts(port1)
 	node.AddInputPorts(port2)
 
-	var requirePorts = node.GetRequirePorts()
+	var requirePorts, _ = node.GetRequirePorts()
 
 	assert.Equal(t, 2, len(requirePorts))
 }
@@ -31,7 +31,7 @@ func TestVectorAssemblerNode_DeletePairPort(t *testing.T) {
 
 	node.DeleteInputPorts(port2)
 
-	var requirePorts = node.GetRequirePorts()
+	var requirePorts, _ = node.GetRequirePorts()
 
 	assert.Equal(t, 2, len(requirePorts))
 }

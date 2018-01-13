@@ -97,16 +97,16 @@ func (node *coolerNode) GetPorts() []graph.Port {
 	}
 }
 
-func (node *coolerNode) GetRequirePorts() []graph.Port {
+func (node *coolerNode) GetRequirePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,
-	}
+	}, nil
 }
 
-func (node *coolerNode) GetUpdatePorts() []graph.Port {
+func (node *coolerNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *coolerNode) Process() error {

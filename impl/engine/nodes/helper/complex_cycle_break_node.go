@@ -90,17 +90,17 @@ func (node *complexCycleBreakNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "ComplexCycleBreak")
 }
 
-func (node *complexCycleBreakNode) GetRequirePorts() []graph.Port {
-	return make([]graph.Port, 0)
+func (node *complexCycleBreakNode) GetRequirePorts() ([]graph.Port, error) {
+	return make([]graph.Port, 0), nil
 }
 
-func (node *complexCycleBreakNode) GetUpdatePorts() []graph.Port {
+func (node *complexCycleBreakNode) GetUpdatePorts() ([]graph.Port, error) {
 	return []graph.Port{
 		node.temperatureOutput,
 		node.pressureOutput,
 		node.gasOutput,
 		node.massRateOutput,
-	}
+	}, nil
 }
 
 func (node *complexCycleBreakNode) GetPorts() []graph.Port {

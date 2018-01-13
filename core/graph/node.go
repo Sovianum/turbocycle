@@ -5,8 +5,8 @@ type Node interface {
 	GetName() string
 
 	Process() error
-	GetRequirePorts() []Port
-	GetUpdatePorts() []Port
+	GetRequirePorts() ([]Port, error)
+	GetUpdatePorts() ([]Port, error)
 	GetPorts() []Port
 	ContextDefined() bool
 }
