@@ -75,7 +75,7 @@ func NewThreeShaftFreeScheme(
 
 		payload: payload,
 
-		burnerTemperatureSource: source.NewTemperatureSourceNode(tGas),
+		burnerTSource: source.NewTemperatureSourceNode(tGas),
 
 		assembler: graph.NewVectorAssemblerNode(),
 		variators: []variator.Variator{
@@ -116,7 +116,7 @@ type threeShaftFreeScheme struct {
 
 	payload c.Payload
 
-	burnerTemperatureSource source.TemperatureSourceNode
+	burnerTSource source.TemperatureSourceNode
 
 	compMassRateEq graph.ReduceNode
 	hptMassRateEq  graph.ReduceNode
@@ -191,9 +191,13 @@ func (scheme *threeShaftFreeScheme) Variators() []variator.Variator {
 }
 
 func (scheme *threeShaftFreeScheme) GetNetwork() (graph.Network, error) {
+	return graph.NewNetwork(scheme.getNodes())
+}
+
+func (scheme *threeShaftFreeScheme) getNodes() []graph.Node {
 	var nodes = append(
 		scheme.gasPart.Nodes(),
-		scheme.payload, scheme.burnerTemperatureSource,
+		scheme.payload, scheme.burnerTSource,
 		scheme.lpt, scheme.lptPipe,
 		scheme.mpcPipe, scheme.mptPipe,
 		scheme.hpcPipe, scheme.hptPipe,
@@ -210,8 +214,7 @@ func (scheme *threeShaftFreeScheme) GetNetwork() (graph.Network, error) {
 		scheme.lpPressureEq, scheme.burnerEq,
 		scheme.assembler,
 	)
-
-	return graph.NewNetwork(nodes)
+	return nodes
 }
 
 func (scheme *threeShaftFreeScheme) linkPorts() {
@@ -464,7 +467,7 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 	scheme.lpPressureEq.SetName("lpPressureEq")
 
 	scheme.burnerEq = c.NewEquality(
-		scheme.burnerTemperatureSource.TemperatureOutput(),
+		scheme.burnerTSource.TemperatureOutput(),
 		graph.NewWeakPort(scheme.burner.TemperatureOutput()),
 	)
 	scheme.burnerEq.SetName("burnerEq")
