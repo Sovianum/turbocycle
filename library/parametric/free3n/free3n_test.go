@@ -100,6 +100,7 @@ func TestNewTripleShaftFreeScheme_Smoke(t *testing.T) {
 	//fmt.Println(scheme.MPC().PiStag(), scheme.MPT().PiTStag())
 	//fmt.Println(scheme.HPC().PiStag(), scheme.HPT().PiTStag())
 	//fmt.Println(scheme.Payload().RPM(), scheme.MPC().MassRate())
+	//fmt.Println(scheme.Burner().Alpha())
 
 	var delta = 1e-7
 	assert.InDelta(
