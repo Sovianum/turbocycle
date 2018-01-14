@@ -126,7 +126,7 @@ func (node *burnerNode) getNextAlpha(currAlpha float64) float64 {
 }
 
 func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
-	node.outletGas = node.fuel.GetCombustionGas(currAlpha)
+	node.outletGas = node.fuel.GetCombustionGas(node.inletGas(), currAlpha)
 
 	var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
 	var num2 = -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, nodes.DefaultN) * (node.tStagIn() - node.t0)
@@ -136,4 +136,8 @@ func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 	var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, nodes.DefaultN) * (node.tFuel - node.t0)
 
 	return (num1 + num2) / (denom1 + denom2 + denom3)
+}
+
+func (node *burnerNode) inletGas() gases.Gas {
+	return node.gasInput.GetState().(states.GasPortState).Gas
 }

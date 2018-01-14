@@ -9,7 +9,7 @@ type GasFuel interface {
 	Cp(t float64) float64
 	GasMassTheory(gas gases.Gas) float64
 	QLower() float64
-	GetCombustionGas(alpha float64) gases.Gas
+	GetCombustionGas(inletGas gases.Gas, alpha float64) gases.Gas
 }
 
 func CpMean(fuel GasFuel, t1, t2 float64, n int) float64 {

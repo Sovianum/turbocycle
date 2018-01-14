@@ -134,7 +134,11 @@ func (node *parametricBurnerNode) tGas() (float64, error) {
 }
 
 func (node *parametricBurnerNode) outletGas() gases.Gas {
-	return node.fuel.GetCombustionGas(node.alpha())
+	return node.fuel.GetCombustionGas(node.inletGas(), node.alpha())
+}
+
+func (node *parametricBurnerNode) inletGas() gases.Gas {
+	return node.gasInput.GetState().(states.GasPortState).Gas
 }
 
 func (node *parametricBurnerNode) alpha() float64 {

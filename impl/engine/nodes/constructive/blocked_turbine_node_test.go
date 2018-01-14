@@ -27,7 +27,7 @@ func TestBlockedTurbineNode_Process(t *testing.T) {
 	var turbine = getTestBlockedTurbine()
 	assert.NotNil(t, turbine)
 
-	var gasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(alphaT))
+	var gasState = states.NewGasPortState(fuel.GetCH4().GetCombustionGas(gases.GetAir(), alphaT))
 	var pressureState = states.NewPressurePortState(pBlockedT)
 	var temperatureState = states.NewTemperaturePortState(tBlockedT)
 	var massRateState = states.NewMassRatePortState(1)

@@ -39,7 +39,7 @@ type GapCalculatorTestSuite struct {
 
 func (suite *GapCalculatorTestSuite) SetupTest() {
 	suite.cooler = gases.GetAir()
-	suite.gas = fuel.GetCH4().GetCombustionGas(3)
+	suite.gas = fuel.GetCH4().GetCombustionGas(gases.GetAir(), 3)
 
 	suite.ba = 0.128
 	suite.bladeLength = 0.0676

@@ -25,7 +25,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	var turbine = getTestFreeTurbineNode()
 	assert.NotNil(t, turbine)
 
-	var inputGas = fuel.GetCH4().GetCombustionGas(alphaT)
+	var inputGas = fuel.GetCH4().GetCombustionGas(gases.GetAir(), alphaT)
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(inputGas), states.NewTemperaturePortState(tInFreeT),

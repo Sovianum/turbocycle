@@ -45,7 +45,7 @@ func (suite *ConvectiveFilmTestSuite) SetupTest() {
 	suite.coolerMassRate0 = 0.05
 
 	suite.cooler = gases.GetAir()
-	suite.gas = fuel.GetCH4().GetCombustionGas(3)
+	suite.gas = fuel.GetCH4().GetCombustionGas(gases.GetAir(), 3)
 
 	suite.gasTempStag = func(x float64) float64 {
 		return 1400

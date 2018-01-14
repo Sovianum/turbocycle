@@ -6,10 +6,14 @@ import (
 )
 
 func GetCH4() GasFuel {
-	return ch4{}
+	return ch4{
+		ch: NewHydroCarbon(1, 4),
+	}
 }
 
-type ch4 struct{}
+type ch4 struct {
+	ch HydroCarbon
+}
 
 func (fuel ch4) Cp(t float64) float64 {
 	var tArr = []float64{
@@ -41,16 +45,17 @@ func (fuel ch4) QLower() float64 {
 	return 49030e3
 }
 
-func (fuel ch4) GetCombustionGas(alpha float64) gases.Gas {
-	var factor = 1 / (1 + 2*common.O2AirFraction*common.CH4Weight/common.O2Weight)
-
-	var omegaN2 = factor * (common.N2AirFraction / alpha)
-	var omegaCO2 = factor * (common.O2AirFraction / alpha * common.CO2Weight / common.O2Weight)
-	var omegaH2O = factor * (2 * common.O2AirFraction / alpha * common.H2OWeight / common.O2Weight)
-	var omegaAir = factor * (1 - 1/alpha)
-
-	return gases.NewMixture(
-		[]gases.Gas{gases.GetNitrogen(), gases.GetCO2(), gases.GetH2OVapour(), gases.GetAir()},
-		[]float64{omegaN2, omegaCO2, omegaH2O, omegaAir},
-	)
+func (fuel ch4) GetCombustionGas(gas gases.Gas, alpha float64) gases.Gas {
+	//var factor = 1 / (1 + 2*common.O2AirFraction*common.CH4Weight/common.O2Weight)
+	//
+	//var omegaN2 = factor * (common.N2AirFraction / alpha)
+	//var omegaCO2 = factor * (common.O2AirFraction / alpha * common.CO2Weight / common.O2Weight)
+	//var omegaH2O = factor * (2 * common.O2AirFraction / alpha * common.H2OWeight / common.O2Weight)
+	//var omegaAir = factor * (1 - 1/alpha)
+	//
+	//return gases.NewMixture(
+	//	[]gases.Gas{gases.GetNitrogen(), gases.GetCO2(), gases.GetH2OVapour(), gases.GetAir()},
+	//	[]float64{omegaN2, omegaCO2, omegaH2O, omegaAir},
+	//)
+	return fuel.ch.GetCombustionGas(gas, alpha)
 }
