@@ -12,6 +12,10 @@ func GetNitrogen() Gas {
 	return nitrogen{}
 }
 
+func GetOxygen() Gas {
+	return oxygen{}
+}
+
 func GetCO2() Gas {
 	return co2{}
 }
@@ -136,6 +140,70 @@ func (nitrogen) Lambda(t float64) float64 {
 		70.0e-3, 75.8e-3, 81.0e-3,
 	}
 	return common.InterpTolerate(t, tArr, lambdaArr)
+}
+
+type oxygen struct{}
+
+func (oxygen) OxygenMassFraction() float64 {
+	return 1
+}
+
+func (oxygen) Cp(t float64) float64 {
+	var tArr = []float64{
+		300,
+		350, 400, 450, 500, 550,
+		600, 700, 800, 900, 1000,
+		1100, 1200, 1300,
+	}
+	var cpArr = []float64{
+		920,
+		929, 942, 956, 972, 988,
+		1003, 1031, 1054, 1074, 1090,
+		1103, 1115, 1125,
+	}
+
+	var cp = common.InterpTolerate(t, tArr, cpArr)
+	return cp
+}
+
+func (oxygen) R() float64 {
+	return common.UniversalGasConstant / common.O2Weight
+}
+
+func (oxygen) Mu(t float64) float64 {
+	var tArr = []float64{
+		300,
+		350, 400, 450, 500, 550,
+		600, 700, 800, 900, 1000,
+		1100, 1200, 1300,
+	}
+	var muArr = []float64{
+		207.2e-7,
+		233.5e-7, 258.2e-7, 281.4e-7, 303.3e-7, 324.0e-7,
+		343.7e-7, 380.8e-7, 415.2e-7, 447.2e-7, 477.0e-7,
+		505.5e-7, 532.5e-7, 588.4e-7,
+	}
+
+	var cp = common.InterpTolerate(t, tArr, muArr)
+	return cp
+}
+
+func (oxygen) Lambda(t float64) float64 {
+	var tArr = []float64{
+		300,
+		350, 400, 450, 500, 550,
+		600, 700, 800, 900, 1000,
+		1100, 1200, 1300,
+	}
+	var lambdaArr = []float64{
+		26.8e-3,
+		29.6e-3, 33.0e-3, 36.3e-3, 41.2e-3, 44.1e-3,
+		47.3e-3, 52.8e-3, 58.9e-3, 64.9e-3, 71.0e-3,
+		75.8e-3, 81.9e-3, 87.1e-3,
+	}
+
+	var cp = common.InterpTolerate(t, tArr, lambdaArr)
+	return cp
 }
 
 type co2 struct {

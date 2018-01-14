@@ -12,6 +12,14 @@ func (noOxygen) OxygenMassFraction() float64 {
 	return 0
 }
 
+func GetOxyFreeGas(gas Gas) Gas {
+	var oxygenFraction = gas.OxygenMassFraction()
+	return NewMixture(
+		[]Gas{gas, GetOxygen()},
+		[]float64{1, -oxygenFraction},
+	)
+}
+
 type Gas interface {
 	Oxidizer
 	Cp(t float64) float64
