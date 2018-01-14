@@ -74,8 +74,8 @@ func TestNewDoubleShaftFreeScheme_Smoke(t *testing.T) {
 	var variatorSolver = variator.NewVariatorSolver(sysCall, variators, solverGen)
 
 	_, err = variatorSolver.Solve(
-		mat.NewVecDense(6, []float64{0.8, 0.8, 0.034, 1, 1, 1}),
-		1e-6, 0.1, 1000,
+		mat.NewVecDense(6, []float64{1, 1, 0.034, 1, 1, 1}),
+		1e-6, 0.7, 100,
 	)
 	assert.Nil(t, err)
 }
