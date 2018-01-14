@@ -1,4 +1,4 @@
-package free2n
+package free3n
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"

@@ -6,67 +6,17 @@ import (
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
-	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
 	"gonum.org/v1/gonum/mat"
 )
 
 const (
-	mpcMassRate0 = 50
-	mpcPi0       = 8
-	mpcEta0      = 0.85
-	mpcRPM0      = 1e5
-	mpcSigma     = 0.98
-
-	hpcMassRate0 = 50
-	hpcPi0       = 8
-	hpcEta0      = 0.85
-	hpcRPM0      = 1e5
-	hpcSigma     = 0.98
-
-	hptMassRate0 = 30
-	hptPi0       = 5
-	hptEta0      = 0.9
-	hptDMean     = 0.7
-	hptSigma     = 0.98
-
-	mptMassRate0 = 20
-	mptPi0       = 5
-	mptEta0      = 0.9
-	mptDMean     = 0.9
-	mptSigma     = 0.98
-
-	lptMassRate0 = 12
-	lptPi0       = 2
-	lptEta0      = 0.9
-	lptDMean     = 1.1
-	lptSigma     = 0.98
-
-	mpEtaM = 0.99
-	hpEtaM = 0.99
-
-	t0 = 288
-	p0 = 1e5
-
-	tFuel = 300
-
-	etaBurn          = 0.99
-	lambdaIn0        = 0.2
-	tStagIn0         = 500
-	fuelMassRateRel0 = 0.03
-
-	payloadPower0 = 3e6
-	payloadRPM0   = 3e3
-
-	precision = 1e-3
-
-	pAtm = 1e5
-	tAtm = 288
-	tGas = 1200
+	coolerTOut  = 400.
+	coolerSigma = 0.98
 )
 
-func TestNewTripleShaftFreeScheme_Smoke(t *testing.T) {
+func TestNewTripleShaftCoolFreeScheme_Smoke(t *testing.T) {
 	var scheme = getUnit3nFreeTestScheme()
 	var network, err = scheme.GetNetwork()
 	assert.Nil(t, err)
@@ -128,8 +78,8 @@ func TestNewTripleShaftFreeScheme_Smoke(t *testing.T) {
 	)
 }
 
-func getUnit3nFreeTestScheme() ThreeShaftFreeScheme {
-	return get3nFreeTestScheme(
+func getUnit3nCoolFreeTestScheme() ThreeShaftFreeScheme {
+	return get3nCoolFreeTestScheme(
 		func(normMassRate, normPiStag float64) float64 {
 			return 1
 		},
@@ -169,7 +119,7 @@ func getUnit3nFreeTestScheme() ThreeShaftFreeScheme {
 	)
 }
 
-func get3nFreeTestScheme(
+func get3nCoolFreeTestScheme(
 	mpcNormEtaChar, mpcNormRpmChar,
 	hpcNormEtaChar, hpcNormRpmChar c.CompressorCharFunc,
 	hptNormMassRateChar, hptNormEtaChar,
@@ -177,51 +127,20 @@ func get3nFreeTestScheme(
 	lptNormMassRateChar, lptNormEtaChar c.TurbineCharFunc,
 	burnerSigmaFunc func(lambda float64) float64,
 	powerChar func(normRPM float64) float64,
-) ThreeShaftFreeScheme {
-	var mpc = c.NewParametricCompressorNode(
-		mpcMassRate0, mpcPi0, mpcRPM0, mpcEta0, t0, p0, precision,
+) ThreeShaftCoolFreeScheme {
+	var root = get3nFreeTestScheme(
 		mpcNormEtaChar, mpcNormRpmChar,
-	)
-	var mpcPipe = c.NewPressureLossNode(mpcSigma)
-
-	var hpc = c.NewParametricCompressorNode(
-		hpcMassRate0, hpcPi0, hpcRPM0, hpcEta0, t0, p0, precision,
 		hpcNormEtaChar, hpcNormRpmChar,
-	)
-	var hpcPipe = c.NewPressureLossNode(hpcSigma)
-
-	var burner = c.NewParametricBurnerNode(
-		fuel.GetCH4(), tFuel, t0, etaBurn, lambdaIn0, p0*mpcPi0*hpcPi0, tStagIn0,
-		hpcMassRate0, fuelMassRateRel0, precision, burnerSigmaFunc,
-	)
-
-	var hpt = c.NewSimpleParametricTurbineNode(
-		hptMassRate0, hptPi0, hptEta0, t0, p0, hptDMean, precision,
-		0, 0, 0,
 		hptNormMassRateChar, hptNormEtaChar,
-	)
-	var hptPipe = c.NewPressureLossNode(hptSigma)
-
-	var mpt = c.NewSimpleParametricTurbineNode(
-		mptMassRate0, mptPi0, mptEta0, t0, p0, mptDMean, precision,
-		0, 0, 0,
 		mptNormMassRateChar, mptNormEtaChar,
-	)
-	var mptPipe = c.NewPressureLossNode(mptSigma)
-
-	var lpt = c.NewSimpleParametricTurbineNode(
-		lptMassRate0, lptPi0, lptEta0, t0, p0, lptDMean, precision,
-		0, 0, 0,
 		lptNormMassRateChar, lptNormEtaChar,
+		burnerSigmaFunc, powerChar,
 	)
-	var lptPipe = c.NewPressureLossNode(lptSigma)
-
-	var payload = c.NewPayload(payloadRPM0, -payloadPower0, powerChar)
-
-	return NewThreeShaftFreeScheme(
+	return NewThreeShaftCoolFreeScheme(
 		gases.GetAir(), tAtm, pAtm, tGas,
-		mpc, mpcPipe, mpt, mptPipe, mpEtaM,
-		hpc, hpcPipe, hpt, hptPipe, hpEtaM,
-		lpt, lptPipe, burner, payload,
+		root.MPC(), root.MPCPipe(), root.MPT(), root.MPTPipe(), mpEtaM,
+		root.HPC(), root.HPCPipe(), root.HPT(), root.HPTPipe(), hpEtaM,
+		root.LPT(), root.LPTPipe(), root.Burner(),
+		root.Payload(), c.NewCoolerNode(coolerTOut, coolerSigma),
 	)
 }
