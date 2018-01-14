@@ -60,7 +60,14 @@ func (scheme *threeShaftBurnFreeScheme) MidBurner() c.ParametricBurnerNode {
 }
 
 func (scheme *threeShaftBurnFreeScheme) GetNetwork() (graph.Network, error) {
-	return graph.NewNetwork(append(scheme.getNodes(), scheme.midBurner, scheme.midBurnerEq, scheme.midBurnerTSource))
+	return graph.NewNetwork(scheme.getNodes())
+}
+
+func (scheme *threeShaftBurnFreeScheme) getNodes() []graph.Node {
+	return append(
+		scheme.threeShaftFreeScheme.getNodes(),
+		scheme.midBurner, scheme.midBurnerEq, scheme.midBurnerTSource,
+	)
 }
 
 func (scheme *threeShaftBurnFreeScheme) relink() {
