@@ -1,7 +1,6 @@
 package free3n
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
@@ -14,7 +13,7 @@ import (
 )
 
 const (
-	midBurnerTOut = 1100.
+	midBurnerTOut = 1800.
 )
 
 func TestNewTripleShaftBurnFreeScheme_Smoke(t *testing.T) {
@@ -42,16 +41,17 @@ func TestNewTripleShaftBurnFreeScheme_Smoke(t *testing.T) {
 			1, 1, 1,
 			0.034, 1, 0.02,
 		}),
-		1e-8, 0.5, 100,
+		1e-8, 0.2, 1000,
 	)
 	assert.Nil(t, err)
 
-	fmt.Println()
-	fmt.Println(scheme.LPT().PiTStag())
-	fmt.Println(scheme.MPC().PiStag(), scheme.MPT().PiTStag())
-	fmt.Println(scheme.HPC().PiStag(), scheme.HPT().PiTStag())
-	fmt.Println(scheme.Payload().RPM(), scheme.MPC().MassRate())
-	fmt.Println(scheme.MidBurner().Alpha())
+	//fmt.Println()
+	//fmt.Println(scheme.LPT().PiTStag())
+	//fmt.Println(scheme.MPC().PiStag(), scheme.MPT().PiTStag())
+	//fmt.Println(scheme.HPC().PiStag(), scheme.HPT().PiTStag())
+	//fmt.Println(scheme.Payload().RPM(), scheme.MPC().MassRate())
+	//fmt.Println(scheme.Burner().Alpha(), scheme.Burner().FuelRateRel())
+	//fmt.Println(scheme.MidBurner().Alpha(), scheme.MidBurner().FuelRateRel())
 
 	var delta = 1e-7
 	assert.InDelta(
