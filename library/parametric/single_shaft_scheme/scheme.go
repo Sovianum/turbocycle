@@ -1,4 +1,4 @@
-package parametric
+package single_shaft_scheme
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"

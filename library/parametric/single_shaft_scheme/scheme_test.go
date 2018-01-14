@@ -1,4 +1,4 @@
-package parametric
+package single_shaft_scheme
 
 import (
 	"testing"
@@ -14,9 +14,9 @@ import (
 
 const (
 	cMassRate0       = 3
-	tMassRate0       = 20
-	piTC0            = 14
-	piC0             = 15
+	tMassRate0       = 7
+	piTC0            = 8
+	piC0             = 8
 	etaTC0           = 0.9
 	etaC0            = 0.85
 	rpm0             = 1e5
@@ -28,7 +28,7 @@ const (
 	lambdaIn0        = 0.2
 	tStagIn0         = 500
 	fuelMassRateRel0 = 0.03
-	power0           = 4.47e6
+	power0           = 1e6
 	precision        = 1e-3
 
 	pAtm = 1e5
@@ -56,16 +56,32 @@ func TestNewSingleShaftScheme_Smoke(t *testing.T) {
 	var variatorSolver = variator.NewVariatorSolver(sysCall, variators, solverGen)
 
 	_, err = variatorSolver.Solve(
-		mat.NewVecDense(5, []float64{0.8, 0.8, 0.02, 1, 1}),
-		1e-6, 100,
+		mat.NewVecDense(5, []float64{0.8, 0.8, 0.05, 1, 1}),
+		1e-8, 100,
 	)
 	assert.Nil(t, err)
+
+	var compressorMassRate = scheme.Compressor().MassRateOutput().GetState().Value().(float64)
+	var burnerMassRate = scheme.Burner().MassRateOutput().GetState().Value().(float64)
+	var turbineMassRate = scheme.Turbine().MassRateInput().GetState().Value().(float64)
+
+	assert.InDelta(t, 0, turbineMassRate-burnerMassRate, 1e-7)
+
+	var compressorPower = scheme.Compressor().PowerOutput().GetState().Value().(float64) * compressorMassRate
+	var turbinePower = scheme.Turbine().PowerOutput().GetState().Value().(float64) * turbineMassRate
+	var payloadPower = scheme.Payload().PowerOutput().GetState().Value().(float64)
+
+	assert.InDelta(t, 0, turbinePower+compressorPower+payloadPower, 1e-7)
+
+	var turbinePressure = scheme.Turbine().PressureOutput().GetState().Value().(float64)
+
+	assert.InDelta(t, 0, turbinePressure-pAtm, 1e-7)
 }
 
 func getUnitTestScheme() SingleShaftScheme {
 	return getTestScheme(
 		func(lambdaU, normPiStag float64) float64 {
-			return 1
+			return 1 - (1-normPiStag)*5
 		},
 		func(lambdaU, normPiStag float64) float64 {
 			return 1
@@ -104,7 +120,7 @@ func getTestScheme(
 		0, 0, 0,
 		turbineNormMassRateChar, turbineNormEtaChar,
 	)
-	var payload = c.NewPayload(rpm0, power0, powerChar)
+	var payload = c.NewPayload(rpm0, -power0, powerChar)
 
 	return NewSingleShaftScheme(
 		gases.GetAir(), pAtm, tAtm, tGas,

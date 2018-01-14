@@ -129,7 +129,27 @@ func getResidual(state1, state2 networkStateType) (float64, error) {
 		}
 
 		for port := range nodeState1 {
-			var residual, err = nodeState1[port].MaxResidual(nodeState2[port])
+			var portState1 = nodeState1[port]
+			var portState2 = nodeState2[port]
+
+			if portState1 == nil && portState2 == nil {
+				continue
+			}
+
+			if portState1 == nil {
+				return 0, fmt.Errorf(
+					"port with tag %s of node %s has nil state on curr step",
+					port.GetTag(), port.GetInnerNode().GetName(),
+				)
+			}
+			if portState2 == nil {
+				return 0, fmt.Errorf(
+					"port with tag %s of node %s has nil state on new step",
+					port.GetTag(), port.GetInnerNode().GetName(),
+				)
+			}
+
+			var residual, err = portState1.MaxResidual(portState2)
 			if err != nil {
 				return 0, fmt.Errorf(
 					"failed to get residual of node %v with name %s at portType %s: %s",

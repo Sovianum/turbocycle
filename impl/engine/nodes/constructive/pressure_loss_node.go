@@ -256,11 +256,11 @@ func (node *pressureLossNode) getMode() (string, error) {
 		return node.mode, nil
 	}
 
-	var inputIsSource, inputErr = nodes.IsDataSource(node.gasInput)
+	var inputIsSource, inputErr = nodes.IsDataSource(node.pressureInput)
 	if inputErr != nil {
 		return "", inputErr
 	}
-	var outputIsSource, outputErr = nodes.IsDataSource(node.gasOutput)
+	var outputIsSource, outputErr = nodes.IsDataSource(node.pressureOutput)
 	if outputErr != nil {
 		return "", outputErr
 	}

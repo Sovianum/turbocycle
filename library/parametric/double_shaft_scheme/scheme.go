@@ -1,4 +1,4 @@
-package parametric
+package double_shaft_scheme
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"
@@ -6,6 +6,7 @@ import (
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
+	"github.com/Sovianum/turbocycle/library/parametric"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
@@ -29,16 +30,15 @@ func NewDoubleShaftFreeScheme(
 	compressorPipe c.PressureLossNode,
 	burner c.ParametricBurnerNode,
 	compressorTurbine c.ParametricTurbineNode,
-	shaft c.TransmissionNode,
 	compressorTurbinePipe c.PressureLossNode,
 	freeTurbine c.ParametricTurbineNode,
 	freeTurbinePipe c.PressureLossNode,
 	payload c.Payload,
 ) DoubleShaftFreeScheme {
 	var result = &doubleShaftFreeScheme{
-		gasPart: newGasPart(gas, tAtm, pAtm, pAtm),
-		gasGeneratorPart: newGasGeneratorPart(
-			compressor, burner, compressorTurbine, shaft, compressorPipe,
+		gasPart: parametric.NewGasPart(gas, tAtm, pAtm, pAtm),
+		gasGeneratorPart: parametric.NewGasGeneratorPart(
+			compressor, burner, compressorTurbine, c.NewTransmissionNode(etaM), compressorPipe,
 		),
 
 		ctPipe:   compressorTurbinePipe,
@@ -65,8 +65,8 @@ func NewDoubleShaftFreeScheme(
 }
 
 type doubleShaftFreeScheme struct {
-	gasPart          *gasPart
-	gasGeneratorPart *gasGeneratorPart
+	gasPart          *parametric.GasPart
+	gasGeneratorPart *parametric.GasGeneratorPart
 
 	ctPipe   c.PressureLossNode
 	fTurbine c.ParametricTurbineNode
@@ -87,19 +87,19 @@ type doubleShaftFreeScheme struct {
 }
 
 func (scheme *doubleShaftFreeScheme) Compressor() c.ParametricCompressorNode {
-	return scheme.gasGeneratorPart.compressor
+	return scheme.gasGeneratorPart.Compressor
 }
 
 func (scheme *doubleShaftFreeScheme) CompressorPipe() c.PressureLossNode {
-	return scheme.gasGeneratorPart.compressorPipe
+	return scheme.gasGeneratorPart.CompressorPipe
 }
 
 func (scheme *doubleShaftFreeScheme) Burner() c.ParametricBurnerNode {
-	return scheme.gasGeneratorPart.burner
+	return scheme.gasGeneratorPart.Burner
 }
 
 func (scheme *doubleShaftFreeScheme) CompressorTurbine() c.ParametricTurbineNode {
-	return scheme.gasGeneratorPart.turbine
+	return scheme.gasGeneratorPart.Turbine
 }
 
 func (scheme *doubleShaftFreeScheme) CompressorTurbinePipe() c.PressureLossNode {
@@ -130,7 +130,8 @@ func (scheme *doubleShaftFreeScheme) GetNetwork() (graph.Network, error) {
 	var nodes = append(scheme.gasPart.Nodes(), scheme.gasGeneratorPart.Nodes()...)
 	nodes = append(
 		nodes, scheme.ctPipe, scheme.ftPipe, scheme.fTurbine, scheme.payload, scheme.burnerTemperatureSource,
-		scheme.assembler,
+		scheme.assembler, scheme.gasGenMassRateEq, scheme.gasGenPowerEq, scheme.freeTurbineMassRateEq,
+		scheme.freeTurbinePowerEq, scheme.freeTurbinePressureEq, scheme.gasGenBurnerEq,
 	)
 	return graph.NewNetwork(nodes)
 }
@@ -138,24 +139,29 @@ func (scheme *doubleShaftFreeScheme) GetNetwork() (graph.Network, error) {
 func (scheme *doubleShaftFreeScheme) linkPorts() {
 	graph.LinkAll(
 		[]graph.Port{
-			scheme.gasPart.gasSource.GasOutput(),
-			scheme.gasPart.temperatureSource.TemperatureOutput(),
-			scheme.gasPart.inputPressureSource.PressureOutput(),
+			scheme.gasPart.GasSource.GasOutput(),
+			scheme.gasPart.TemperatureSource.TemperatureOutput(),
+			scheme.gasPart.InputPressureSource.PressureOutput(),
+			scheme.gasPart.OutputPressureSource.PressureOutput(),
 		},
 		[]graph.Port{
-			scheme.gasGeneratorPart.compressor.GasInput(),
-			scheme.gasGeneratorPart.compressor.TemperatureInput(),
-			scheme.gasGeneratorPart.compressor.PressureInput(),
+			scheme.gasGeneratorPart.Compressor.GasInput(),
+			scheme.gasGeneratorPart.Compressor.TemperatureInput(),
+			scheme.gasGeneratorPart.Compressor.PressureInput(),
+			scheme.ftPipe.PressureOutput(),
 		},
 	)
-	sink.SinkPort(scheme.gasGeneratorPart.compressor.MassRateInput())
+	sink.SinkAll(
+		scheme.gasGeneratorPart.Compressor.MassRateInput(),
+		scheme.ftPipe.PressureInput(),
+	)
 
 	graph.LinkAll(
 		[]graph.Port{
-			scheme.gasGeneratorPart.turbine.GasOutput(),
-			scheme.gasGeneratorPart.turbine.TemperatureOutput(),
-			scheme.gasGeneratorPart.turbine.PressureOutput(),
-			scheme.gasGeneratorPart.turbine.MassRateOutput(),
+			scheme.gasGeneratorPart.Turbine.GasOutput(),
+			scheme.gasGeneratorPart.Turbine.TemperatureOutput(),
+			scheme.gasGeneratorPart.Turbine.PressureOutput(),
+			scheme.gasGeneratorPart.Turbine.MassRateOutput(),
 		},
 		[]graph.Port{
 			scheme.ctPipe.GasInput(),
@@ -194,13 +200,13 @@ func (scheme *doubleShaftFreeScheme) linkPorts() {
 	sink.SinkAll(
 		// ports on the first line are sinked cos parametric turbine does not take output pressure
 		// as an input parameter
-		scheme.fTurbine.PressureOutput(), scheme.ftPipe.PressureInput(),
+		scheme.fTurbine.PressureOutput(),
 		scheme.ftPipe.GasOutput(), scheme.ftPipe.TemperatureOutput(),
 		scheme.ftPipe.MassRateOutput(),
 	)
 
 	graph.Link(
-		scheme.gasPart.outputPressureSource.PressureOutput(),
+		scheme.gasPart.OutputPressureSource.PressureOutput(),
 		scheme.ftPipe.PressureOutput(),
 	)
 
@@ -208,24 +214,24 @@ func (scheme *doubleShaftFreeScheme) linkPorts() {
 		scheme.payload.RPMOutput(), scheme.fTurbine.RPMInput(),
 	)
 
-	sink.SinkAll(scheme.payload.PowerOutput())
+	sink.SinkAll(scheme.payload.PowerOutput(), scheme.fTurbine.PowerOutput())
 }
 
 func (scheme *doubleShaftFreeScheme) setEquations() {
 	scheme.gasGenMassRateEq = c.NewEquality(
-		graph.NewWeakPort(scheme.gasGeneratorPart.burner.MassRateOutput()),
-		graph.NewWeakPort(scheme.gasGeneratorPart.turbine.MassRateInput()),
+		graph.NewWeakPort(scheme.gasGeneratorPart.Burner.MassRateOutput()),
+		graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateInput()),
 	)
 	scheme.gasGenMassRateEq.SetName("gasGenMassRateEq")
 
 	scheme.gasGenPowerEq = c.NewMultiAdderFromPorts(
 		[]graph.Port{
-			graph.NewWeakPort(scheme.gasGeneratorPart.turbine.PowerOutput()),
-			graph.NewWeakPort(scheme.gasGeneratorPart.turbine.MassRateOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.PowerOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateOutput()),
 		},
 		[]graph.Port{
-			graph.NewWeakPort(scheme.gasGeneratorPart.compressor.PowerOutput()),
-			graph.NewWeakPort(scheme.gasGeneratorPart.compressor.MassRateOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.PowerOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.MassRateOutput()),
 		},
 	)
 	scheme.gasGenPowerEq.SetName("gasGenPowerEq")
@@ -253,7 +259,7 @@ func (scheme *doubleShaftFreeScheme) setEquations() {
 
 	scheme.gasGenBurnerEq = c.NewEquality(
 		scheme.burnerTemperatureSource.TemperatureOutput(),
-		graph.NewWeakPort(scheme.gasGeneratorPart.burner.TemperatureOutput()),
+		graph.NewWeakPort(scheme.gasGeneratorPart.Burner.TemperatureOutput()),
 	)
 	scheme.gasGenBurnerEq.SetName("gasGenBurnerEq")
 

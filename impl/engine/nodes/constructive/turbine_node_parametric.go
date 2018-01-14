@@ -142,7 +142,7 @@ func (node *parametricTurbineNode) Process() error {
 	var massRateOut = massRateIn * node.massRateRelFactor()
 
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
-	var lSpecific = -cp * (node.tStagIn() - tStagOut)
+	var lSpecific = cp * (node.tStagIn() - tStagOut)
 
 	graph.SetAll(
 		[]graph.PortState{
