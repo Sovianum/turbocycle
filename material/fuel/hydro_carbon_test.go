@@ -12,6 +12,8 @@ func TestHydroCarbon_GetCombustionGas(t *testing.T) {
 	var hc = NewHydroCarbon(1, 4)
 
 	var gas1 = hc.GetCombustionGas(gas, 2)
+	var normO2Frac = gas1.OxygenMassFraction() / gas.OxygenMassFraction()
+	assert.True(t, 0.45 < normO2Frac && normO2Frac < 0.5)
 
 	var gas2 = hc.GetCombustionGas(gas1, 0.5)
 	assert.InDelta(t, 0, gas2.OxygenMassFraction(), 1e-7)

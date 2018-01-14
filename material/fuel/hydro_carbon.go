@@ -71,7 +71,7 @@ func (hc HydroCarbon) getExhaustComplex(gas gases.Gas, alpha float64) float64 {
 		(common.CWeight*hc.C + common.HWeight*hc.H) / common.O2Weight,
 		gas.OxygenMassFraction(),
 	}
-	return 1 - common.Product(factors)
+	return 1 + common.Product(factors)
 }
 
 func (hc HydroCarbon) getAlphaFunc(alpha float64) float64 {

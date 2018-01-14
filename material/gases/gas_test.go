@@ -8,7 +8,11 @@ import (
 )
 
 func TestGetOxyFreeGas(t *testing.T) {
-	var gas = GetOxygen()
-	var oxyFreeGas = GetOxyFreeGas(gas)
-	assert.True(t, math.IsNaN(oxyFreeGas.R()))
+	var o2 = GetOxygen()
+	var oxyFreeOx = GetOxyFreeGas(o2)
+	assert.True(t, math.IsNaN(oxyFreeOx.R()))
+
+	var air = GetAir()
+	var oxyFreeAir = GetOxyFreeGas(air)
+	assert.InDelta(t, 0, oxyFreeAir.OxygenMassFraction(), 1e-7)
 }
