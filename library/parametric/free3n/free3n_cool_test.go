@@ -17,7 +17,7 @@ const (
 )
 
 func TestNewTripleShaftCoolFreeScheme_Smoke(t *testing.T) {
-	var scheme = getUnit3nFreeTestScheme()
+	var scheme = getUnit3nCoolFreeTestScheme()
 	var network, err = scheme.GetNetwork()
 	assert.Nil(t, err)
 

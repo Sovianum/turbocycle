@@ -51,6 +51,10 @@ func (scheme *threeShaftCoolFreeScheme) Cooler() c.CoolerNode {
 	return scheme.cooler
 }
 
+func (scheme *threeShaftCoolFreeScheme) GetNetwork() (graph.Network, error) {
+	return graph.NewNetwork(append(scheme.getNodes(), scheme.cooler))
+}
+
 func (scheme *threeShaftCoolFreeScheme) relink() {
 	graph.LinkAll(
 		[]graph.Port{
