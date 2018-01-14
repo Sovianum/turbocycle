@@ -78,7 +78,7 @@ func TestParametricCompressorNode_Process_Smoke_NonLinear(t *testing.T) {
 	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
 	var variatorSolver = variator.NewVariatorSolver(systemCall, []variator.Variator{massRateVariator}, solverGen)
 
-	var _, err = variatorSolver.Solve(mat.NewVecDense(1, []float64{1}), 1e-8, 100)
+	var _, err = variatorSolver.Solve(mat.NewVecDense(1, []float64{1}), 1e-8, 1, 100)
 	assert.Nil(t, err)
 
 	assert.InDelta(t, compressor.MassRate(), massRate, 1e-7)

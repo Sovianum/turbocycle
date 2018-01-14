@@ -111,7 +111,7 @@ func TestParametricBurnerNode_Process_Smoke_Solver(t *testing.T) {
 	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
 	var variatorSolver = variator.NewVariatorSolver(systemCall, []variator.Variator{fuelRateVariator}, solverGen)
 
-	var _, solveErr = variatorSolver.Solve(mat.NewVecDense(1, []float64{fuelMassRateRel0}), 1e-8, 100)
+	var _, solveErr = variatorSolver.Solve(mat.NewVecDense(1, []float64{fuelMassRateRel0}), 1e-8, 1, 100)
 	assert.Nil(t, solveErr)
 
 	assert.True(t, bn.FuelRateRel() > fuelMassRateRel0)

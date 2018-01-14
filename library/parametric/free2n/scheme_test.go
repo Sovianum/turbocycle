@@ -1,7 +1,6 @@
-package double_shaft_scheme
+package free2n
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
@@ -76,11 +75,9 @@ func TestNewDoubleShaftFreeScheme_Smoke(t *testing.T) {
 
 	_, err = variatorSolver.Solve(
 		mat.NewVecDense(6, []float64{0.8, 0.8, 0.034, 1, 1, 1}),
-		1e-6, 100,
+		1e-6, 0.1, 1000,
 	)
 	assert.Nil(t, err)
-
-	fmt.Println(scheme.Assembler().GetVectorPort().GetState().Value())
 }
 
 func getUnitTestScheme() DoubleShaftFreeScheme {
@@ -107,7 +104,7 @@ func getUnitTestScheme() DoubleShaftFreeScheme {
 			return 1
 		},
 		func(normRPM float64) float64 {
-			return 1
+			return normRPM
 		},
 	)
 }

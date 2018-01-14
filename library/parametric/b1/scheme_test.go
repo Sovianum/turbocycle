@@ -1,4 +1,4 @@
-package single_shaft_scheme
+package b1
 
 import (
 	"testing"
@@ -57,7 +57,7 @@ func TestNewSingleShaftScheme_Smoke(t *testing.T) {
 
 	_, err = variatorSolver.Solve(
 		mat.NewVecDense(5, []float64{0.8, 0.8, 0.05, 1, 1}),
-		1e-8, 100,
+		1e-8, 1, 100,
 	)
 	assert.Nil(t, err)
 

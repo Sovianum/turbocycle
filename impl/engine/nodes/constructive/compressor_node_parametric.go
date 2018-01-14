@@ -102,7 +102,7 @@ func (node *parametricCompressorNode) GetName() string {
 
 func (node *parametricCompressorNode) Process() error {
 	if node.piStag() <= 1 {
-		return fmt.Errorf("invalid piStag = %f", node.piStag)
+		return fmt.Errorf("invalid piStag = %v", node.piStag())
 	}
 
 	var etaAd = node.normEtaCharacteristic(node.normMassRate, node.piStag()) * node.eta0

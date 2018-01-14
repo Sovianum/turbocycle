@@ -124,8 +124,7 @@ func (suite *SysCallTestSuite) SetupTest() {
 	graph.Link(aUpdate[0], cRequire[0])
 
 	var bUpdate, _ = suite.nodeB.GetUpdatePorts()
-	var cUpdate, _ = suite.nodeC.GetRequirePorts()
-	graph.Link(bUpdate[0], cUpdate[1])
+	graph.Link(bUpdate[0], cRequire[1])
 
 	var dRequire, _ = suite.nodeD.GetRequirePorts()
 	graph.Link(aUpdate[1], dRequire[0])
@@ -134,6 +133,7 @@ func (suite *SysCallTestSuite) SetupTest() {
 	var outRequire, _ = suite.out.GetRequirePorts()
 	graph.Link(suite.assembler.GetVectorPort(), outRequire[0])
 
+	var cUpdate, _ = suite.nodeC.GetUpdatePorts()
 	suite.assembler.AddInputPorts(cUpdate[0])
 
 	var dUpdate, _ = suite.nodeD.GetUpdatePorts()
@@ -167,7 +167,7 @@ func (suite *SysCallTestSuite) TestSysCall_OK() {
 	var varSolver = NewVariatorSolver(sysCall, []Variator{paVariator, pbVariator}, solverGen)
 
 	var x0 = mat.NewVecDense(2, []float64{0, 0})
-	var _, err = varSolver.Solve(x0, 1e-8, 100)
+	var _, err = varSolver.Solve(x0, 1e-8, 1, 100)
 	assert.Nil(suite.T(), err)
 
 	assert.InDelta(suite.T(), 0.25, suite.pA, 1e-7)

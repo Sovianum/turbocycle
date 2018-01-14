@@ -89,7 +89,7 @@ func (network *network) getNewState(callOrder []Node) (networkStateType, error) 
 		var err = node.Process()
 		if err != nil {
 			return nil, fmt.Errorf(
-				"failed on node %v with name %s: %s", node, node.GetName(), err.Error(),
+				"failed on node with name %s: %s", node.GetName(), err.Error(),
 			)
 		}
 	}

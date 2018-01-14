@@ -188,7 +188,7 @@ func (node *parametricRegeneratorNode) getOutputTemperatures() (float64, float64
 	}
 
 	var solution, solutionErr = solver.Solve(
-		mat.NewVecDense(2, []float64{tColdIn, tHotIn}), temperaturePrecision, nodes.DefaultN,
+		mat.NewVecDense(2, []float64{tColdIn, tHotIn}), temperaturePrecision, 1, nodes.DefaultN,
 	)
 	if solutionErr != nil {
 		return 0, 0, solutionErr

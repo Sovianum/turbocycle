@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"fmt"
+
 	"github.com/Sovianum/turbocycle/common"
 )
 
@@ -21,13 +23,13 @@ func NewTestNode(requirePortNum, updatePortNum int, contextDefined bool, action 
 	}
 
 	for i := 0; i != requirePortNum; i++ {
-		node.requirePorts[i] = NewAttachedPort(node)
+		node.requirePorts[i] = NewAttachedPortWithTag(node, fmt.Sprintf("require %d", i))
 	}
 
 	for i := 0; i != updatePortNum; i++ {
 		var port = NewPort()
 		port.SetInnerNode(node)
-		node.updatePorts[i] = NewAttachedPort(node)
+		node.updatePorts[i] = NewAttachedPortWithTag(node, fmt.Sprintf("update %d", i))
 	}
 
 	return node

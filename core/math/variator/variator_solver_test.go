@@ -28,7 +28,7 @@ func TestVariatorSolver_Solve_Linear_1d(t *testing.T) {
 
 	var _, err = variatorSolver.Solve(
 		mat.NewVecDense(1, []float64{3}),
-		1e-8, 100,
+		1e-8, 1, 100,
 	)
 
 	assert.Nil(t, err)
@@ -59,7 +59,7 @@ func TestVariatorSolver_Solve_Linear_2d(t *testing.T) {
 
 	var _, err = variatorSolver.Solve(
 		mat.NewVecDense(2, []float64{0, 0}),
-		1e-8, 100,
+		1e-8, 1, 100,
 	)
 
 	assert.Nil(t, err)
@@ -85,7 +85,7 @@ func TestVariatorSolver_Solve_NonLinear_1d(t *testing.T) {
 
 	var _, err = variatorSolver.Solve(
 		mat.NewVecDense(1, []float64{3}),
-		1e-8, 100,
+		1e-8, 1, 100,
 	)
 
 	assert.Nil(t, err)
@@ -116,7 +116,7 @@ func TestVariatorSolver_Solve_NonLinear_2d(t *testing.T) {
 
 	var _, err = variatorSolver.Solve(
 		mat.NewVecDense(2, []float64{0.5, 0.5}),
-		1e-8, 100,
+		1e-8, 1, 100,
 	)
 
 	assert.Nil(t, err)

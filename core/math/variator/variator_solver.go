@@ -26,6 +26,7 @@ type variatorSolver struct {
 func (solver *variatorSolver) Solve(
 	x0 *mat.VecDense,
 	precision float64,
+	relaxCoef float64,
 	iterLimit int,
 ) (solution *mat.VecDense, err error) {
 	var systemSolver, solverErr = solver.solverGen(solver.getResidualFunc())
@@ -33,7 +34,7 @@ func (solver *variatorSolver) Solve(
 		return nil, solverErr
 	}
 
-	return systemSolver.Solve(x0, precision, iterLimit)
+	return systemSolver.Solve(x0, precision, relaxCoef, iterLimit)
 }
 
 func (solver *variatorSolver) getResidualFunc() math.EquationSystem {

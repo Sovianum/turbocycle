@@ -1,4 +1,4 @@
-package double_shaft_scheme
+package free2n
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"

@@ -1,4 +1,4 @@
-package single_shaft_scheme
+package b1
 
 import (
 	"github.com/Sovianum/turbocycle/core/graph"
