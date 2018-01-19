@@ -30,6 +30,14 @@ type mixture struct {
 	fractions []float64
 }
 
+func (m mixture) String() string {
+	result := "Mixture: "
+	for i := range m.gases {
+		result += fmt.Sprintf("%s (%.1f%)", m.gases[i].String(), m.fractions[i]*100)
+	}
+	return result
+}
+
 func (m mixture) OxygenMassFraction() float64 {
 	return m.getParameter(func(gas Gas) float64 {
 		return gas.OxygenMassFraction()

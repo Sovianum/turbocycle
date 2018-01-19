@@ -26,6 +26,10 @@ func GetH2OVapour() Gas {
 
 type air struct{}
 
+func (air) String() string {
+	return "Air"
+}
+
 func (air) OxygenMassFraction() float64 {
 	return 0.2315
 }
@@ -92,6 +96,10 @@ type nitrogen struct {
 	noOxygen
 }
 
+func (nitrogen) String() string {
+	return "Nitrogen"
+}
+
 func (nitrogen) Cp(t float64) float64 {
 	var tArr = []float64{
 		275, 300, 325, 350, 375, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050,
@@ -143,6 +151,10 @@ func (nitrogen) Lambda(t float64) float64 {
 }
 
 type oxygen struct{}
+
+func (oxygen) String() string {
+	return "Oxygen"
+}
 
 func (oxygen) OxygenMassFraction() float64 {
 	return 1
@@ -210,6 +222,10 @@ type co2 struct {
 	noOxygen
 }
 
+func (co2) String() string {
+	return "CO2"
+}
+
 func (co2) Cp(t float64) float64 {
 	var tArr = []float64{
 		275, 300, 325, 350, 375, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050,
@@ -258,6 +274,10 @@ func (co2) Lambda(t float64) float64 {
 
 type h2oVapour struct {
 	noOxygen
+}
+
+func (h2oVapour) String() string {
+	return "H2O vapour"
 }
 
 func (h2oVapour) Cp(t float64) float64 {

@@ -1,6 +1,10 @@
 package gases
 
-import "github.com/Sovianum/turbocycle/common"
+import (
+	"fmt"
+
+	"github.com/Sovianum/turbocycle/common"
+)
 
 type Oxidizer interface {
 	OxygenMassFraction() float64
@@ -21,6 +25,7 @@ func GetOxyFreeGas(gas Gas) Gas {
 }
 
 type Gas interface {
+	fmt.Stringer
 	Oxidizer
 	Cp(t float64) float64
 	R() float64
