@@ -148,9 +148,9 @@ func TestPressureLossNode_ContextDefined_True(t *testing.T) {
 		},
 	)
 
-	assert.True(t, pln1.ContextDefined())
-	assert.True(t, pln2.ContextDefined())
-	assert.True(t, pln3.ContextDefined())
+	assert.True(t, pln1.ContextDefined(0))
+	assert.True(t, pln2.ContextDefined(0))
+	assert.True(t, pln3.ContextDefined(0))
 }
 
 func TestPressureLossNode_ContextDefined_False(t *testing.T) {
@@ -179,9 +179,9 @@ func TestPressureLossNode_ContextDefined_False(t *testing.T) {
 		},
 	)
 
-	assert.False(t, pln1.ContextDefined())
-	assert.False(t, pln2.ContextDefined())
-	assert.False(t, pln3.ContextDefined())
+	assert.False(t, pln1.ContextDefined(0))
+	assert.False(t, pln2.ContextDefined(0))
+	assert.False(t, pln3.ContextDefined(0))
 }
 
 func getTestPressureLossNode() PressureLossNode {

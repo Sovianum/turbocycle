@@ -142,7 +142,7 @@ func (m *graphMatrix) getUnconnectedPorts() []Port {
 func (m *graphMatrix) getContextUndefinedNodes() []Node {
 	var undefined = make([]Node, 0)
 	for pair := range m.nodes.Iterate() {
-		if node := pair.Val.(Node); !node.ContextDefined() {
+		if node := pair.Val.(Node); !node.ContextDefined(0) {
 			undefined = append(undefined, node)
 		}
 	}

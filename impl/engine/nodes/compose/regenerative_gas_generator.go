@@ -163,10 +163,6 @@ func (node *regenerativeGasGeneratorNode) Process() error {
 	return nil
 }
 
-func (node *regenerativeGasGeneratorNode) ContextDefined() bool {
-	return true
-}
-
 func (node *regenerativeGasGeneratorNode) CompressorInput() nodes.ComplexGasSink {
 	return helper.NewPseudoComplexGasSink(
 		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput,

@@ -142,7 +142,7 @@ func IsDataSource(port graph.Port) (bool, error) {
 		return false, nil
 	}
 
-	if !outerNode.ContextDefined() {
+	if !outerNode.ContextDefined(0) {
 		return false, nil
 	}
 

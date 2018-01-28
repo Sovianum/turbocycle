@@ -150,7 +150,7 @@ func (node *pressureLossNode) GetUpdatePorts() ([]graph.Port, error) {
 	}, nil
 }
 
-func (node *pressureLossNode) ContextDefined() bool {
+func (node *pressureLossNode) ContextDefined(key int) bool {
 	if node.contextCalled {
 		return node.contextDefined
 	}
@@ -160,7 +160,7 @@ func (node *pressureLossNode) ContextDefined() bool {
 	var node2 = node.gasOutput.GetOuterNode()
 
 	if node1 != nil {
-		var node1Defined = node1.ContextDefined()
+		var node1Defined = node1.ContextDefined(0)
 		if node1Defined {
 			node.contextDefined = true
 			return node.contextDefined
@@ -168,7 +168,7 @@ func (node *pressureLossNode) ContextDefined() bool {
 	}
 
 	if node2 != nil {
-		var node2Defined = node2.ContextDefined()
+		var node2Defined = node2.ContextDefined(0)
 		if node2Defined {
 			node.contextDefined = true
 			return node.contextDefined

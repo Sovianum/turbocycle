@@ -77,6 +77,6 @@ func (node *TestNode) GetPortByTag(tag string) (Port, error) {
 	panic("implement me")
 }
 
-func (node *TestNode) ContextDefined() bool {
+func (node *TestNode) ContextDefined(key int) bool {
 	return node.contextDefined
 }

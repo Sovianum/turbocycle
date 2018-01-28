@@ -8,7 +8,7 @@ type Node interface {
 	GetRequirePorts() ([]Port, error)
 	GetUpdatePorts() ([]Port, error)
 	GetPorts() []Port
-	ContextDefined() bool
+	ContextDefined(key int) bool
 }
 
 func NewBaseNode() *BaseNode {
@@ -23,7 +23,7 @@ func (node *BaseNode) SetName(name string) {
 	node.name = name
 }
 
-func (node *BaseNode) ContextDefined() bool {
+func (node *BaseNode) ContextDefined(key int) bool {
 	return true
 }
 
