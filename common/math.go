@@ -9,12 +9,20 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func Product(xArr []float64) float64 {
-	var result float64 = 1
+func ReduceFloat64(xArr []float64, reducer func(x, y float64) float64, init float64) float64 {
+	result := init
 	for _, x := range xArr {
-		result *= x
+		result = reducer(x, result)
 	}
 	return result
+}
+
+func Sum(xArr []float64) float64 {
+	return ReduceFloat64(xArr, func(x, y float64) float64 { return x + y }, 0)
+}
+
+func Product(xArr []float64) float64 {
+	return ReduceFloat64(xArr, func(x, y float64) float64 { return x * y }, 1)
 }
 
 func SolveIterativly(

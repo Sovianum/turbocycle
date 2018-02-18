@@ -82,8 +82,8 @@ type parametricCompressorNode struct {
 	normEtaCharacteristic CompressorCharFunc
 	normRpmCharacteristic CompressorCharFunc
 
-	normPiStag   float64
-	normMassRate float64
+	normPiStag   float64 // pi / pi_0
+	normMassRate float64 // rpm normalized and divided by n_0
 
 	t0 float64
 	p0 float64
