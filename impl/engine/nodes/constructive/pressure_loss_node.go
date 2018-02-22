@@ -271,7 +271,7 @@ func (node *pressureLossNode) getMode() (string, error) {
 		return pressureLossOutflow, nil
 	}
 	if !inputIsSource && !outputIsSource {
-		return "", fmt.Errorf("neither endpoint is pressure source")
+		return "", fmt.Errorf("neither endpoint is pressure source (node: %s)", node.GetName())
 	}
 	return "", fmt.Errorf("both endpoints are pressure sources")
 }

@@ -35,8 +35,9 @@ func TestNewDoubleShaftRegFreeScheme_Smoke(t *testing.T) {
 
 	_, err = variatorSolver.Solve(
 		mat.NewVecDense(6, []float64{1, 1, 0.034, 1, 1, 1}),
-		1e-5, 0.0201, 10000,
+		1e-5, 0.5, 10000,
 	)
+	assert.Nil(t, err)
 	fmt.Println(
 		scheme.Regenerator().HotInput().TemperatureInput().GetState(),
 		scheme.Regenerator().ColdInput().TemperatureInput().GetState(),
@@ -51,19 +52,18 @@ func TestNewDoubleShaftRegFreeScheme_Smoke(t *testing.T) {
 	fmt.Println(scheme.Burner().PStagOut(), scheme.Burner().TStagOut())
 	fmt.Println(scheme.CompressorTurbine().PStagOut(), scheme.CompressorTurbine().TStagOut())
 	fmt.Println(scheme.FreeTurbine().PStagOut(), scheme.FreeTurbine().TStagOut())
-	assert.Nil(t, err)
 }
 
 func getUnitRegFreeTestScheme() DoubleShaftRegFreeScheme {
 	return getTestFreeRegScheme(
 		func(lambdaU, normPiStag float64) float64 {
-			return 1 - (1-normPiStag)*5
+			return 1
 		},
 		func(lambdaU, normPiStag float64) float64 {
 			return 1
 		},
 		func(lambdaU, normPiStag float64) float64 {
-			return 1 - (1-normPiStag)*5
+			return 1
 		},
 		func(lambdaU, normPiStag float64) float64 {
 			return 1
@@ -121,7 +121,7 @@ func getTestFreeRegScheme(
 		gases.GetAir(), gases.GetAir(), cMassRate0, cMassRate0, tGas*0.75, 500,
 		3e5, 3e5, 20, 20, 0.9,
 		1e-3, 1.5e-3, 1e-3,
-		c.LogTDrop,
+		c.FrowardTDrop,
 		c.GetDefaultNuFunc(), c.GetDefaultNuFunc(),
 	)
 

@@ -10,7 +10,7 @@ import (
 type LogFunc func(...interface{})
 
 func DefaultLog(items ...interface{}) {
-	fmt.Printf("i: %d\tprecision: %f\tresidual: %f\n", items[0].(int), items[1].(float64), items[1].(float64))
+	fmt.Printf("i: %d\tprecision: %f\tresidual: %f\n", items[0].(int), items[1].(float64), items[2].(float64))
 }
 
 func NoLog(items ...interface{}) {}
@@ -80,7 +80,7 @@ func (solver *newtonSolver) Solve(
 			converged = true
 			break
 		}
-		solver.logFunc(i, residual)
+		solver.logFunc(i, precision, residual)
 	}
 
 	if !converged {

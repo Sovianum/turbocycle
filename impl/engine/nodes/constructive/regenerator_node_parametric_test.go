@@ -77,6 +77,6 @@ func getTestParametricRegenerator() RegeneratorNode {
 		gases.GetAir(), gases.GetAir(), hotMassRate0, coldMassRate0,
 		hotTemperature0, coldTemperature0, hotPressure0, coldPressure0,
 		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold, 1e-3,
-		LogTDrop, GetDefaultNuFunc(), GetDefaultNuFunc(),
+		FrowardTDrop, GetDefaultNuFunc(), GetDefaultNuFunc(),
 	)
 }

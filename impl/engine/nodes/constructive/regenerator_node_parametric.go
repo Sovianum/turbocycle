@@ -34,18 +34,26 @@ func GetDefaultNuFunc() NuFunc {
 	}
 }
 
-func LogTDrop(tHotIn, tHotOut, tColdIn, tColdOut float64) float64 {
-	var dtHot = tHotIn - tHotOut
-	var dtCold = tColdOut - tColdIn
+func CounterTDrop(tHotIn, tHotOut, tColdIn, tColdOut float64) float64 {
+	var dtHot = tHotIn - tColdOut
+	var dtCold = tHotOut - tColdIn
+	return logTDrop(dtHot, dtCold)
+}
 
-	var dtLog float64
-	if dtHot == dtCold {
-		dtLog = (dtHot - dtCold) / (dtHot / dtCold)
-	} else {
-		dtLog = (dtHot - dtCold) / math2.Log(dtHot/dtCold)
+func FrowardTDrop(tHotIn, tHotOut, tColdIn, tColdOut float64) float64 {
+	var dtHot = tHotIn - tColdIn
+	var dtCold = tHotOut - tColdOut
+	if dtCold < 0 {
+		dtCold = 1
 	}
+	return logTDrop(dtHot, dtCold)
+}
 
-	return dtLog
+func logTDrop(dt1, dt2 float64) float64 {
+	if math2.Abs(dt1-dt2) < 1e-7 {
+		return (dt1 - dt2) / (dt1 / dt2)
+	}
+	return (dt1 - dt2) / math2.Log(dt1/dt2)
 }
 
 func NewParametricRegeneratorNode(
@@ -208,8 +216,9 @@ func (node *parametricRegeneratorNode) getOutputTemperatures() (float64, float64
 		return 0, 0, solverErr
 	}
 
+	dt := tHotIn - tColdIn
 	var solution, solutionErr = solver.Solve(
-		mat.NewVecDense(2, []float64{tColdIn, tHotIn}), temperaturePrecision, 0.1, 1000,
+		mat.NewVecDense(2, []float64{tHotIn - 0.1*dt, tColdIn + 0.1*dt}), temperaturePrecision, 0.5, 1000,
 	)
 	if solutionErr != nil {
 		return 0, 0, solutionErr
