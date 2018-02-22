@@ -163,7 +163,7 @@ func (suite *SysCallTestSuite) TestSysCall_OK() {
 	var paVariator = FromPointer(&suite.pA)
 	var pbVariator = FromPointer(&suite.pB)
 
-	var solverGen = newton.NewUniformNewtonSolverGen(1e-3)
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-3, newton.NoLog)
 	var varSolver = NewVariatorSolver(sysCall, []Variator{paVariator, pbVariator}, solverGen)
 
 	var x0 = mat.NewVecDense(2, []float64{0, 0})

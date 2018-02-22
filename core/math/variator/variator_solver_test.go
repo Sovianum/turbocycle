@@ -19,7 +19,7 @@ func TestVariatorSolver_Solve_Linear_1d(t *testing.T) {
 	}
 
 	var solverGen = func(system math.EquationSystem) (math.Solver, error) {
-		return newton.NewUniformNewtonSolver(system, 1e-3)
+		return newton.NewUniformNewtonSolver(system, 1e-3, newton.NoLog)
 	}
 
 	var variatorSolver = NewVariatorSolver(
@@ -50,7 +50,7 @@ func TestVariatorSolver_Solve_Linear_2d(t *testing.T) {
 	}
 
 	var solverGen = func(system math.EquationSystem) (math.Solver, error) {
-		return newton.NewUniformNewtonSolver(system, 1e-3)
+		return newton.NewUniformNewtonSolver(system, 1e-3, newton.NoLog)
 	}
 
 	var variatorSolver = NewVariatorSolver(
@@ -76,7 +76,7 @@ func TestVariatorSolver_Solve_NonLinear_1d(t *testing.T) {
 	}
 
 	var solverGen = func(system math.EquationSystem) (math.Solver, error) {
-		return newton.NewUniformNewtonSolver(system, 1e-3)
+		return newton.NewUniformNewtonSolver(system, 1e-3, newton.NoLog)
 	}
 
 	var variatorSolver = NewVariatorSolver(
@@ -107,7 +107,7 @@ func TestVariatorSolver_Solve_NonLinear_2d(t *testing.T) {
 	}
 
 	var solverGen = func(system math.EquationSystem) (math.Solver, error) {
-		return newton.NewUniformNewtonSolver(system, 1e-3)
+		return newton.NewUniformNewtonSolver(system, 1e-3, newton.NoLog)
 	}
 
 	var variatorSolver = NewVariatorSolver(

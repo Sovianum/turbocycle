@@ -66,7 +66,7 @@ func (ccg *compressorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
 
 func (ccg *compressorCharGen) resolveCoordinates(normMassRate, normPiStag float64) error {
 	sys := ccg.getEqSystem(normMassRate, normPiStag)
-	solver, err := newton.NewUniformNewtonSolver(sys, 1e-3)
+	solver, err := newton.NewUniformNewtonSolver(sys, 1e-3, newton.NoLog)
 
 	solution, err := solver.Solve(mat.NewVecDense(2, []float64{
 		ccg.phiCurr, ccg.rpmNormCurr,

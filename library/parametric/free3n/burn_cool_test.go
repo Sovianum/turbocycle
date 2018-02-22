@@ -27,7 +27,7 @@ func TestNewTripleShaftBurnCoolFreeScheme_Smoke(t *testing.T) {
 		network, scheme.Assembler().GetVectorPort(), 1, 2, 100, 1e-3,
 	)
 	var variators = scheme.Variators()
-	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
 
 	var variatorSolver = variator.NewVariatorSolver(sysCall, variators, solverGen)
 

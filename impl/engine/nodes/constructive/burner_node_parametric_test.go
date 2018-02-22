@@ -108,7 +108,7 @@ func TestParametricBurnerNode_Process_Smoke_Solver(t *testing.T) {
 		return mat.NewVecDense(1, []float64{bn.TStagOut() - needTStagOut}), nil
 	}
 
-	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
 	var variatorSolver = variator.NewVariatorSolver(systemCall, []variator.Variator{fuelRateVariator}, solverGen)
 
 	var _, solveErr = variatorSolver.Solve(mat.NewVecDense(1, []float64{fuelMassRateRel0}), 1e-8, 1, 100)

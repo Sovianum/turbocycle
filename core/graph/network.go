@@ -85,11 +85,11 @@ func (network *network) getStates(callOrder []Node, needCheck bool, precision fl
 }
 
 func (network *network) getNewState(callOrder []Node) (networkStateType, error) {
-	for _, node := range callOrder {
+	for i, node := range callOrder {
 		var err = node.Process()
 		if err != nil {
 			return nil, fmt.Errorf(
-				"failed on node with name %s: %s", node.GetName(), err.Error(),
+				"failed on node %d with name %s: %s", i, node.GetName(), err.Error(),
 			)
 		}
 	}

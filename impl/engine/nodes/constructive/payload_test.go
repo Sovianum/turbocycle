@@ -42,7 +42,7 @@ func TestPayload_Process_Linear_Solver(t *testing.T) {
 		return mat.NewVecDense(1, []float64{node.Power() - power0/2}), nil
 	}
 
-	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
 	var variatorSolver = variator.NewVariatorSolver(systemCall, []variator.Variator{v}, solverGen)
 
 	var _, err = variatorSolver.Solve(mat.NewVecDense(1, []float64{1}), 1e-8, 1, 100)

@@ -76,7 +76,7 @@ func TestParametricBlockedTurbineNode_Process_Smoke_NonLinear(t *testing.T) {
 		return mat.NewVecDense(1, []float64{turbine.TStagOut() - expectedTt}), nil
 	}
 
-	var solverGen = newton.NewUniformNewtonSolverGen(1e-4)
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
 	var variatorSolver = variator.NewVariatorSolver(systemCall, []variator.Variator{piTVariator}, solverGen)
 
 	var _, err = variatorSolver.Solve(mat.NewVecDense(1, []float64{1}), 1e-8, 1, 100)

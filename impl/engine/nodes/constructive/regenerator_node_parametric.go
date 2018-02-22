@@ -1,6 +1,7 @@
 package constructive
 
 import (
+	"fmt"
 	math2 "math"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -14,10 +15,24 @@ import (
 )
 
 const (
-	temperaturePrecision = 1e-7
+	temperaturePrecision = 1e-3
 )
 
 type NuFunc func(gas gases.Gas, velocity, pressure, temperature, d float64) float64
+
+func GetDefaultNuFunc() NuFunc {
+	return func(gas gases.Gas, velocity, pressure, temperature, d float64) float64 {
+		var density = gases.Density(gas, temperature, pressure)
+		var viscosity = gas.Mu(temperature)
+		var re = velocity * d * density / viscosity
+
+		var lambda = gas.Lambda(temperature)
+		var cp = gas.Cp(temperature)
+		var pr = viscosity * cp / lambda
+
+		return 0.56 * math2.Pow(re, 0.5) * math2.Pow(pr, 0.36)
+	}
+}
 
 func LogTDrop(tHotIn, tHotOut, tColdIn, tColdOut float64) float64 {
 	var dtHot = tHotIn - tHotOut
@@ -178,17 +193,23 @@ func (node *parametricRegeneratorNode) getOutputTemperatures() (float64, float64
 
 		var qTransfer = node.heatExchangeArea * heatTransferCoef * tDrop
 
-		return mat.NewVecDense(2, []float64{qHot - qCold, qCold - qTransfer}), nil
+		total := math2.Abs((coldMassRate + hotMassRate) / 2 * (cpHot + cpCold) / 2 * (tHotIn - tColdIn))
+		res := mat.NewVecDense(2, []float64{(qHot - qCold) / total, (qCold - qTransfer) / total})
+		if math2.IsNaN(mat.Norm(res, 2)) {
+			return nil, fmt.Errorf("NaN obtained")
+		}
+
+		return res, nil
 	}
 
 	var eqSystem = math.NewEquationSystem(residualFunc, 2)
-	var solver, solverErr = newton.NewUniformNewtonSolver(eqSystem, 1e-3)
+	var solver, solverErr = newton.NewUniformNewtonSolver(eqSystem, 1e-3, newton.NoLog)
 	if solverErr != nil {
 		return 0, 0, solverErr
 	}
 
 	var solution, solutionErr = solver.Solve(
-		mat.NewVecDense(2, []float64{tColdIn, tHotIn}), temperaturePrecision, 1, nodes.DefaultN,
+		mat.NewVecDense(2, []float64{tColdIn, tHotIn}), temperaturePrecision, 0.1, 1000,
 	)
 	if solutionErr != nil {
 		return 0, 0, solutionErr

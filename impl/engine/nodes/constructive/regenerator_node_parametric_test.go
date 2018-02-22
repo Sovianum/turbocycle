@@ -2,7 +2,6 @@ package constructive
 
 import (
 	"fmt"
-	"math"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -62,7 +61,7 @@ func TestParametricRegeneratorNode_Process_Unit(t *testing.T) {
 
 	var tColdOut = rn.ColdOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
 	assert.True(
-		t, common.ApproxEqual(680., tColdOut, 0.01),
+		t, common.ApproxEqual(699., tColdOut, 0.01),
 		fmt.Sprintf("Expected %f, got %f (precision %f)", 680., tColdOut, 0.01),
 	)
 
@@ -74,22 +73,10 @@ func TestParametricRegeneratorNode_Process_Unit(t *testing.T) {
 }
 
 func getTestParametricRegenerator() RegeneratorNode {
-	var nuFunc NuFunc = func(gas gases.Gas, velocity, pressure, temperature, d float64) float64 {
-		var density = gases.Density(gas, temperature, pressure)
-		var viscosity = gas.Mu(temperature)
-		var re = velocity * d * density / viscosity
-
-		var lambda = gas.Lambda(temperature)
-		var cp = gas.Cp(temperature)
-		var pr = viscosity * cp / lambda
-
-		return 0.56 * math.Pow(re, 0.5) * math.Pow(pr, 0.36)
-	}
-
 	return NewParametricRegeneratorNode(
 		gases.GetAir(), gases.GetAir(), hotMassRate0, coldMassRate0,
 		hotTemperature0, coldTemperature0, hotPressure0, coldPressure0,
 		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold, 1e-3,
-		LogTDrop, nuFunc, nuFunc,
+		LogTDrop, GetDefaultNuFunc(), GetDefaultNuFunc(),
 	)
 }

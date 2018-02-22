@@ -7,13 +7,21 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func NewUniformNewtonSolverGen(derivativeStep float64) math.SolverGenerator {
+type LogFunc func(...interface{})
+
+func DefaultLog(items ...interface{}) {
+	fmt.Printf("i: %d\tprecision: %f\tresidual: %f\n", items[0].(int), items[1].(float64), items[1].(float64))
+}
+
+func NoLog(items ...interface{}) {}
+
+func NewUniformNewtonSolverGen(derivativeStep float64, logFunc LogFunc) math.SolverGenerator {
 	return func(system math.EquationSystem) (math.Solver, error) {
-		return NewUniformNewtonSolver(system, derivativeStep)
+		return NewUniformNewtonSolver(system, derivativeStep, logFunc)
 	}
 }
 
-func NewNewtonSolver(eqSystem math.EquationSystem, derivativeSteps *mat.VecDense) (math.Solver, error) {
+func NewNewtonSolver(eqSystem math.EquationSystem, derivativeSteps *mat.VecDense, logFunc LogFunc) (math.Solver, error) {
 	if derivativeSteps.Len() != eqSystem.Order() {
 		return nil, fmt.Errorf(
 			"derivative step size %d does not match eqSystem order %d", derivativeSteps.Len(), eqSystem.Order(),
@@ -23,10 +31,11 @@ func NewNewtonSolver(eqSystem math.EquationSystem, derivativeSteps *mat.VecDense
 	return &newtonSolver{
 		eqSystem: eqSystem,
 		steps:    derivativeSteps,
+		logFunc:  logFunc,
 	}, nil
 }
 
-func NewUniformNewtonSolver(eqSystem math.EquationSystem, derivativeStep float64) (math.Solver, error) {
+func NewUniformNewtonSolver(eqSystem math.EquationSystem, derivativeStep float64, logFunc LogFunc) (math.Solver, error) {
 	var derivativeSteps = mat.NewVecDense(eqSystem.Order(), nil)
 	for i := 0; i != eqSystem.Order(); i++ {
 		derivativeSteps.SetVec(i, derivativeStep)
@@ -35,12 +44,14 @@ func NewUniformNewtonSolver(eqSystem math.EquationSystem, derivativeStep float64
 	return &newtonSolver{
 		eqSystem: eqSystem,
 		steps:    derivativeSteps,
+		logFunc:  logFunc,
 	}, nil
 }
 
 type newtonSolver struct {
 	eqSystem math.EquationSystem
 	steps    *mat.VecDense // used to calculate partial derivatives
+	logFunc  LogFunc
 }
 
 func (solver *newtonSolver) Solve(
@@ -59,19 +70,21 @@ func (solver *newtonSolver) Solve(
 	}
 
 	var converged = false
+	var residual = 1e10
 	for i := 0; i != iterLimit; i++ {
 		x, y, err = solver.getNewState(x, y, relaxCoef)
 		if err != nil {
 			return nil, err
 		}
-		if mat.Norm(y, 2) <= precision {
+		if residual = mat.Norm(y, 2); residual <= precision {
 			converged = true
 			break
 		}
+		solver.logFunc(i, residual)
 	}
 
 	if !converged {
-		return nil, fmt.Errorf("failed to converge")
+		return nil, fmt.Errorf("failed to converge (precision = %f; residual = %f)", precision, residual)
 	}
 
 	return x, nil

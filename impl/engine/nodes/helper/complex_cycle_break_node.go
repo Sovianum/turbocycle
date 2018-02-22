@@ -36,6 +36,15 @@ func NewComplexCycleBreakNode(gas gases.Gas, tStag, pStag, massRate float64) Com
 			result.gasInput, result.temperatureInput, result.pressureInput, result.massRateInput,
 		},
 	)
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gas), states.NewTemperaturePortState(tStag),
+			states.NewPressurePortState(pStag), states.NewMassRatePortState(massRate),
+		},
+		[]graph.Port{
+			result.gasOutput, result.temperatureOutput, result.pressureOutput, result.massRateOutput,
+		},
+	)
 
 	return result
 }

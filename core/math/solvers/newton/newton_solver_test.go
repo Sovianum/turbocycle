@@ -14,7 +14,7 @@ func TestNewtonSolver_Solve_Linear_1d(t *testing.T) {
 		return mat.NewVecDense(1, []float64{x.At(0, 0) - 1}), nil
 	}, 1)
 
-	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3)
+	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3, NoLog)
 	assert.Nil(t, solverErr)
 
 	var solution, solutionErr = solver.Solve(mat.NewVecDense(1, []float64{0}), 1e-8, 1, 100)
@@ -31,7 +31,7 @@ func TestNewtonSolver_Solve_Linear_2d(t *testing.T) {
 		}), nil
 	}, 2)
 
-	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3)
+	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3, NoLog)
 	assert.Nil(t, solverErr)
 
 	var solution, solutionErr = solver.Solve(mat.NewVecDense(2, []float64{0, 0}), 1e-8, 1, 100)
@@ -48,7 +48,7 @@ func TestNewtonSolver_Solve_NonLinear_1d(t *testing.T) {
 		}), nil
 	}, 1)
 
-	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3)
+	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3, NoLog)
 	assert.Nil(t, solverErr)
 
 	var solution, solutionErr = solver.Solve(mat.NewVecDense(1, []float64{0}), 1e-8, 1, 100)
@@ -67,7 +67,7 @@ func TestNewtonSolver_Solve_NonLinear_2d(t *testing.T) {
 		}), nil
 	}, 2)
 
-	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3)
+	var solver, solverErr = NewUniformNewtonSolver(eqSystem, 1e-3, NoLog)
 	assert.Nil(t, solverErr)
 
 	var solution, solutionErr = solver.Solve(mat.NewVecDense(2, []float64{-0.5, -0.5}), 1e-8, 1, 100)
