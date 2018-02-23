@@ -36,7 +36,7 @@ type BurnerNode interface {
 
 // while calculating labour function takes massRateRel into account
 func FuelMassRate(node BurnerNode) float64 {
-	var massRateRel = node.GasInput().GetState().(states.MassRatePortState).MassRate
+	var massRateRel = node.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return node.FuelRateRel() * massRateRel
 }
 
