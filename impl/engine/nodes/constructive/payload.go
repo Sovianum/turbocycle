@@ -78,7 +78,7 @@ func (node *payload) Process() error {
 	var power = node.powerCharacteristic(node.normRpm) * node.power0
 
 	node.rpmOutput.SetState(states.NewRPMPortState(rpm))
-	node.powerOutput.SetState(states.NewPowerPortState(power))
+	node.powerOutput.SetState(states.NewPowerPortState(-power))
 
 	return nil
 }

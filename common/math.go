@@ -49,7 +49,7 @@ func SolveIterativly(
 	if Converged(xCurr, xNew, precision) {
 		return xNew, nil
 	}
-	return 0, fmt.Errorf("failed to converge")
+	return 0, fmt.Errorf("failed to converge (SolveIteratively)")
 }
 
 func Converged(x0, x1, precision float64) bool {

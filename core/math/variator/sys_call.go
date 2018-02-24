@@ -21,7 +21,7 @@ func SysCallFromNetwork(
 		}
 
 		if !converged {
-			return nil, fmt.Errorf("failed to converge")
+			return nil, fmt.Errorf("failed to converge (SysCallFromNetwork)")
 		}
 
 		var vec = vectorPort.GetState().(graph.VectorPortState).Vec

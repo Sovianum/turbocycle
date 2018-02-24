@@ -5,11 +5,16 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+type VariatorSolver interface {
+	math.Solver
+	GetInit() *mat.VecDense
+}
+
 func NewVariatorSolver(
 	systemCall SysCall,
 	variators []Variator,
 	solverGen math.SolverGenerator,
-) math.Solver {
+) VariatorSolver {
 	return &variatorSolver{
 		variators:  variators,
 		systemCall: systemCall,
@@ -21,6 +26,14 @@ type variatorSolver struct {
 	variators  []Variator
 	systemCall func() (*mat.VecDense, error)
 	solverGen  math.SolverGenerator
+}
+
+func (solver *variatorSolver) GetInit() *mat.VecDense {
+	data := make([]float64, len(solver.variators))
+	for i, v := range solver.variators {
+		data[i] = v.GetValue()
+	}
+	return mat.NewVecDense(len(data), data)
 }
 
 func (solver *variatorSolver) Solve(

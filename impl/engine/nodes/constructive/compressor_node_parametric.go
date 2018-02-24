@@ -44,7 +44,7 @@ type ParametricCompressorNode interface {
 }
 
 func NewParametricCompressorNode(
-	massRate0, piStag0, rpm0, eta0, t0, p0, precision float64,
+	massRate0, piStag0, rpm0, eta0, t0, p0, precision float64, // t0, p0 is NOT calorimeter parameters
 	normEtaCharacteristic, normRpmCharacteristic CompressorCharFunc,
 ) ParametricCompressorNode {
 	var result = &parametricCompressorNode{
@@ -105,7 +105,7 @@ func (node *parametricCompressorNode) Process() error {
 		return fmt.Errorf("invalid piStag = %v", node.piStag())
 	}
 
-	var etaAd = node.normEtaCharacteristic(node.normMassRate, node.piStag()) * node.eta0
+	var etaAd = node.normEtaCharacteristic(node.normMassRate, node.normPiStag) * node.eta0
 	var tStagOut, err = node.getTStagOut(node.tStagIn(), node.piStag(), etaAd)
 	if err != nil {
 		return err

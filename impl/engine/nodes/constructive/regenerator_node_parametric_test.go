@@ -61,7 +61,7 @@ func TestParametricRegeneratorNode_Process_Unit(t *testing.T) {
 
 	var tColdOut = rn.ColdOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
 	assert.True(
-		t, common.ApproxEqual(699., tColdOut, 0.01),
+		t, common.ApproxEqual(680., tColdOut, 0.01),
 		fmt.Sprintf("Expected %f, got %f (precision %f)", 680., tColdOut, 0.01),
 	)
 

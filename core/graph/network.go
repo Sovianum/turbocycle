@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"math"
 )
 
 type nodeStateType map[Port]PortState
@@ -36,9 +37,13 @@ func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum 
 
 	var converged bool
 	var err error
+	var res float64
 
 	for i := 0; i != maxIterNum; i++ {
-		converged, err = network.getStates(callOrder, i >= skipIterations, precision)
+		res, converged, err = network.getStates(callOrder, i >= skipIterations, precision)
+		if math.IsNaN(res) {
+			return false, fmt.Errorf("res is nan on iter %d", i)
+		}
 
 		if err != nil {
 			err = fmt.Errorf(
@@ -51,37 +56,37 @@ func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum 
 			break
 		}
 	}
+	if !converged {
+		err = fmt.Errorf("failed to converge: residual = %f, precision = %f", res, precision)
+	}
 
 	return converged, err
 }
 
-func (network *network) getStates(callOrder []Node, needCheck bool, precision float64) (bool, error) {
+func (network *network) getStates(callOrder []Node, needCheck bool, precision float64) (float64, bool, error) {
 	var currState, newState networkStateType
 	var err error
 
 	currState, err = network.getState()
 	if err != nil {
-		return false, err
+		return 0, false, err
 	}
 
 	newState, err = network.getNewState(callOrder)
 	if err != nil {
-		return false, err
+		return 0, false, err
 	}
 
 	if !needCheck {
-		return false, nil
+		return 0, false, nil
 	}
 
 	var residual, residualErr = getResidual(currState, newState)
 	if residualErr != nil {
-		return false, residualErr
+		return 0, false, residualErr
 	}
 
-	if residual <= precision {
-		return true, nil
-	}
-	return false, nil
+	return residual, residual <= precision, nil
 }
 
 func (network *network) getNewState(callOrder []Node) (networkStateType, error) {

@@ -173,6 +173,9 @@ func (node *parametricTurbineNode) NormPiT() float64 {
 }
 
 func (node *parametricTurbineNode) SetNormPiT(normPiT float64) {
+	if normPiT <= 0 {
+		panic(fmt.Sprintf("tried to set invalid piT: %f", normPiT))
+	}
 	node.normPiT = normPiT
 }
 
@@ -220,18 +223,23 @@ func (node *parametricTurbineNode) getNewTtStag(currTtStag float64) (float64, er
 }
 
 func (node *parametricTurbineNode) massRateRelFactor() float64 {
-	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
+	l := node.leakMassRateFunc(node)
+	c := node.coolMasRateRel(node)
+	i := node.inflowMassRateRel(node)
+	return 1 + l + c + i
 }
 
 func (node *parametricTurbineNode) etaT() float64 {
-	return node.normEtaChar(node.lambdaU(), node.normPiT) * node.eta0
+	etaNorm := node.normEtaChar(node.lambdaU(), node.normPiT)
+	return etaNorm * node.eta0
 }
 
 func (node *parametricTurbineNode) massRate() float64 {
-	return MassRate(
-		node.normMassRate(), node.massRate0,
-		node.tStagIn(), node.t0, node.pStagIn(), node.p0,
-	)
+	nmr := node.normMassRate()
+	tStagIn := node.tStagIn()
+	pStagIn := node.pStagIn()
+	result := MassRate(nmr, node.massRate0, tStagIn, node.t0, pStagIn, node.p0)
+	return result
 }
 
 func (node *parametricTurbineNode) normMassRate() float64 {

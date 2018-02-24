@@ -18,7 +18,7 @@ func NewTwoShaftsScheme(
 	freeTurbineBlock compose.FreeTurbineBlockNode,
 
 ) TwoShaftsScheme {
-	return &twoShaftsScheme{
+	return &TwoShaftsSchemeImpl{
 		gasSource:             gasSource,
 		inletPressureDrop:     inletPressureDrop,
 		gasGenerator:          gasGenerator,
@@ -32,7 +32,7 @@ type TwoShaftsScheme interface {
 	SingleCompressor
 }
 
-type twoShaftsScheme struct {
+type TwoShaftsSchemeImpl struct {
 	gasSource             source.ComplexGasSourceNode
 	inletPressureDrop     constructive.PressureLossNode
 	gasGenerator          compose.GasGeneratorNode
@@ -46,27 +46,47 @@ type twoShaftsScheme struct {
 	powerSink       sink.SinkNode
 }
 
-func (scheme *twoShaftsScheme) Compressor() constructive.CompressorNode {
+func (scheme *TwoShaftsSchemeImpl) FreeTurbineBlock() compose.FreeTurbineBlockNode {
+	return scheme.freeTurbineBlock
+}
+
+func (scheme *TwoShaftsSchemeImpl) CompressorTurbinePipe() constructive.PressureLossNode {
+	return scheme.compressorTurbinePipe
+}
+
+func (scheme *TwoShaftsSchemeImpl) GasGenerator() compose.GasGeneratorNode {
+	return scheme.gasGenerator
+}
+
+func (scheme *TwoShaftsSchemeImpl) InletPressureDrop() constructive.PressureLossNode {
+	return scheme.inletPressureDrop
+}
+
+func (scheme *TwoShaftsSchemeImpl) GasSource() source.ComplexGasSourceNode {
+	return scheme.gasSource
+}
+
+func (scheme *TwoShaftsSchemeImpl) Compressor() constructive.CompressorNode {
 	return scheme.gasGenerator.TurboCascade().Compressor()
 }
 
-func (scheme *twoShaftsScheme) GetSpecificPower() float64 {
+func (scheme *TwoShaftsSchemeImpl) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
 	var massRateRel = turbine.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return lSpecific * massRateRel
 }
 
-func (scheme *twoShaftsScheme) GetFuelMassRateRel() float64 {
+func (scheme *TwoShaftsSchemeImpl) GetFuelMassRateRel() float64 {
 	var massRateRel = scheme.gasGenerator.Burner().MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return scheme.gasGenerator.Burner().FuelRateRel() * massRateRel
 }
 
-func (scheme *twoShaftsScheme) GetQLower() float64 {
+func (scheme *TwoShaftsSchemeImpl) GetQLower() float64 {
 	return scheme.gasGenerator.Burner().Fuel().QLower()
 }
 
-func (scheme *twoShaftsScheme) GetNetwork() (graph.Network, graph.GraphError) {
+func (scheme *TwoShaftsSchemeImpl) GetNetwork() (graph.Network, graph.GraphError) {
 	scheme.linkPorts()
 
 	return graph.NewNetwork([]graph.Node{
@@ -76,7 +96,7 @@ func (scheme *twoShaftsScheme) GetNetwork() (graph.Network, graph.GraphError) {
 	})
 }
 
-func (scheme *twoShaftsScheme) linkPorts() {
+func (scheme *TwoShaftsSchemeImpl) linkPorts() {
 	nodes.LinkComplexOutToIn(scheme.gasSource, scheme.inletPressureDrop)
 	nodes.LinkComplexOutToIn(scheme.inletPressureDrop, scheme.gasGenerator)
 	nodes.LinkComplexOutToIn(scheme.gasGenerator, scheme.compressorTurbinePipe)

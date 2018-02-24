@@ -2,6 +2,7 @@ package newton
 
 import (
 	"fmt"
+	math2 "math"
 
 	"github.com/Sovianum/turbocycle/core/math"
 	"gonum.org/v1/gonum/mat"
@@ -66,7 +67,7 @@ func (solver *newtonSolver) Solve(
 	var x = x0
 	var y, yErr = solver.eqSystem.GetResiduals(x)
 	if yErr != nil {
-		return nil, yErr
+		return nil, fmt.Errorf("failed on initial residual calculation: %s", yErr.Error())
 	}
 
 	var converged = false
@@ -79,6 +80,8 @@ func (solver *newtonSolver) Solve(
 		if residual = mat.Norm(y, 2); residual <= precision {
 			converged = true
 			break
+		} else if math2.IsNaN(residual) {
+			return nil, fmt.Errorf("res is nan on iteration %d", i)
 		}
 		solver.logFunc(i, precision, residual)
 	}

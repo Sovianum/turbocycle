@@ -25,7 +25,7 @@ func TestPayload_Process_Linear(t *testing.T) {
 	var err = node.Process()
 	assert.Nil(t, err)
 
-	assert.InDelta(t, power0*f(normRpm), node.PowerOutput().GetState().Value().(float64), 1e-7)
+	assert.InDelta(t, power0*f(normRpm), -node.PowerOutput().GetState().Value().(float64), 1e-7)
 	assert.InDelta(t, rpm0*normRpm, node.RPMOutput().GetState().Value().(float64), 1e-7)
 }
 

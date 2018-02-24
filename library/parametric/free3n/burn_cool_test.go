@@ -9,7 +9,6 @@ import (
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
-	"gonum.org/v1/gonum/mat"
 )
 
 func TestNewTripleShaftBurnCoolFreeScheme_Smoke(t *testing.T) {
@@ -27,17 +26,13 @@ func TestNewTripleShaftBurnCoolFreeScheme_Smoke(t *testing.T) {
 		network, scheme.Assembler().GetVectorPort(), 1, 2, 100, 1e-3,
 	)
 	var variators = scheme.Variators()
-	var solverGen = newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
+	var solverGen = newton.NewUniformNewtonSolverGen(1e-4, newton.DefaultLog)
 
 	var variatorSolver = variator.NewVariatorSolver(sysCall, variators, solverGen)
 
 	_, err = variatorSolver.Solve(
-		mat.NewVecDense(10, []float64{
-			1, 1, 1, 1,
-			1, 1, 1,
-			0.034, 1, 0.02,
-		}),
-		1e-8, 0.5, 1000,
+		variatorSolver.GetInit(),
+		1e-8, 0.05, 1000,
 	)
 	assert.Nil(t, err)
 

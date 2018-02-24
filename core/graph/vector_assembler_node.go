@@ -7,6 +7,11 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+type NamedValue struct {
+	Name  string
+	Value float64
+}
+
 // this node collects values from its inputs and assembles it to
 // vector. the order of adding is preserved
 type VectorAssemblerNode interface {
@@ -14,6 +19,7 @@ type VectorAssemblerNode interface {
 	AddInputPorts(outerPorts ...Port)
 	DeleteInputPorts(outerPorts ...Port)
 	GetVectorPort() Port
+	GetNamedReport() []NamedValue
 }
 
 func NewVectorAssemblerNode() VectorAssemblerNode {
@@ -33,6 +39,22 @@ type vectorAssemblerNode struct {
 	inputPortMap map[int]Port
 	outerPortMap map[Port]int
 	vectorPort   Port
+}
+
+func (node *vectorAssemblerNode) GetNamedReport() []NamedValue {
+	result := make([]NamedValue, node.portCnt)
+	cnt := 0
+	for _, port := range node.inputPortMap {
+		result[cnt] = NamedValue{
+			Name:  port.GetOuterNode().GetName(),
+			Value: port.GetState().Value().(float64),
+		}
+		cnt++
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
+	return result
 }
 
 func (node *vectorAssemblerNode) GetName() string {

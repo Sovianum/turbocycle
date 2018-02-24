@@ -12,7 +12,9 @@ import (
 
 type CompressorCharGen interface {
 	GetNormRPMChar() constructive.CompressorCharFunc
+	GetNormRPMCharConst() constructive.CompressorCharFunc
 	GetNormEtaChar() constructive.CompressorCharFunc
+	GetNormEtaCharConst() constructive.CompressorCharFunc
 }
 
 func NewCompressorCharGen(
@@ -54,6 +56,12 @@ func (ccg *compressorCharGen) GetNormRPMChar() constructive.CompressorCharFunc {
 	}
 }
 
+func (ccg *compressorCharGen) GetNormRPMCharConst() constructive.CompressorCharFunc {
+	return func(normMassRate, normPiStag float64) float64 {
+		return 1
+	}
+}
+
 func (ccg *compressorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
 	return func(normMassRate, normPiStag float64) float64 {
 		if err := ccg.resolveCoordinates(normMassRate, normPiStag); err != nil {
@@ -61,6 +69,12 @@ func (ccg *compressorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
 		}
 		eta := ccg.etaStag(ccg.phiCurr, ccg.rpmNormCurr)
 		return eta / ccg.etaStag0
+	}
+}
+
+func (ccg *compressorCharGen) GetNormEtaCharConst() constructive.CompressorCharFunc {
+	return func(normMassRate, normPiStag float64) float64 {
+		return 1
 	}
 }
 
@@ -100,6 +114,10 @@ func (ccg *compressorCharGen) massRateNorm(phi, rpmNorm float64) float64 {
 
 func (ccg *compressorCharGen) etaStag(phi, rpmNorm float64) float64 {
 	a1 := 2.4*(rpmNorm-1) + 0.2*(ccg.piC0-3) + 1.5
+	if a1 < 0.2 {
+		a1 = 0.2
+	}
+
 	c1 := 1.33319
 	if a1 > 0.5 {
 		c1 = common.Sum([]float64{
@@ -114,7 +132,9 @@ func (ccg *compressorCharGen) etaStag(phi, rpmNorm float64) float64 {
 	if phi > math.Pi/4 {
 		b1 = 1 - math.Pow(phi-math.Pi/4, 1.2*c1)
 	}
-	factor := b1 * math.Pow(math.Sin(2*phi), a1)
+
+	//factor := b1 * math.Pow(math.Sin(2*phi), a1) was before but extremely unstable
+	factor := b1 * math.Pow(math.Sin(2*phi), 0)
 	return ccg.etaStagOpt(rpmNorm) * factor
 }
 
