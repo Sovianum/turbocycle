@@ -84,6 +84,10 @@ type doubleShaftRegFreeScheme struct {
 	variators []variator.Variator
 }
 
+func (scheme *doubleShaftRegFreeScheme) TemperatureSource() source.TemperatureSourceNode {
+	return scheme.burnerTemperatureSource
+}
+
 func (scheme *doubleShaftRegFreeScheme) Regenerator() c.RegeneratorNode {
 	return scheme.regenerator
 }
