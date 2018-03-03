@@ -10,6 +10,8 @@ import (
 type TemperatureSourceNode interface {
 	graph.Node
 	nodes.TemperatureSource
+	SetTemperature(tStag float64)
+	GetTemperature() float64
 }
 
 func NewTemperatureSourceNode(tStag float64) TemperatureSourceNode {
@@ -24,6 +26,14 @@ func NewTemperatureSourceNode(tStag float64) TemperatureSourceNode {
 type temperatureSourceNode struct {
 	sourceNode
 	tStag float64
+}
+
+func (node *temperatureSourceNode) GetTemperature() float64 {
+	return node.tStag
+}
+
+func (node *temperatureSourceNode) SetTemperature(tStag float64) {
+	node.tStag = tStag
 }
 
 func (node *temperatureSourceNode) GetName() string {
