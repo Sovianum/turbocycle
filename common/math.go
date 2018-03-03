@@ -108,6 +108,14 @@ func Average(f func(float64) float64, x0 float64, x1 float64, n int) float64 {
 		return f(x0)
 	}
 
+	return Integrate(f, x0, x1, n) / (x1 - x0)
+}
+
+func Integrate(f func(float64) float64, x0 float64, x1 float64, n int) float64 {
+	if x0 == x1 {
+		return 0
+	}
+
 	var dx = (x1 - x0) / float64(n)
 
 	var xVals = make([]float64, n+1)
@@ -125,12 +133,12 @@ func Average(f func(float64) float64, x0 float64, x1 float64, n int) float64 {
 		result += val
 	}
 
-	return result * dx / (x1 - x0)
+	return result * dx
 }
 
 func ApproxEqual(expected, got, precision float64) bool {
-	var min = expected - math.Abs(expected)*precision/2
-	var max = expected + math.Abs(expected)*precision/2
+	var min = expected - math.Abs(expected)*precision
+	var max = expected + math.Abs(expected)*precision
 
 	return min <= got && got <= max
 }
