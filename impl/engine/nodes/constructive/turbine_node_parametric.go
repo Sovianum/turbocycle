@@ -20,6 +20,7 @@ type ParametricTurbineNode interface {
 	nodes.MassRateSink
 	NormPiT() float64
 	SetNormPiT(normPiT float64)
+	NormMassRate() float64
 }
 
 func NewSimpleParametricTurbineNode(
@@ -100,6 +101,10 @@ type parametricTurbineNode struct {
 	normPiT           float64
 
 	precision float64
+}
+
+func (node *parametricTurbineNode) NormMassRate() float64 {
+	return node.normMassRate()
 }
 
 func (node *parametricTurbineNode) GetName() string {
@@ -230,7 +235,8 @@ func (node *parametricTurbineNode) massRateRelFactor() float64 {
 }
 
 func (node *parametricTurbineNode) etaT() float64 {
-	etaNorm := node.normEtaChar(node.lambdaU(), node.normPiT)
+	lambdaU := node.lambdaU()
+	etaNorm := node.normEtaChar(lambdaU, node.normPiT)
 	return etaNorm * node.eta0
 }
 
