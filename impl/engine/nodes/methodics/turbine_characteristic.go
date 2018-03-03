@@ -34,7 +34,7 @@ type turbineCharacteristic struct {
 }
 
 func (tc *turbineCharacteristic) GetNormMassRateChar() constructive.TurbineCharFunc {
-	return func(lambdaU, normPiStag float64) float64 {
+	return func(_, normPiStag float64) float64 {
 		return tc.massRateNorm(normPiStag * tc.piT0)
 	}
 }
@@ -58,7 +58,8 @@ func (tc *turbineCharacteristic) GetNormEtaCharConst() constructive.TurbineCharF
 }
 
 func (tc *turbineCharacteristic) massRateNorm(piStag float64) float64 {
-	return panicNan(tc.normMassRateRel(tc.x(piStag)))
+	x := tc.x(piStag)
+	return panicNan(tc.normMassRateRel(x))
 }
 
 func (tc *turbineCharacteristic) x(piStag float64) float64 {
@@ -66,14 +67,10 @@ func (tc *turbineCharacteristic) x(piStag float64) float64 {
 }
 
 func (tc *turbineCharacteristic) normMassRateRel(x float64) float64 {
-	if x > 1 {
-		return 1
-	} else if 0.3 < x && x <= 1 {
-		return panicNan(math.Pow(1-(1-x)*(1-x), 1/4))
-	} else if 0.1 < x && x <= 0.3 {
-		return panicNan(1.26 * math.Pow(x, 1/3))
+	if x < 1 {
+		return 2*math.Sqrt(x) - x
 	}
-	return panicNan(1.85 * math.Sqrt(x))
+	return 1
 }
 
 func (tc *turbineCharacteristic) etaT(lambdaU, piStag float64) float64 {

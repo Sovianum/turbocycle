@@ -176,7 +176,7 @@ func (ccg *compressorCharGen) massRateNormOpt(rpmNorm float64) float64 {
 }
 
 func (ccg *compressorCharGen) qRel(rpmNorm float64) float64 {
-	if rpmNorm >= 0 {
+	if rpmNorm >= 1 {
 		return 0
 	}
 	terms := []float64{
@@ -187,7 +187,7 @@ func (ccg *compressorCharGen) qRel(rpmNorm float64) float64 {
 		-0.104443 * ccg.piC0 * rpmNorm,
 		-1.42566 * rpmNorm * rpmNorm,
 	}
-	return common.Sum(terms)
+	return (1 - rpmNorm) * common.Sum(terms)
 }
 
 func (ccg *compressorCharGen) piRel(rpmNorm float64) float64 {

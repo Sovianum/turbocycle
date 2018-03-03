@@ -4,18 +4,15 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/core/graph"
-	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
-	"github.com/Sovianum/turbocycle/core/math/variator"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/suite"
-	"gonum.org/v1/gonum/mat"
 )
 
 const (
 	etaT0             = 0.92
-	piT0              = 3
+	piT0              = 1.4
 	massRateNormTurb0 = 10
 	lambdaU0          = 0.5
 	stageNum          = 1
@@ -80,58 +77,20 @@ func (s *TurbineCharacteristicTestSuite) TestGetNormEtaCharSamePoint() {
 	s.InDelta(etaT0, etaNorm, 1e-7)
 }
 
-func (s *TurbineCharacteristicTestSuite) TestSolveConvergence() {
-	s.Require().Nil(s.t.Process())
-	sg := newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
+func (s *TurbineCharacteristicTestSuite) TestTrends() {
+	tc := NewTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum)
+	normEtaFunc := tc.GetNormEtaChar()
+	normMassRateFunc := tc.GetNormMassRateChar()
 
-	startPower := s.t.PowerOutput().GetState().Value().(float64)
-	expectedPower := startPower * 0.8
-	vs := variator.NewVariatorSolver(
-		func() (*mat.VecDense, error) {
-			s.t.Process()
-			return mat.NewVecDense(1, []float64{
-				s.t.PowerOutput().GetState().Value().(float64) - expectedPower,
-			}), nil
-		},
-		[]variator.Variator{variator.FromCallables(s.t.NormPiT, s.t.SetNormPiT)},
-		sg,
-	)
-	_, err := vs.Solve(vs.GetInit(), 1e-6, 0.01, 10000)
-	s.Require().Nil(err)
+	s.True(normEtaFunc(lambdaU0*1, 0.99) < 1, "%f", normEtaFunc(lambdaU0, 0.99))
+	s.True(normMassRateFunc(lambdaU0, 0.99) < 1, "%f", normMassRateFunc(lambdaU0, 0.99))
 
-	s.InDelta(expectedPower, s.t.PowerOutput().GetState().Value().(float64), 1e-6)
-}
+	s.True(normEtaFunc(lambdaU0*1, 1.01) < 1, "%f", normEtaFunc(lambdaU0, 1.01))
+	s.True(normMassRateFunc(lambdaU0*1, 1.01) >= 1, "%f", normMassRateFunc(lambdaU0, 1.01))
 
-func (s *TurbineCharacteristicTestSuite) TestComplexConverge() {
-	s.Require().Nil(s.t.Process())
-	s.Require().Nil(s.c.Process())
-	sg := newton.NewUniformNewtonSolverGen(1e-4, newton.NoLog)
+	s.True(normEtaFunc(lambdaU0*0.99, 1) < 1, "%f", normEtaFunc(lambdaU0, 0.99))
 
-	expectedPOut := s.t.PStagOut() * 1.1
-
-	vs := variator.NewVariatorSolver(
-		func() (*mat.VecDense, error) {
-			s.t.Process()
-			s.c.Process()
-			return mat.NewVecDense(3, []float64{
-				s.c.MassRate() - s.t.MassRateInput().GetState().Value().(float64),
-				s.c.MassRate()*s.c.PowerOutput().GetState().Value().(float64) +
-					s.t.MassRateInput().GetState().Value().(float64)*
-						s.t.PowerOutput().GetState().Value().(float64),
-				s.t.PStagOut() - expectedPOut,
-			}), nil
-		},
-		[]variator.Variator{
-			variator.FromCallables(s.t.NormPiT, s.t.SetNormPiT),
-			variator.FromCallables(s.c.NormPiStag, s.c.SetNormPiStag),
-			variator.FromCallables(s.c.NormMassRate, s.c.SetNormMassRate),
-		},
-		sg,
-	)
-	_, err := vs.Solve(vs.GetInit(), 1e-6, 0.2, 10000)
-	s.Require().Nil(err)
-
-	s.InDelta(s.t.PStagOut(), expectedPOut, 1e-6)
+	s.True(normEtaFunc(lambdaU0*1.01, 1) < 1, "%f", normEtaFunc(lambdaU0, 1.01))
 }
 
 func TestTurbineCharacteristicTestSuite(t *testing.T) {
