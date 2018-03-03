@@ -15,7 +15,7 @@ type TurboCascadeNode interface {
 	TurbineComplexGasInput() nodes.ComplexGasSink
 	TurbineComplexGasOutput() nodes.ComplexGasSource
 	Compressor() constructive.CompressorNode
-	Turbine() constructive.StaticTurbineNode
+	Turbine() constructive.BlockedTurbineNode
 	Transmission() constructive.TransmissionNode
 	ProcessCompressor() error
 	ProcessTurbine() error
@@ -153,7 +153,7 @@ func (node *turboCascadeNode) Compressor() constructive.CompressorNode {
 	return node.compressor
 }
 
-func (node *turboCascadeNode) Turbine() constructive.StaticTurbineNode {
+func (node *turboCascadeNode) Turbine() constructive.BlockedTurbineNode {
 	return node.turbine
 }
 

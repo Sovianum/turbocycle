@@ -140,7 +140,10 @@ func (node *blockedTurbineNode) MassRateInput() graph.Port {
 }
 
 func (node *blockedTurbineNode) massRateRelFactor() float64 {
-	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
+	l := node.leakMassRateFunc(node)
+	c := node.coolMasRateRel(node)
+	i := node.inflowMassRateRel(node)
+	return 1 + l + c + i
 }
 
 // here it is assumed that pressure drop is calculated by stagnation parameters
