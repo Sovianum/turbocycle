@@ -12,13 +12,49 @@ const (
 
 type TurbineCharacteristic interface {
 	GetNormMassRateChar() constructive.TurbineCharFunc
-	GetNormMassRateCharConst() constructive.TurbineCharFunc
 	GetNormEtaChar() constructive.TurbineCharFunc
-	GetNormEtaCharConst() constructive.TurbineCharFunc
 }
 
-func NewTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum float64) TurbineCharacteristic {
-	return &turbineCharacteristic{
+func NewConstTurbineCharacteristic() TurbineCharacteristic {
+	return new(constTurbineCharacteristic)
+}
+
+type constTurbineCharacteristic struct{}
+
+func (tc *constTurbineCharacteristic) GetNormMassRateChar() constructive.TurbineCharFunc {
+	return func(lambdaU, normPiStag float64) float64 {
+		return 1
+	}
+}
+
+func (tc *constTurbineCharacteristic) GetNormEtaChar() constructive.TurbineCharFunc {
+	return func(lambdaU, normPiStag float64) float64 {
+		return 1
+	}
+}
+
+func NewKazandjanTurbineCharacteristic() TurbineCharacteristic {
+	return new(kazandjanTurbineCharacteristic)
+}
+
+type kazandjanTurbineCharacteristic struct{}
+
+func (tc *kazandjanTurbineCharacteristic) GetNormMassRateChar() constructive.TurbineCharFunc {
+	return func(_, normPiStag float64) float64 {
+		x := 1 - normPiStag
+		return 1 - 0.75*x*x*x
+	}
+}
+
+func (tc *kazandjanTurbineCharacteristic) GetNormEtaChar() constructive.TurbineCharFunc {
+	return func(_, normPiStag float64) float64 {
+		x := 1 - normPiStag
+		return 1 - x*x - 0.6*x*x*x
+	}
+}
+
+func NewCIAMTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum float64) TurbineCharacteristic {
+	return &ciamTurbineCharacteristic{
 		etaT0:    etaT0,
 		piT0:     piT0,
 		lambdaU0: lambdaU0,
@@ -26,60 +62,48 @@ func NewTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum float64) TurbineCh
 	}
 }
 
-type turbineCharacteristic struct {
+type ciamTurbineCharacteristic struct {
 	etaT0    float64
 	piT0     float64
 	lambdaU0 float64
 	stageNum float64
 }
 
-func (tc *turbineCharacteristic) GetNormMassRateChar() constructive.TurbineCharFunc {
+func (tc *ciamTurbineCharacteristic) GetNormMassRateChar() constructive.TurbineCharFunc {
 	return func(_, normPiStag float64) float64 {
 		return tc.massRateNorm(normPiStag * tc.piT0)
 	}
 }
 
-func (tc *turbineCharacteristic) GetNormMassRateCharConst() constructive.TurbineCharFunc {
-	return func(lambdaU, normPiStag float64) float64 {
-		return 1
-	}
-}
-
-func (tc *turbineCharacteristic) GetNormEtaChar() constructive.TurbineCharFunc {
+func (tc *ciamTurbineCharacteristic) GetNormEtaChar() constructive.TurbineCharFunc {
 	return func(lambdaU, normPiStag float64) float64 {
 		return tc.etaT(lambdaU, normPiStag*tc.piT0)
 	}
 }
 
-func (tc *turbineCharacteristic) GetNormEtaCharConst() constructive.TurbineCharFunc {
-	return func(lambdaU, normPiStag float64) float64 {
-		return 1
-	}
-}
-
-func (tc *turbineCharacteristic) massRateNorm(piStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) massRateNorm(piStag float64) float64 {
 	x := tc.x(piStag)
 	return panicNan(tc.normMassRateRel(x))
 }
 
-func (tc *turbineCharacteristic) x(piStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) x(piStag float64) float64 {
 	return panicNan((piStag - 1) / (tc.piT0 - 1))
 }
 
-func (tc *turbineCharacteristic) normMassRateRel(x float64) float64 {
+func (tc *ciamTurbineCharacteristic) normMassRateRel(x float64) float64 {
 	if x < 1 {
 		return 2*math.Sqrt(x) - x
 	}
 	return 1
 }
 
-func (tc *turbineCharacteristic) etaT(lambdaU, piStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) etaT(lambdaU, piStag float64) float64 {
 	etaMax := tc.etaTMax(lambdaU)
 	etaTNorm := tc.etaTNorm(lambdaU, piStag)
 	return panicNan(etaMax * etaTNorm)
 }
 
-func (tc *turbineCharacteristic) etaTNorm(lambdaU, piStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) etaTNorm(lambdaU, piStag float64) float64 {
 	yStarNorm := tc.yStarNorm(lambdaU, piStag)
 	if yStarNorm <= 1 {
 		return panicNan(1 - (yStarNorm-1)*(yStarNorm-1))
@@ -87,7 +111,7 @@ func (tc *turbineCharacteristic) etaTNorm(lambdaU, piStag float64) float64 {
 	return panicNan(1 - 0.55*(yStarNorm-1)*(yStarNorm-1))
 }
 
-func (tc *turbineCharacteristic) yStarNorm(lambdaU, piStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) yStarNorm(lambdaU, piStag float64) float64 {
 	yStar0 := tc.yStar0()
 	yStarOptNorm := tc.yStarOptNorm(lambdaU)
 	yStarOpt := yStarOptNorm * yStar0
@@ -98,14 +122,14 @@ func (tc *turbineCharacteristic) yStarNorm(lambdaU, piStag float64) float64 {
 	return panicNan(yStar / yStarOpt)
 }
 
-func (tc *turbineCharacteristic) yStar0() float64 {
+func (tc *ciamTurbineCharacteristic) yStar0() float64 {
 	// this is incorrect value but i have nothing better
 	return panicNan(
 		tc.lambdaU0 / math.Sqrt(1-math.Pow(tc.piT0, (1-kGas)/kGas)),
 	)
 }
 
-func (tc *turbineCharacteristic) yStarOptNorm(lambdaU float64) float64 {
+func (tc *ciamTurbineCharacteristic) yStarOptNorm(lambdaU float64) float64 {
 	lambdaUNorm := tc.lambdaUNorm(lambdaU)
 	if lambdaUNorm < 0.5 {
 		lambdaUNorm = 0.5
@@ -115,25 +139,25 @@ func (tc *turbineCharacteristic) yStarOptNorm(lambdaU float64) float64 {
 	)
 }
 
-func (tc *turbineCharacteristic) yStar(lambdaU, piTStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) yStar(lambdaU, piTStag float64) float64 {
 	return panicNan(
 		math.Sqrt(tc.stageNum) * lambdaU / tc.lambdaAd(piTStag),
 	)
 }
 
-func (tc *turbineCharacteristic) lambdaAd(piTStag float64) float64 {
+func (tc *ciamTurbineCharacteristic) lambdaAd(piTStag float64) float64 {
 	return panicNan(
 		math.Sqrt((kGas + 1) / (kGas - 1) * (1 - math.Pow(piTStag, -kGas/(kGas-1)))),
 	)
 }
 
-func (tc *turbineCharacteristic) etaTMax(lambdaU float64) float64 {
+func (tc *ciamTurbineCharacteristic) etaTMax(lambdaU float64) float64 {
 	return panicNan(
 		tc.etaT0 * tc.etaTMaxNorm(tc.lambdaUNorm(lambdaU)),
 	)
 }
 
-func (tc *turbineCharacteristic) etaTMaxNorm(lambdaUNorm float64) float64 {
+func (tc *ciamTurbineCharacteristic) etaTMaxNorm(lambdaUNorm float64) float64 {
 	if lambdaUNorm >= 1 {
 		return panicNan(1 + 0.03*(lambdaUNorm-1))
 	} else if lambdaUNorm > 0.5 {
@@ -146,7 +170,7 @@ func (tc *turbineCharacteristic) etaTMaxNorm(lambdaUNorm float64) float64 {
 	)
 }
 
-func (tc *turbineCharacteristic) lambdaUNorm(lambdaU float64) float64 {
+func (tc *ciamTurbineCharacteristic) lambdaUNorm(lambdaU float64) float64 {
 	return panicNan(lambdaU / tc.lambdaU0)
 }
 

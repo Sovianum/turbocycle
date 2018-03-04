@@ -133,8 +133,7 @@ func (ccg *compressorCharGen) etaStag(phi, rpmNorm float64) float64 {
 		b1 = 1 - math.Pow(phi-math.Pi/4, 1.2*c1)
 	}
 
-	//factor := b1 * math.Pow(math.Sin(2*phi), a1) was before but extremely unstable
-	factor := b1 * math.Pow(math.Sin(2*phi), 0)
+	factor := b1 * math.Pow(math.Sin(2*phi), a1)
 	return ccg.etaStagOpt(rpmNorm) * factor
 }
 

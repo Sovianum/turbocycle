@@ -20,14 +20,14 @@ const (
 
 type TurbineCharacteristicTestSuite struct {
 	suite.Suite
-	tc  *turbineCharacteristic
+	tc  *ciamTurbineCharacteristic
 	ccg *compressorCharGen
 	t   constructive.ParametricTurbineNode
 	c   constructive.ParametricCompressorNode
 }
 
 func (s *TurbineCharacteristicTestSuite) SetupTest() {
-	s.tc = NewTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum).(*turbineCharacteristic)
+	s.tc = NewCIAMTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum).(*ciamTurbineCharacteristic)
 	s.t = constructive.NewParametricTurbineNode(
 		massRateNormTurb0,
 		piT0, etaT0, 500, 1e6, 0.5, 0.01,
@@ -78,7 +78,7 @@ func (s *TurbineCharacteristicTestSuite) TestGetNormEtaCharSamePoint() {
 }
 
 func (s *TurbineCharacteristicTestSuite) TestTrends() {
-	tc := NewTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum)
+	tc := NewCIAMTurbineCharacteristic(etaT0, piT0, lambdaU0, stageNum)
 	normEtaFunc := tc.GetNormEtaChar()
 	normMassRateFunc := tc.GetNormMassRateChar()
 
