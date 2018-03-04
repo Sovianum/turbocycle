@@ -40,8 +40,8 @@ func NewTwoShaftsRegeneratorScheme(
 }
 
 type TwoShaftsRegeneratorScheme interface {
-	Scheme
-	SingleCompressor
+	TwoShaftsScheme
+	Regenerator() constructive.RegeneratorNode
 }
 
 type twoShaftsRegeneratorScheme struct {
@@ -61,6 +61,34 @@ type twoShaftsRegeneratorScheme struct {
 
 	breaker1 helper.ComplexCycleBreakNode
 	breaker2 helper.ComplexCycleBreakNode
+}
+
+func (scheme *twoShaftsRegeneratorScheme) Regenerator() constructive.RegeneratorNode {
+	return scheme.regenerator
+}
+
+func (scheme *twoShaftsRegeneratorScheme) FreeTurbineBlock() compose.FreeTurbineBlockNode {
+	return scheme.freeTurbineBlock
+}
+
+func (scheme *twoShaftsRegeneratorScheme) CompressorTurbinePipe() constructive.PressureLossNode {
+	return scheme.compressorTurbinePipe
+}
+
+func (scheme *twoShaftsRegeneratorScheme) Burner() constructive.BurnerNode {
+	return scheme.burner
+}
+
+func (scheme *twoShaftsRegeneratorScheme) TurboCascade() compose.TurboCascadeNode {
+	return scheme.turboCascade
+}
+
+func (scheme *twoShaftsRegeneratorScheme) InletPressureDrop() constructive.PressureLossNode {
+	return scheme.inletPressureDrop
+}
+
+func (scheme *twoShaftsRegeneratorScheme) GasSource() source.ComplexGasSourceNode {
+	return scheme.gasSource
 }
 
 func (scheme *twoShaftsRegeneratorScheme) Compressor() constructive.CompressorNode {

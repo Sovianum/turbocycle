@@ -18,7 +18,7 @@ func NewTwoShaftsScheme(
 	freeTurbineBlock compose.FreeTurbineBlockNode,
 
 ) TwoShaftsScheme {
-	return &TwoShaftsSchemeImpl{
+	return &twoShaftsScheme{
 		gasSource:             gasSource,
 		inletPressureDrop:     inletPressureDrop,
 		gasGenerator:          gasGenerator,
@@ -30,9 +30,15 @@ func NewTwoShaftsScheme(
 type TwoShaftsScheme interface {
 	Scheme
 	SingleCompressor
+	FreeTurbineBlock() compose.FreeTurbineBlockNode
+	CompressorTurbinePipe() constructive.PressureLossNode
+	Burner() constructive.BurnerNode
+	TurboCascade() compose.TurboCascadeNode
+	InletPressureDrop() constructive.PressureLossNode
+	GasSource() source.ComplexGasSourceNode
 }
 
-type TwoShaftsSchemeImpl struct {
+type twoShaftsScheme struct {
 	gasSource             source.ComplexGasSourceNode
 	inletPressureDrop     constructive.PressureLossNode
 	gasGenerator          compose.GasGeneratorNode
@@ -46,47 +52,51 @@ type TwoShaftsSchemeImpl struct {
 	powerSink       sink.SinkNode
 }
 
-func (scheme *TwoShaftsSchemeImpl) FreeTurbineBlock() compose.FreeTurbineBlockNode {
+func (scheme *twoShaftsScheme) Burner() constructive.BurnerNode {
+	return scheme.gasGenerator.Burner()
+}
+
+func (scheme *twoShaftsScheme) TurboCascade() compose.TurboCascadeNode {
+	return scheme.gasGenerator.TurboCascade()
+}
+
+func (scheme *twoShaftsScheme) FreeTurbineBlock() compose.FreeTurbineBlockNode {
 	return scheme.freeTurbineBlock
 }
 
-func (scheme *TwoShaftsSchemeImpl) CompressorTurbinePipe() constructive.PressureLossNode {
+func (scheme *twoShaftsScheme) CompressorTurbinePipe() constructive.PressureLossNode {
 	return scheme.compressorTurbinePipe
 }
 
-func (scheme *TwoShaftsSchemeImpl) GasGenerator() compose.GasGeneratorNode {
-	return scheme.gasGenerator
-}
-
-func (scheme *TwoShaftsSchemeImpl) InletPressureDrop() constructive.PressureLossNode {
+func (scheme *twoShaftsScheme) InletPressureDrop() constructive.PressureLossNode {
 	return scheme.inletPressureDrop
 }
 
-func (scheme *TwoShaftsSchemeImpl) GasSource() source.ComplexGasSourceNode {
+func (scheme *twoShaftsScheme) GasSource() source.ComplexGasSourceNode {
 	return scheme.gasSource
 }
 
-func (scheme *TwoShaftsSchemeImpl) Compressor() constructive.CompressorNode {
+func (scheme *twoShaftsScheme) Compressor() constructive.CompressorNode {
 	return scheme.gasGenerator.TurboCascade().Compressor()
 }
 
-func (scheme *TwoShaftsSchemeImpl) GetSpecificPower() float64 {
+func (scheme *twoShaftsScheme) GetSpecificPower() float64 {
 	var turbine = scheme.freeTurbineBlock.FreeTurbine()
 	var lSpecific = turbine.PowerOutput().GetState().(states.PowerPortState).LSpecific
 	var massRateRel = turbine.MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return lSpecific * massRateRel
 }
 
-func (scheme *TwoShaftsSchemeImpl) GetFuelMassRateRel() float64 {
+func (scheme *twoShaftsScheme) GetFuelMassRateRel() float64 {
 	var massRateRel = scheme.gasGenerator.Burner().MassRateInput().GetState().(states.MassRatePortState).MassRate
 	return scheme.gasGenerator.Burner().FuelRateRel() * massRateRel
 }
 
-func (scheme *TwoShaftsSchemeImpl) GetQLower() float64 {
+func (scheme *twoShaftsScheme) GetQLower() float64 {
 	return scheme.gasGenerator.Burner().Fuel().QLower()
 }
 
-func (scheme *TwoShaftsSchemeImpl) GetNetwork() (graph.Network, graph.GraphError) {
+func (scheme *twoShaftsScheme) GetNetwork() (graph.Network, graph.GraphError) {
 	scheme.linkPorts()
 
 	return graph.NewNetwork([]graph.Node{
@@ -96,7 +106,7 @@ func (scheme *TwoShaftsSchemeImpl) GetNetwork() (graph.Network, graph.GraphError
 	})
 }
 
-func (scheme *TwoShaftsSchemeImpl) linkPorts() {
+func (scheme *twoShaftsScheme) linkPorts() {
 	nodes.LinkComplexOutToIn(scheme.gasSource, scheme.inletPressureDrop)
 	nodes.LinkComplexOutToIn(scheme.inletPressureDrop, scheme.gasGenerator)
 	nodes.LinkComplexOutToIn(scheme.gasGenerator, scheme.compressorTurbinePipe)

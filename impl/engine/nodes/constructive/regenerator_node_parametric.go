@@ -34,6 +34,8 @@ func GetDefaultNuFunc() NuFunc {
 	}
 }
 
+type TemperatureDropFunc func(tHotIn, tHotOut, tColdIn, tColdOut float64) float64
+
 func CounterTDrop(tHotIn, tHotOut, tColdIn, tColdOut float64) float64 {
 	var dtHot = tHotIn - tColdOut
 	var dtCold = tHotOut - tColdIn
@@ -62,7 +64,7 @@ func NewParametricRegeneratorNode(
 	pHotIn0, pColdIn0, velocityHot0, velocityCold0,
 	sigma0, hydraulicDiameterHot, hydraulicDiameterCold,
 	precision float64,
-	meanTemperatureDropFunc func(tHotIn, tHotOut, tColdIn, tColdOut float64) float64,
+	meanTemperatureDropFunc TemperatureDropFunc,
 	nuHotFunc, nuColdFunc NuFunc,
 ) RegeneratorNode {
 	var result = &parametricRegeneratorNode{
@@ -113,7 +115,7 @@ type parametricRegeneratorNode struct {
 
 	precision float64
 
-	meanTemperatureDropFunc func(tHotIn, tHotOut, tColdIn, tColdOut float64) float64
+	meanTemperatureDropFunc TemperatureDropFunc
 
 	nuHotFunc  NuFunc
 	nuColdFunc NuFunc
