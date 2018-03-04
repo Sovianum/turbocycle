@@ -8,13 +8,17 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-type LogFunc func(...interface{})
+type LogFunc func(iterNum int, precision float64, residual *mat.VecDense)
 
-func DefaultLog(items ...interface{}) {
-	fmt.Printf("i: %d\tprecision: %f\tresidual: %f\n", items[0].(int), items[1].(float64), items[2].(float64))
+func DefaultLog(iterNum int, precision float64, residual *mat.VecDense) {
+	fmt.Printf("i: %d\tprecision: %f\tresidual: %f\n", iterNum, precision, mat.Norm(residual, 2))
 }
 
-func NoLog(items ...interface{}) {}
+func DetailedLog(iterNum int, precision float64, residual *mat.VecDense) {
+	fmt.Printf("i: %d\tprecision: %f\tresidual: %v\n", iterNum, precision, residual)
+}
+
+func NoLog(iterNum int, precision float64, residual *mat.VecDense) {}
 
 func NewUniformNewtonSolverGen(derivativeStep float64, logFunc LogFunc) math.SolverGenerator {
 	return func(system math.EquationSystem) (math.Solver, error) {
@@ -83,7 +87,7 @@ func (solver *newtonSolver) Solve(
 		} else if math2.IsNaN(residual) {
 			return nil, fmt.Errorf("res is nan on iteration %d", i)
 		}
-		solver.logFunc(i, precision, residual)
+		solver.logFunc(i, precision, y)
 	}
 
 	if !converged {

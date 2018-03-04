@@ -20,18 +20,16 @@ const (
 
 type NuFunc func(gas gases.Gas, velocity, pressure, temperature, d float64) float64
 
-func GetDefaultNuFunc() NuFunc {
-	return func(gas gases.Gas, velocity, pressure, temperature, d float64) float64 {
-		var density = gases.Density(gas, temperature, pressure)
-		var viscosity = gas.Mu(temperature)
-		var re = velocity * d * density / viscosity
+func DefaultNuFunc(gas gases.Gas, velocity, pressure, temperature, d float64) float64 {
+	var density = gases.Density(gas, temperature, pressure)
+	var viscosity = gas.Mu(temperature)
+	var re = velocity * d * density / viscosity
 
-		var lambda = gas.Lambda(temperature)
-		var cp = gas.Cp(temperature)
-		var pr = viscosity * cp / lambda
+	var lambda = gas.Lambda(temperature)
+	var cp = gas.Cp(temperature)
+	var pr = viscosity * cp / lambda
 
-		return 0.56 * math2.Pow(re, 0.5) * math2.Pow(pr, 0.36)
-	}
+	return 0.56 * math2.Pow(re, 0.5) * math2.Pow(pr, 0.36)
 }
 
 type TemperatureDropFunc func(tHotIn, tHotOut, tColdIn, tColdOut float64) float64

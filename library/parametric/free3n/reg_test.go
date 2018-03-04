@@ -174,7 +174,7 @@ func get3nRegFreeTestScheme(
 		3e5, 3e5, 20, 20, 0.5,
 		1e-3, 1.5e-3, 1e-3,
 		c.FrowardTDrop,
-		c.GetDefaultNuFunc(), c.GetDefaultNuFunc(),
+		c.DefaultNuFunc, c.DefaultNuFunc,
 	)
 
 	var breaker = helper.NewComplexCycleBreakNode(gases.GetAir(), 1300, 1e5, 5.5)
