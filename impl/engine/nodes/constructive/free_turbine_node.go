@@ -14,7 +14,6 @@ import (
 
 type FreeTurbineNode interface {
 	StaticTurbineNode
-	nodes.MassRateSink
 }
 
 func NewFreeTurbineNode(

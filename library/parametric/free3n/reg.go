@@ -124,6 +124,10 @@ type threeShaftRegFreeScheme struct {
 	variators []variator.Variator
 }
 
+func (scheme *threeShaftRegFreeScheme) TemperatureSource() source.TemperatureSourceNode {
+	return scheme.burnerTSource
+}
+
 func (scheme *threeShaftRegFreeScheme) Regenerator() c.RegeneratorNode {
 	return scheme.regenerator
 }
@@ -148,27 +152,27 @@ func (scheme *threeShaftRegFreeScheme) HPTPipe() c.PressureLossNode {
 	return scheme.hptPipe
 }
 
-func (scheme *threeShaftRegFreeScheme) MPC() c.ParametricCompressorNode {
+func (scheme *threeShaftRegFreeScheme) LPC() c.ParametricCompressorNode {
 	return scheme.mpShaft.Compressor
 }
 
-func (scheme *threeShaftRegFreeScheme) MPCPipe() c.PressureLossNode {
+func (scheme *threeShaftRegFreeScheme) LPCPipe() c.PressureLossNode {
 	return scheme.mpcPipe
 }
 
-func (scheme *threeShaftRegFreeScheme) MPT() c.ParametricTurbineNode {
+func (scheme *threeShaftRegFreeScheme) LPT() c.ParametricTurbineNode {
 	return scheme.mpShaft.Turbine
 }
 
-func (scheme *threeShaftRegFreeScheme) MPTPipe() c.PressureLossNode {
+func (scheme *threeShaftRegFreeScheme) LPTPipe() c.PressureLossNode {
 	return scheme.mptPipe
 }
 
-func (scheme *threeShaftRegFreeScheme) LPT() c.ParametricTurbineNode {
+func (scheme *threeShaftRegFreeScheme) FT() c.ParametricTurbineNode {
 	return scheme.lpt
 }
 
-func (scheme *threeShaftRegFreeScheme) LPTPipe() c.PressureLossNode {
+func (scheme *threeShaftRegFreeScheme) FTPipe() c.PressureLossNode {
 	return scheme.lptPipe
 }
 

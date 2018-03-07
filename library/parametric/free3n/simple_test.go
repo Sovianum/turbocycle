@@ -96,16 +96,16 @@ func TestNewTripleShaftFreeScheme_Smoke(t *testing.T) {
 	assert.Nil(t, err)
 
 	//fmt.Println()
-	//fmt.Println(scheme.LPT().PiTStag())
-	//fmt.Println(scheme.MPC().PiStag(), scheme.MPT().PiTStag())
+	//fmt.Println(scheme.FT().PiTStag())
+	//fmt.Println(scheme.LPC().PiStag(), scheme.FT().PiTStag())
 	//fmt.Println(scheme.HPC().PiStag(), scheme.HPT().PiTStag())
-	//fmt.Println(scheme.Payload().RPM(), scheme.MPC().MassRate())
+	//fmt.Println(scheme.Payload().RPM(), scheme.LPC().MassRate())
 	//fmt.Println(scheme.Burner().Alpha())
 
 	var delta = 1e-7
 	assert.InDelta(
 		t,
-		scheme.MPC().MassRateOutput().GetState().Value().(float64),
+		scheme.LPC().MassRateOutput().GetState().Value().(float64),
 		scheme.HPC().MassRateInput().GetState().Value().(float64),
 		delta,
 	)
@@ -118,13 +118,13 @@ func TestNewTripleShaftFreeScheme_Smoke(t *testing.T) {
 	assert.InDelta(
 		t,
 		scheme.HPT().MassRateOutput().GetState().Value().(float64),
-		scheme.MPT().MassRateInput().GetState().Value().(float64),
+		scheme.LPT().MassRateInput().GetState().Value().(float64),
 		delta,
 	)
 	assert.InDelta(
 		t,
-		scheme.MPT().MassRateOutput().GetState().Value().(float64),
-		scheme.LPT().MassRateInput().GetState().Value().(float64),
+		scheme.LPT().MassRateOutput().GetState().Value().(float64),
+		scheme.FT().MassRateInput().GetState().Value().(float64),
 		delta,
 	)
 }

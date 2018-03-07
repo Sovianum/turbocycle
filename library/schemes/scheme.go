@@ -17,8 +17,8 @@ type SingleCompressor interface {
 }
 
 type DoubleCompressor interface {
-	LowPressureCompressor() constructive.CompressorNode
-	HighPressureCompressor() constructive.CompressorNode
+	LPC() constructive.CompressorNode
+	HPC() constructive.CompressorNode
 }
 
 func GetMassRate(power float64, scheme Scheme) float64 {

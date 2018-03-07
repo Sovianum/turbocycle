@@ -40,14 +40,15 @@ func NewThreeShaftsScheme(
 type ThreeShaftsScheme interface {
 	Scheme
 	DoubleCompressor
+	LPCPipe() constructive.PressureLossNode
+	HPCPipe() constructive.PressureLossNode
 	MainBurner() constructive.BurnerNode
-	HighPressureTurbine() constructive.TurbineNode
-	LowPressureTurbine() constructive.TurbineNode
-	FreeTurbine() constructive.TurbineNode
-	FreeTurbineBlock() compose.FreeTurbineBlockNode
-	MiddlePressureTurbinePipe() constructive.PressureLossNode
-	HighPressureTurbinePipe() constructive.PressureLossNode
-	MiddlePressureCompressorPipe() constructive.PressureLossNode
+	HPT() constructive.StaticTurbineNode
+	LPT() constructive.StaticTurbineNode
+	FT() constructive.StaticTurbineNode
+	FTBlock() compose.FreeTurbineBlockNode
+	LPTPipe() constructive.PressureLossNode
+	HPTPipe() constructive.PressureLossNode
 	GasGenerator() compose.GasGeneratorNode
 	MiddlePressureCascade() compose.TurboCascadeNode
 	InletPressureDrop() constructive.PressureLossNode
@@ -77,32 +78,36 @@ func (scheme *threeShaftsScheme) MainBurner() constructive.BurnerNode {
 	return scheme.gasGenerator.Burner()
 }
 
-func (scheme *threeShaftsScheme) HighPressureTurbine() constructive.TurbineNode {
+func (scheme *threeShaftsScheme) HPT() constructive.StaticTurbineNode {
 	return scheme.gasGenerator.TurboCascade().Turbine()
 }
 
-func (scheme *threeShaftsScheme) LowPressureTurbine() constructive.TurbineNode {
+func (scheme *threeShaftsScheme) LPT() constructive.StaticTurbineNode {
 	return scheme.middlePressureCascade.Turbine()
 }
 
-func (scheme *threeShaftsScheme) FreeTurbine() constructive.TurbineNode {
+func (scheme *threeShaftsScheme) FT() constructive.StaticTurbineNode {
 	return scheme.freeTurbineBlock.FreeTurbine()
 }
 
-func (scheme *threeShaftsScheme) FreeTurbineBlock() compose.FreeTurbineBlockNode {
+func (scheme *threeShaftsScheme) FTBlock() compose.FreeTurbineBlockNode {
 	return scheme.freeTurbineBlock
 }
 
-func (scheme *threeShaftsScheme) MiddlePressureTurbinePipe() constructive.PressureLossNode {
+func (scheme *threeShaftsScheme) LPTPipe() constructive.PressureLossNode {
 	return scheme.middlePressureTurbinePipe
 }
 
-func (scheme *threeShaftsScheme) HighPressureTurbinePipe() constructive.PressureLossNode {
+func (scheme *threeShaftsScheme) HPTPipe() constructive.PressureLossNode {
 	return scheme.highPressureTurbinePipe
 }
 
-func (scheme *threeShaftsScheme) MiddlePressureCompressorPipe() constructive.PressureLossNode {
+func (scheme *threeShaftsScheme) LPCPipe() constructive.PressureLossNode {
 	return scheme.middlePressureCompressorPipe
+}
+
+func (scheme *threeShaftsScheme) HPCPipe() constructive.PressureLossNode {
+	return constructive.NewPressureLossNode(1) // todo make smth more precise
 }
 
 func (scheme *threeShaftsScheme) GasGenerator() compose.GasGeneratorNode {
@@ -121,11 +126,11 @@ func (scheme *threeShaftsScheme) GasSource() source.ComplexGasSourceNode {
 	return scheme.gasSource
 }
 
-func (scheme *threeShaftsScheme) LowPressureCompressor() constructive.CompressorNode {
+func (scheme *threeShaftsScheme) LPC() constructive.CompressorNode {
 	return scheme.middlePressureCascade.Compressor()
 }
 
-func (scheme *threeShaftsScheme) HighPressureCompressor() constructive.CompressorNode {
+func (scheme *threeShaftsScheme) HPC() constructive.CompressorNode {
 	return scheme.gasGenerator.TurboCascade().Compressor()
 }
 

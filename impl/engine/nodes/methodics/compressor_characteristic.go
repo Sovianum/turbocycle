@@ -12,9 +12,25 @@ import (
 
 type CompressorCharGen interface {
 	GetNormRPMChar() constructive.CompressorCharFunc
-	GetNormRPMCharConst() constructive.CompressorCharFunc
 	GetNormEtaChar() constructive.CompressorCharFunc
-	GetNormEtaCharConst() constructive.CompressorCharFunc
+}
+
+func NewConstCompressorCharGen() CompressorCharGen {
+	return new(compressorCharGen)
+}
+
+type constComperssorCharGen struct{}
+
+func (ccGe *constComperssorCharGen) GetNormRPMChar() constructive.CompressorCharFunc {
+	return func(normMassRate, normPiStag float64) float64 {
+		return 1
+	}
+}
+
+func (ccGe *constComperssorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
+	return func(normMassRate, normPiStag float64) float64 {
+		return 1
+	}
 }
 
 func NewCompressorCharGen(
@@ -56,12 +72,6 @@ func (ccg *compressorCharGen) GetNormRPMChar() constructive.CompressorCharFunc {
 	}
 }
 
-func (ccg *compressorCharGen) GetNormRPMCharConst() constructive.CompressorCharFunc {
-	return func(normMassRate, normPiStag float64) float64 {
-		return 1
-	}
-}
-
 func (ccg *compressorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
 	return func(normMassRate, normPiStag float64) float64 {
 		if err := ccg.resolveCoordinates(normMassRate, normPiStag); err != nil {
@@ -69,12 +79,6 @@ func (ccg *compressorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
 		}
 		eta := ccg.etaStag(ccg.phiCurr, ccg.rpmNormCurr)
 		return eta / ccg.etaStag0
-	}
-}
-
-func (ccg *compressorCharGen) GetNormEtaCharConst() constructive.CompressorCharFunc {
-	return func(normMassRate, normPiStag float64) float64 {
-		return 1
 	}
 }
 

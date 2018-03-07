@@ -46,15 +46,15 @@ func TestNewTripleShaftCoolFreeScheme_Smoke(t *testing.T) {
 	assert.Nil(t, err)
 
 	//fmt.Println()
-	//fmt.Println(scheme.LPT().PiTStag())
-	//fmt.Println(scheme.MPC().PiStag(), scheme.MPT().PiTStag())
+	//fmt.Println(scheme.FT().PiTStag())
+	//fmt.Println(scheme.LPC().PiStag(), scheme.FT().PiTStag())
 	//fmt.Println(scheme.HPC().PiStag(), scheme.HPT().PiTStag())
-	//fmt.Println(scheme.Payload().RPM(), scheme.MPC().MassRate())
+	//fmt.Println(scheme.Payload().RPM(), scheme.LPC().MassRate())
 
 	var delta = 1e-7
 	assert.InDelta(
 		t,
-		scheme.MPC().MassRateOutput().GetState().Value().(float64),
+		scheme.LPC().MassRateOutput().GetState().Value().(float64),
 		scheme.HPC().MassRateInput().GetState().Value().(float64),
 		delta,
 	)
@@ -67,13 +67,13 @@ func TestNewTripleShaftCoolFreeScheme_Smoke(t *testing.T) {
 	assert.InDelta(
 		t,
 		scheme.HPT().MassRateOutput().GetState().Value().(float64),
-		scheme.MPT().MassRateInput().GetState().Value().(float64),
+		scheme.LPT().MassRateInput().GetState().Value().(float64),
 		delta,
 	)
 	assert.InDelta(
 		t,
-		scheme.MPT().MassRateOutput().GetState().Value().(float64),
-		scheme.LPT().MassRateInput().GetState().Value().(float64),
+		scheme.LPT().MassRateOutput().GetState().Value().(float64),
+		scheme.FT().MassRateInput().GetState().Value().(float64),
 		delta,
 	)
 }
@@ -138,9 +138,9 @@ func get3nCoolFreeTestScheme(
 	)
 	return NewThreeShaftCoolFreeScheme(
 		gases.GetAir(), tAtm, pAtm, tGas,
-		root.MPC(), root.MPCPipe(), root.MPT(), root.MPTPipe(), mpEtaM,
+		root.LPC(), root.LPCPipe(), root.LPT(), root.LPTPipe(), mpEtaM,
 		root.HPC(), root.HPCPipe(), root.HPT(), root.HPTPipe(), hpEtaM,
-		root.LPT(), root.LPTPipe(), root.Burner(),
+		root.FT(), root.FTPipe(), root.Burner(),
 		root.Payload(), c.NewCoolerNode(coolerTOut, coolerSigma),
 	)
 }

@@ -14,7 +14,6 @@ import (
 type BlockedTurbineNode interface {
 	StaticTurbineNode
 	nodes.PowerSink
-	nodes.MassRateSink
 }
 
 func NewSimpleBlockedTurbineNode(

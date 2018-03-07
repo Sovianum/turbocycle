@@ -11,19 +11,22 @@ import (
 )
 
 type ThreeShaftFreeScheme interface {
+	TemperatureSource() source.TemperatureSourceNode
+
 	HPC() c.ParametricCompressorNode
 	HPCPipe() c.PressureLossNode
-	Burner() c.ParametricBurnerNode
 	HPT() c.ParametricTurbineNode
 	HPTPipe() c.PressureLossNode
 
-	MPC() c.ParametricCompressorNode
-	MPCPipe() c.PressureLossNode
-	MPT() c.ParametricTurbineNode
-	MPTPipe() c.PressureLossNode
-
+	LPC() c.ParametricCompressorNode
+	LPCPipe() c.PressureLossNode
 	LPT() c.ParametricTurbineNode
 	LPTPipe() c.PressureLossNode
+
+	Burner() c.ParametricBurnerNode
+
+	FT() c.ParametricTurbineNode
+	FTPipe() c.PressureLossNode
 
 	Payload() c.Payload
 	Assembler() graph.VectorAssemblerNode
@@ -57,7 +60,7 @@ func NewThreeShaftFreeScheme(
 	lpt.SetName("lpt")
 	lptPipe.SetName("lptPipe")
 
-	var result = &threeShaftFreeScheme{
+	result := &threeShaftFreeScheme{
 		gasPart: parametric.NewGasPart(gas, tAtm, pAtm, pAtm),
 
 		burner: burner,
@@ -134,6 +137,10 @@ type threeShaftFreeScheme struct {
 	variators []variator.Variator
 }
 
+func (scheme *threeShaftFreeScheme) TemperatureSource() source.TemperatureSourceNode {
+	return scheme.burnerTSource
+}
+
 func (scheme *threeShaftFreeScheme) HPC() c.ParametricCompressorNode {
 	return scheme.hpShaft.Compressor
 }
@@ -154,27 +161,27 @@ func (scheme *threeShaftFreeScheme) HPTPipe() c.PressureLossNode {
 	return scheme.hptPipe
 }
 
-func (scheme *threeShaftFreeScheme) MPC() c.ParametricCompressorNode {
+func (scheme *threeShaftFreeScheme) LPC() c.ParametricCompressorNode {
 	return scheme.mpShaft.Compressor
 }
 
-func (scheme *threeShaftFreeScheme) MPCPipe() c.PressureLossNode {
+func (scheme *threeShaftFreeScheme) LPCPipe() c.PressureLossNode {
 	return scheme.mpcPipe
 }
 
-func (scheme *threeShaftFreeScheme) MPT() c.ParametricTurbineNode {
+func (scheme *threeShaftFreeScheme) LPT() c.ParametricTurbineNode {
 	return scheme.mpShaft.Turbine
 }
 
-func (scheme *threeShaftFreeScheme) MPTPipe() c.PressureLossNode {
+func (scheme *threeShaftFreeScheme) LPTPipe() c.PressureLossNode {
 	return scheme.mptPipe
 }
 
-func (scheme *threeShaftFreeScheme) LPT() c.ParametricTurbineNode {
+func (scheme *threeShaftFreeScheme) FT() c.ParametricTurbineNode {
 	return scheme.lpt
 }
 
-func (scheme *threeShaftFreeScheme) LPTPipe() c.PressureLossNode {
+func (scheme *threeShaftFreeScheme) FTPipe() c.PressureLossNode {
 	return scheme.lptPipe
 }
 

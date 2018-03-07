@@ -63,11 +63,11 @@ type threeShaftsCoolerScheme struct {
 	powerSink       sink.SinkNode
 }
 
-func (scheme *threeShaftsCoolerScheme) LowPressureCompressor() constructive.CompressorNode {
+func (scheme *threeShaftsCoolerScheme) LPC() constructive.CompressorNode {
 	return scheme.middlePressureCascade.Compressor()
 }
 
-func (scheme *threeShaftsCoolerScheme) HighPressureCompressor() constructive.CompressorNode {
+func (scheme *threeShaftsCoolerScheme) HPC() constructive.CompressorNode {
 	return scheme.gasGenerator.TurboCascade().Compressor()
 }
 

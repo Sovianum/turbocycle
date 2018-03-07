@@ -68,11 +68,11 @@ type threeShaftsRegeneratorScheme struct {
 	breaker2 helper.ComplexCycleBreakNode
 }
 
-func (scheme *threeShaftsRegeneratorScheme) LowPressureCompressor() constructive.CompressorNode {
+func (scheme *threeShaftsRegeneratorScheme) LPC() constructive.CompressorNode {
 	return scheme.middlePressureCascade.Compressor()
 }
 
-func (scheme *threeShaftsRegeneratorScheme) HighPressureCompressor() constructive.CompressorNode {
+func (scheme *threeShaftsRegeneratorScheme) HPC() constructive.CompressorNode {
 	return scheme.regenerativeGasGenerator.TurboCascade().Compressor()
 }
 

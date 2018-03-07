@@ -33,6 +33,7 @@ type TurbineNode interface {
 
 type StaticTurbineNode interface {
 	TurbineNode
+	nodes.MassRateSink
 	LambdaOut() float64
 }
 
