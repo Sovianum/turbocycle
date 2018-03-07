@@ -31,33 +31,8 @@ const (
 )
 
 func TestParametricRegeneratorNode_Process_Unit(t *testing.T) {
-	var rn = getTestParametricRegenerator()
-	var coldInput = rn.ColdInput()
-	graph.SetAll(
-		[]graph.PortState{
-			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(coldTemperature0),
-			states.NewPressurePortState(coldPressure0), states.NewMassRatePortState(coldMassRate0),
-		},
-		[]graph.Port{
-			coldInput.GasInput(), coldInput.TemperatureInput(),
-			coldInput.PressureInput(), coldInput.MassRateInput(),
-		},
-	)
-
-	var hotInput = rn.HotInput()
-	graph.SetAll(
-		[]graph.PortState{
-			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(hotTemperature0),
-			states.NewPressurePortState(hotPressure0), states.NewMassRatePortState(hotMassRate0),
-		},
-		[]graph.Port{
-			hotInput.GasInput(), hotInput.TemperatureInput(),
-			hotInput.PressureInput(), hotInput.MassRateInput(),
-		},
-	)
-
-	var err = rn.Process()
-	assert.Nil(t, err)
+	rn := getTestParametricRegenerator()
+	assert.Nil(t, rn.Process())
 
 	var tColdOut = rn.ColdOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
 	assert.True(
@@ -72,11 +47,43 @@ func TestParametricRegeneratorNode_Process_Unit(t *testing.T) {
 	)
 }
 
+func TestParametricRegeneratorNode_Consistency(t *testing.T) {
+	rn := getTestParametricRegenerator()
+	assert.Nil(t, rn.Process())
+
+	assert.InDelta(t, sigma0, rn.Sigma(), 1e-3)
+}
+
 func getTestParametricRegenerator() RegeneratorNode {
-	return NewParametricRegeneratorNode(
+	result := NewParametricRegeneratorNode(
 		gases.GetAir(), gases.GetAir(), hotMassRate0, coldMassRate0,
 		hotTemperature0, coldTemperature0, hotPressure0, coldPressure0,
 		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold, 1e-3,
 		FrowardTDrop, DefaultNuFunc, DefaultNuFunc,
 	)
+
+	coldInput := result.ColdInput()
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(coldTemperature0),
+			states.NewPressurePortState(coldPressure0), states.NewMassRatePortState(coldMassRate0),
+		},
+		[]graph.Port{
+			coldInput.GasInput(), coldInput.TemperatureInput(),
+			coldInput.PressureInput(), coldInput.MassRateInput(),
+		},
+	)
+
+	hotInput := result.HotInput()
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(hotTemperature0),
+			states.NewPressurePortState(hotPressure0), states.NewMassRatePortState(hotMassRate0),
+		},
+		[]graph.Port{
+			hotInput.GasInput(), hotInput.TemperatureInput(),
+			hotInput.PressureInput(), hotInput.MassRateInput(),
+		},
+	)
+	return result
 }

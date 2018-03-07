@@ -14,6 +14,7 @@ type CoolerNode interface {
 	nodes.PressureChannel
 	nodes.TemperatureChannel
 	nodes.MassRateChannel
+	Sigma() float64
 }
 
 func NewCoolerNode(tOut float64, sigma float64) CoolerNode {
@@ -52,6 +53,10 @@ type coolerNode struct {
 
 	tOut  float64
 	sigma float64
+}
+
+func (node *coolerNode) Sigma() float64 {
+	return node.sigma
 }
 
 func (node *coolerNode) GasOutput() graph.Port {

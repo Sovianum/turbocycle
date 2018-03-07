@@ -42,6 +42,20 @@ func NewThreeShaftsCoolingScheme(
 type ThreeShaftsCoolerScheme interface {
 	Scheme
 	DoubleCompressor
+	LPCPipe() constructive.PressureLossNode
+	HPCPipe() constructive.PressureLossNode
+	MainBurner() constructive.BurnerNode
+	HPT() constructive.StaticTurbineNode
+	LPT() constructive.StaticTurbineNode
+	FT() constructive.StaticTurbineNode
+	FTBlock() compose.FreeTurbineBlockNode
+	LPTPipe() constructive.PressureLossNode
+	HPTPipe() constructive.PressureLossNode
+	GasGenerator() compose.GasGeneratorNode
+	MiddlePressureCascade() compose.TurboCascadeNode
+	InletPressureDrop() constructive.PressureLossNode
+	GasSource() source.ComplexGasSourceNode
+	Cooler() constructive.CoolerNode
 }
 
 type threeShaftsCoolerScheme struct {
@@ -61,6 +75,62 @@ type threeShaftsCoolerScheme struct {
 	temperatureSink sink.SinkNode
 	massRateSink    sink.SinkNode
 	powerSink       sink.SinkNode
+}
+
+func (scheme *threeShaftsCoolerScheme) Cooler() constructive.CoolerNode {
+	return scheme.cooler
+}
+
+func (scheme *threeShaftsCoolerScheme) LPCPipe() constructive.PressureLossNode {
+	return scheme.middlePressureCompressorPipe
+}
+
+func (scheme *threeShaftsCoolerScheme) HPCPipe() constructive.PressureLossNode {
+	return constructive.NewPressureLossNode(1) // todo make smth more precise
+}
+
+func (scheme *threeShaftsCoolerScheme) MainBurner() constructive.BurnerNode {
+	return scheme.gasGenerator.Burner()
+}
+
+func (scheme *threeShaftsCoolerScheme) HPT() constructive.StaticTurbineNode {
+	return scheme.gasGenerator.TurboCascade().Turbine()
+}
+
+func (scheme *threeShaftsCoolerScheme) LPT() constructive.StaticTurbineNode {
+	return scheme.middlePressureCascade.Turbine()
+}
+
+func (scheme *threeShaftsCoolerScheme) FT() constructive.StaticTurbineNode {
+	return scheme.freeTurbineBlock.FreeTurbine()
+}
+
+func (scheme *threeShaftsCoolerScheme) FTBlock() compose.FreeTurbineBlockNode {
+	return scheme.freeTurbineBlock
+}
+
+func (scheme *threeShaftsCoolerScheme) LPTPipe() constructive.PressureLossNode {
+	return scheme.middlePressureTurbinePipe
+}
+
+func (scheme *threeShaftsCoolerScheme) HPTPipe() constructive.PressureLossNode {
+	return scheme.highPressureTurbinePipe
+}
+
+func (scheme *threeShaftsCoolerScheme) GasGenerator() compose.GasGeneratorNode {
+	return scheme.gasGenerator
+}
+
+func (scheme *threeShaftsCoolerScheme) MiddlePressureCascade() compose.TurboCascadeNode {
+	return scheme.middlePressureCascade
+}
+
+func (scheme *threeShaftsCoolerScheme) InletPressureDrop() constructive.PressureLossNode {
+	return scheme.inletPressureDrop
+}
+
+func (scheme *threeShaftsCoolerScheme) GasSource() source.ComplexGasSourceNode {
+	return scheme.gasSource
 }
 
 func (scheme *threeShaftsCoolerScheme) LPC() constructive.CompressorNode {

@@ -2,7 +2,6 @@ package constructive
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
@@ -200,14 +199,12 @@ func (node *parametricCompressorNode) NormalizedRPM() float64 {
 }
 
 func (node *parametricCompressorNode) rpm() float64 {
-	var tFactor = math.Sqrt(node.t0 / node.tStagIn())
-	return node.normRpmCharacteristic(node.normMassRate, node.normPiStag) / tFactor * node.rpm0
+	normRpm := node.normRpmCharacteristic(node.normMassRate, node.normPiStag)
+	return Rpm(normRpm, node.rpm0, node.tStagIn(), node.t0)
 }
 
 func (node *parametricCompressorNode) massRate() float64 {
-	var tFactor = math.Sqrt(node.t0 / node.tStagIn())
-	var pFactor = node.pStagIn() / node.p0
-	return node.normMassRate / (tFactor * pFactor) * node.massRate0
+	return MassRate(node.normMassRate, node.massRate0, node.tStagIn(), node.t0, node.pStagIn(), node.p0)
 }
 
 func (node *parametricCompressorNode) piStag() float64 {
