@@ -4,6 +4,7 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/library/parametric"
@@ -408,31 +409,31 @@ func (scheme *threeShaftFreeScheme) linkLPShaft() {
 }
 
 func (scheme *threeShaftFreeScheme) setEquations() {
-	scheme.compMassRateEq = c.NewEquality(
+	scheme.compMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.mpcPipe.MassRateOutput()),
 		graph.NewWeakPort(scheme.hpShaft.Compressor.MassRateInput()),
 	)
 	scheme.compMassRateEq.SetName("compMassRateEq")
 
-	scheme.hptMassRateEq = c.NewEquality(
+	scheme.hptMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.burner.MassRateOutput()),
 		graph.NewWeakPort(scheme.hpShaft.Turbine.MassRateInput()),
 	)
 	scheme.hptMassRateEq.SetName("hptMassRateEq")
 
-	scheme.mptMassRateEq = c.NewEquality(
+	scheme.mptMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.hptPipe.MassRateOutput()),
 		graph.NewWeakPort(scheme.mpShaft.Turbine.MassRateInput()),
 	)
 	scheme.mptMassRateEq.SetName("mptMassRateEq")
 
-	scheme.lptMassRateEq = c.NewEquality(
+	scheme.lptMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.mptPipe.MassRateOutput()),
 		graph.NewWeakPort(scheme.lpt.MassRateInput()),
 	)
 	scheme.lptMassRateEq.SetName("lptMassRateEq")
 
-	scheme.hpPowerEq = c.NewMultiAdderFromPorts(
+	scheme.hpPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.hpShaft.Compressor.MassRateOutput()),
 			graph.NewWeakPort(scheme.hpShaft.Shaft.PowerOutput()),
@@ -444,7 +445,7 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 	)
 	scheme.hpPowerEq.SetName("hpPowerEq")
 
-	scheme.mpPowerEq = c.NewMultiAdderFromPorts(
+	scheme.mpPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.mpShaft.Compressor.MassRateOutput()),
 			graph.NewWeakPort(scheme.mpShaft.Shaft.PowerOutput()),
@@ -456,7 +457,7 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 	)
 	scheme.mpPowerEq.SetName("mpPowerEq")
 
-	scheme.lpPowerEq = c.NewMultiAdderFromPorts(
+	scheme.lpPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.lpt.MassRateOutput()),
 			graph.NewWeakPort(scheme.lpt.PowerOutput()),
@@ -467,13 +468,13 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 	)
 	scheme.lpPowerEq.SetName("lpPowerEq")
 
-	scheme.lpPressureEq = c.NewEquality(
+	scheme.lpPressureEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.lptPipe.PressureInput()),
 		graph.NewWeakPort(scheme.lpt.PressureOutput()),
 	)
 	scheme.lpPressureEq.SetName("lpPressureEq")
 
-	scheme.burnerEq = c.NewEquality(
+	scheme.burnerEq = utils.NewEquality(
 		scheme.burnerTSource.TemperatureOutput(),
 		graph.NewWeakPort(scheme.burner.TemperatureOutput()),
 	)

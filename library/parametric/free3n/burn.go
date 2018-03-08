@@ -4,6 +4,7 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -102,7 +103,7 @@ func (scheme *threeShaftBurnFreeScheme) resetEquations() {
 		scheme.variators,
 		variator.FromCallables(scheme.midBurner.FuelRateRel, scheme.midBurner.SetFuelRateRel),
 	)
-	scheme.midBurnerEq = c.NewEquality(
+	scheme.midBurnerEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.midBurner.TemperatureOutput()),
 		graph.NewWeakPort(scheme.midBurnerTSource.TemperatureOutput()),
 	)

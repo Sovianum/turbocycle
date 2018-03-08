@@ -16,6 +16,31 @@ type ParametricBurnerNode interface {
 	SetFuelRateRel(fuelRateRel float64)
 }
 
+func NewParametricBurnerFromProto(
+	b BurnerNode, lambdaIn0, massRate0, precision, relaxCoef float64, iterLimit int,
+) ParametricBurnerNode {
+	pBurn := NewParametricBurnerNode(
+		b.Fuel(), b.TFuel(), b.T0(), b.Eta(),
+		lambdaIn0, b.PStagIn(), b.TStagIn(),
+		massRate0, b.FuelRateRel(), precision, relaxCoef, iterLimit,
+		func(lambda float64) float64 {
+			return b.Sigma() // todo make something more precise
+		},
+	)
+
+	graph.CopyAll(
+		[]graph.Port{
+			b.GasInput(), b.TemperatureInput(), b.PressureInput(), b.MassRateInput(),
+			b.GasOutput(), b.TemperatureOutput(), b.PressureOutput(), b.MassRateOutput(),
+		},
+		[]graph.Port{
+			pBurn.GasInput(), pBurn.TemperatureInput(), pBurn.PressureInput(), pBurn.MassRateInput(),
+			pBurn.GasOutput(), pBurn.TemperatureOutput(), pBurn.PressureOutput(), pBurn.MassRateOutput(),
+		},
+	)
+	return pBurn
+}
+
 func NewParametricBurnerNode(
 	fuel fuel.GasFuel, tFuel, t0, etaBurn,
 	lambdaIn0, pStagIn0, tStagIn0, massRateIn0, fuelMassRateRel0,
@@ -110,28 +135,28 @@ func (node *parametricBurnerNode) lambdaIn() float64 {
 }
 
 func (node *parametricBurnerNode) tGas() (float64, error) {
-	var alphaFunc = func(alpha float64) float64 {
+	alphaFunc := func(alpha float64) float64 {
 		if alpha <= 1 {
 			return alpha
 		}
 		return 1
 	}
 
-	var iterFunc = func(tGas float64) (float64, error) {
-		var cpGas = gases.CpMean(node.outletGas(), tGas, node.t0, nodes.DefaultN)
+	iterFunc := func(tGas float64) (float64, error) {
+		cpGas := gases.CpMean(node.outletGas(), tGas, node.t0, nodes.DefaultN)
 
-		var tInput = node.tStagIn()
-		var cpInput = gases.CpMean(node.inletGas(), tInput, node.t0, nodes.DefaultN)
+		tInput := node.tStagIn()
+		cpInput := gases.CpMean(node.inletGas(), tInput, node.t0, nodes.DefaultN)
 
-		var alpha = node.alpha()
+		alpha := node.alpha()
 
-		var enom1 = cpInput * tInput
-		var enom2 = node.fuelMassRateRel * node.fuel.QLower() * node.etaBurn * alphaFunc(alpha)
-		var enom3 = node.fuelMassRateRel * node.fuel.Cp(node.t0) * node.t0
+		enom1 := cpInput * (tInput - node.t0)
+		enom2 := node.fuelMassRateRel * node.fuel.QLower() * node.etaBurn * alphaFunc(alpha)
+		enom3 := node.fuelMassRateRel * node.fuel.Cp(node.t0) * (node.tFuel - node.t0)
 
-		var denom = cpGas * (node.fuelMassRateRel + 1)
+		denom := cpGas * (node.fuelMassRateRel + 1)
 
-		return (enom1 + enom2 + enom3) / denom, nil
+		return (enom1+enom2+enom3)/denom + node.t0, nil
 	}
 
 	return common.SolveIteratively(iterFunc, node.tStagIn(), node.precision, node.relaxCoef, node.iterLimit)

@@ -43,14 +43,6 @@ func TestNewTripleShaftBurnFreeScheme_Smoke(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	//fmt.Println()
-	//fmt.Println(scheme.FT().PiTStag())
-	//fmt.Println(scheme.LPC().PiStag(), scheme.FT().PiTStag())
-	//fmt.Println(scheme.HPC().PiStag(), scheme.HPT().PiTStag())
-	//fmt.Println(scheme.Payload().RPM(), scheme.LPC().MassRate())
-	//fmt.Println(scheme.Burner().Alpha(), scheme.Burner().FuelRateRel())
-	//fmt.Println(scheme.MidBurner().Alpha(), scheme.MidBurner().FuelRateRel())
-
 	var delta = 1e-7
 	assert.InDelta(
 		t,

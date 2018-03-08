@@ -1,6 +1,8 @@
 package graph
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func Link(port1 Port, port2 Port) {
 	port1.SetLinkPort(port2)
@@ -42,6 +44,16 @@ func AttachAll(node Node, ports ...*Port) {
 	for i := range ports {
 		*ports[i] = NewAttachedPort(node)
 	}
+}
+
+func CopyAll(p1s, p2s []Port) {
+	for i, p1 := range p1s {
+		CopyState(p1, p2s[i])
+	}
+}
+
+func CopyState(p1, p2 Port) {
+	p2.SetState(p1.GetState())
 }
 
 type Port interface {

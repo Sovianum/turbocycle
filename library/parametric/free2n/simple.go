@@ -4,6 +4,7 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/library/parametric"
@@ -37,6 +38,7 @@ func NewDoubleShaftFreeScheme(
 	payload c.Payload,
 ) DoubleShaftFreeScheme {
 	var result = &doubleShaftFreeScheme{
+		etaM:    etaM,
 		gasPart: parametric.NewGasPart(gas, tAtm, pAtm, pAtm),
 		gasGeneratorPart: parametric.NewGasGeneratorPart(
 			compressor, burner, compressorTurbine, c.NewTransmissionNode(etaM), compressorPipe,
@@ -66,6 +68,7 @@ func NewDoubleShaftFreeScheme(
 }
 
 type doubleShaftFreeScheme struct {
+	etaM             float64
 	gasPart          *parametric.GasPart
 	gasGeneratorPart *parametric.GasGeneratorPart
 
@@ -223,13 +226,13 @@ func (scheme *doubleShaftFreeScheme) linkPorts() {
 }
 
 func (scheme *doubleShaftFreeScheme) setEquations() {
-	scheme.gasGenMassRateEq = c.NewEquality(
+	scheme.gasGenMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.gasGeneratorPart.Burner.MassRateOutput()),
 		graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateInput()),
 	)
 	scheme.gasGenMassRateEq.SetName("gasGenMassRateEq")
 
-	scheme.gasGenPowerEq = c.NewMultiAdderFromPorts(
+	scheme.gasGenPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.PowerOutput()),
 			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateInput()),
@@ -241,13 +244,13 @@ func (scheme *doubleShaftFreeScheme) setEquations() {
 	)
 	scheme.gasGenPowerEq.SetName("gasGenPowerEq")
 
-	scheme.freeTurbineMassRateEq = c.NewEquality(
+	scheme.freeTurbineMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.ctPipe.MassRateOutput()),
 		graph.NewWeakPort(scheme.fTurbine.MassRateInput()),
 	)
 	scheme.freeTurbineMassRateEq.SetName("freeTurbineMassRateEq")
 
-	scheme.freeTurbinePowerEq = c.NewMultiAdderFromPorts(
+	scheme.freeTurbinePowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.fTurbine.MassRateInput()),
 			graph.NewWeakPort(scheme.fTurbine.PowerOutput()),
@@ -256,13 +259,13 @@ func (scheme *doubleShaftFreeScheme) setEquations() {
 	)
 	scheme.freeTurbinePowerEq.SetName("freeTurbinePowerEq")
 
-	scheme.freeTurbinePressureEq = c.NewEquality(
+	scheme.freeTurbinePressureEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.fTurbine.PressureOutput()),
 		graph.NewWeakPort(scheme.ftPipe.PressureInput()),
 	)
 	scheme.freeTurbinePressureEq.SetName("freeTurbinePressureEq")
 
-	scheme.gasGenBurnerEq = c.NewEquality(
+	scheme.gasGenBurnerEq = utils.NewEquality(
 		scheme.burnerTemperatureSource.TemperatureOutput(),
 		graph.NewWeakPort(scheme.gasGeneratorPart.Burner.TemperatureOutput()),
 	)

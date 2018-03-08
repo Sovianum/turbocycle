@@ -1,7 +1,6 @@
 package constructive
 
 import (
-	"errors"
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -154,8 +153,6 @@ func (node *freeTurbineNode) LSpecific() float64 {
 }
 
 func (node *freeTurbineNode) Process() error {
-	//var gasState = node.complexGasInput.GetState().(states.ComplexGasPortState)
-
 	var tStagOut, err = node.getTStagOut()
 	if err != nil {
 		return err
@@ -230,31 +227,19 @@ func (node *freeTurbineNode) massRateRelFactor() float64 {
 }
 
 func (node *freeTurbineNode) getTStagOut() (float64, error) {
-	var tStagOutCurr = node.tStagOutNext(
-		node.pStagIn(), node.pStagOut(), node.tStagIn(), node.tStagIn(),
-	)
-	var tStagOutNext = node.tStagOutNext(
-		node.pStagIn(), node.pStagOut(), node.tStagIn(), tStagOutCurr,
-	)
-
-	for !common.Converged(tStagOutCurr, tStagOutNext, node.precision) {
-		if math.IsNaN(tStagOutCurr) || math.IsNaN(tStagOutNext) {
-			return 0, errors.New("failed to converge: try different initial guess")
-		}
-		tStagOutCurr = tStagOutNext
-		node.tStagOutNext(
-			node.pStagIn(), node.pStagOut(), node.tStagIn(), tStagOutCurr,
-		)
+	iterFunc := func(tCurr float64) (float64, error) {
+		return node.tStagOutNext(node.pStagIn(), node.pStagOut(), node.tStagIn(), tCurr), nil
 	}
-
-	return tStagOutNext, nil
+	tStagOut, err := common.SolveIteratively(iterFunc, node.tStagIn(), node.precision, 1, nodes.DefaultN)
+	return tStagOut, err
 }
 
 func (node *freeTurbineNode) tStagOutNext(pStagIn, pStagOut, tStagIn, tStagOutCurr float64) float64 {
-	var k = gases.KMean(node.inputGas(), tStagIn, tStagOutCurr, nodes.DefaultN)
-	var piTStag = pStagIn / pStagOut
-	var piT = piTStag / gdf.Pi(node.lambdaOut, gases.K(node.InputGas(), tStagOutCurr))
-	var x = math.Pow(piT, (1-k)/k)
+	k := gases.KMean(node.inputGas(), tStagIn, tStagOutCurr, nodes.DefaultN)
+	piTStag := pStagIn / pStagOut
+	// todo piT := piTStag / gdf.Pi(node.lambdaOut, gases.K(node.InputGas(), tStagOutCurr)) was before
+	piT := piTStag
+	x := math.Pow(piT, (1-k)/k)
 
 	return tStagIn * (1 - (1-x)*node.etaT)
 }

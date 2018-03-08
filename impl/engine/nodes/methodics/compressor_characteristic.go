@@ -15,24 +15,6 @@ type CompressorCharGen interface {
 	GetNormEtaChar() constructive.CompressorCharFunc
 }
 
-func NewConstCompressorCharGen() CompressorCharGen {
-	return new(compressorCharGen)
-}
-
-type constComperssorCharGen struct{}
-
-func (ccGe *constComperssorCharGen) GetNormRPMChar() constructive.CompressorCharFunc {
-	return func(normMassRate, normPiStag float64) float64 {
-		return 1
-	}
-}
-
-func (ccGe *constComperssorCharGen) GetNormEtaChar() constructive.CompressorCharFunc {
-	return func(normMassRate, normPiStag float64) float64 {
-		return 1
-	}
-}
-
 func NewCompressorCharGen(
 	piC0, etaStag0, massRateNorm0, precision, relaxCoef float64, iterLimit int,
 ) CompressorCharGen {

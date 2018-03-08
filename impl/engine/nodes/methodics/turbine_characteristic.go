@@ -15,24 +15,6 @@ type TurbineCharacteristic interface {
 	GetNormEtaChar() constructive.TurbineCharFunc
 }
 
-func NewConstTurbineCharacteristic() TurbineCharacteristic {
-	return new(constTurbineCharacteristic)
-}
-
-type constTurbineCharacteristic struct{}
-
-func (tc *constTurbineCharacteristic) GetNormMassRateChar() constructive.TurbineCharFunc {
-	return func(lambdaU, normPiStag float64) float64 {
-		return 1
-	}
-}
-
-func (tc *constTurbineCharacteristic) GetNormEtaChar() constructive.TurbineCharFunc {
-	return func(lambdaU, normPiStag float64) float64 {
-		return 1
-	}
-}
-
 func NewKazandjanTurbineCharacteristic() TurbineCharacteristic {
 	return new(kazandjanTurbineCharacteristic)
 }

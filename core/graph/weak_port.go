@@ -1,11 +1,19 @@
 package graph
 
+func NewTransformWeakPort(referencePort Port, transformFunc func(PortState) PortState) Port {
+	return &weakPort{
+		referencePort: referencePort,
+		transformFunc: transformFunc,
+	}
+}
+
 func NewWeakPort(referencePort Port) Port {
 	return &weakPort{referencePort: referencePort}
 }
 
 type weakPort struct {
 	referencePort Port
+	transformFunc func(PortState) PortState
 
 	outerNode Node
 	linkPort  Port
@@ -20,7 +28,10 @@ func (p *weakPort) SetTag(tag string) {
 }
 
 func (p *weakPort) GetState() PortState {
-	return p.referencePort.GetState()
+	if p.transformFunc == nil {
+		return p.referencePort.GetState()
+	}
+	return p.transformFunc(p.referencePort.GetState())
 }
 
 func (p *weakPort) SetState(state PortState) {

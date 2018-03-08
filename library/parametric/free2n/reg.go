@@ -4,6 +4,7 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
@@ -272,13 +273,13 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 }
 
 func (scheme *doubleShaftRegFreeScheme) setEquations() {
-	scheme.gasGenMassRateEq = c.NewEquality(
+	scheme.gasGenMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.gasGeneratorPart.Burner.MassRateOutput()),
 		graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateInput()),
 	)
 	scheme.gasGenMassRateEq.SetName("gasGenMassRateEq")
 
-	scheme.gasGenPowerEq = c.NewMultiAdderFromPorts(
+	scheme.gasGenPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.PowerOutput()),
 			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateOutput()),
@@ -290,13 +291,13 @@ func (scheme *doubleShaftRegFreeScheme) setEquations() {
 	)
 	scheme.gasGenPowerEq.SetName("gasGenPowerEq")
 
-	scheme.freeTurbineMassRateEq = c.NewEquality(
+	scheme.freeTurbineMassRateEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.ctPipe.MassRateOutput()),
 		graph.NewWeakPort(scheme.fTurbine.MassRateInput()),
 	)
 	scheme.freeTurbineMassRateEq.SetName("freeTurbineMassRateEq")
 
-	scheme.freeTurbinePowerEq = c.NewMultiAdderFromPorts(
+	scheme.freeTurbinePowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.fTurbine.MassRateOutput()),
 			graph.NewWeakPort(scheme.fTurbine.PowerOutput()),
@@ -305,13 +306,13 @@ func (scheme *doubleShaftRegFreeScheme) setEquations() {
 	)
 	scheme.freeTurbinePowerEq.SetName("freeTurbinePowerEq")
 
-	scheme.freeTurbinePressureEq = c.NewEquality(
+	scheme.freeTurbinePressureEq = utils.NewEquality(
 		graph.NewWeakPort(scheme.fTurbine.PressureOutput()),
 		graph.NewWeakPort(scheme.ftPipe.PressureInput()),
 	)
 	scheme.freeTurbinePressureEq.SetName("freeTurbinePressureEq")
 
-	scheme.gasGenBurnerEq = c.NewEquality(
+	scheme.gasGenBurnerEq = utils.NewEquality(
 		scheme.burnerTemperatureSource.TemperatureOutput(),
 		graph.NewWeakPort(scheme.gasGeneratorPart.Burner.TemperatureOutput()),
 	)

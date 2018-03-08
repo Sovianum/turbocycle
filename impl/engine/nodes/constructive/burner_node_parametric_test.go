@@ -118,6 +118,39 @@ func TestParametricBurnerNode_Process_Smoke_Solver(t *testing.T) {
 	assert.True(t, bn.FuelRateRel() > fuelMassRateRel0)
 }
 
+func TestParametricBurnerNode_Consistency(t *testing.T) {
+	proto := getTestBurner()
+	graph.SetAll(
+		[]graph.PortState{
+			states.NewGasPortState(gases.GetAir()),
+			states.NewTemperaturePortState(tStagIn0),
+			states.NewPressurePortState(pStagIn0),
+			states.NewMassRatePortState(1),
+		},
+		[]graph.Port{
+			proto.GasInput(),
+			proto.TemperatureInput(),
+			proto.PressureInput(),
+			proto.MassRateInput(),
+		},
+	)
+	assert.Nil(t, proto.Process())
+
+	b := NewParametricBurnerFromProto(proto, lambdaIn0, massRateIn0, 1e-5, 1, nodes.DefaultN)
+	assert.Nil(t, b.Process())
+
+	assert.InDelta(t, proto.TStagOut(), b.TStagOut(), 1e-3)
+	assert.InDelta(t, proto.PStagOut(), b.PStagOut(), 1e-4)
+	assert.InDelta(t, proto.Alpha(), b.Alpha(), 1e-6)
+	assert.InDelta(t, proto.FuelRateRel(), b.FuelRateRel(), 1e-6)
+	assert.InDelta(
+		t,
+		proto.GasOutput().GetState().Value().(gases.Gas).OxygenMassFraction(),
+		b.GasOutput().GetState().Value().(gases.Gas).OxygenMassFraction(),
+		1e-6,
+	)
+}
+
 func getTestParametricBurner(sigmaFunc func(lambda float64) float64) ParametricBurnerNode {
 	return NewParametricBurnerNode(
 		fuel.GetCH4(), tFuel, t0, etaBurn, lambdaIn0,

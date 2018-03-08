@@ -76,6 +76,6 @@ func TestBurnerNode_Process(t *testing.T) {
 
 func getTestBurner() BurnerNode {
 	return NewBurnerNode(
-		fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, 3.5, t0, 0.05, 1, nodes.DefaultN,
+		fuel.GetCH4(), tgStag, tFuel, sigmaBurn, etaBurn, 3.5, t0, 1e-5, 1, nodes.DefaultN,
 	)
 }

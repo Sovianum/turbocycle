@@ -8,6 +8,7 @@ import (
 	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
@@ -21,6 +22,42 @@ type ParametricTurbineNode interface {
 	NormPiT() float64
 	SetNormPiT(normPiT float64)
 	NormMassRate() float64
+}
+
+func NewParametricTurbineNodeFromProto(
+	t StaticTurbineNode, normMassRateChar, normEtaChar TurbineCharFunc,
+	massRate0, inletDiameter, precision float64,
+) ParametricTurbineNode {
+	p0 := t.PStagIn()
+	t0 := t.TStagIn()
+
+	pt := NewParametricTurbineNode(
+		massRate0,
+		t.PiTStag(), t.Eta(), t0, p0, inletDiameter, precision,
+		func(node TurbineNode) float64 {
+			return t.LeakMassRateRel()
+		},
+		func(node TurbineNode) float64 {
+			return t.CoolMassRateRel()
+		},
+		func(node TurbineNode) float64 {
+			return 0
+		},
+		normMassRateChar,
+		normEtaChar,
+	)
+
+	graph.CopyAll(
+		[]graph.Port{
+			t.GasInput(), t.TemperatureInput(), t.PressureInput(),
+			t.GasOutput(), t.TemperatureOutput(), t.PressureOutput(), t.MassRateOutput(),
+		},
+		[]graph.Port{
+			pt.GasInput(), pt.TemperatureInput(), pt.PressureInput(),
+			pt.GasOutput(), pt.TemperatureOutput(), pt.PressureOutput(), pt.MassRateOutput(),
+		},
+	)
+	return pt
 }
 
 func NewSimpleParametricTurbineNode(
@@ -244,7 +281,7 @@ func (node *parametricTurbineNode) massRate() float64 {
 	nmr := node.normMassRate()
 	tStagIn := node.tStagIn()
 	pStagIn := node.pStagIn()
-	result := MassRate(nmr, node.massRate0, tStagIn, node.t0, pStagIn, node.p0)
+	result := utils.MassRate(nmr, node.massRate0, tStagIn, node.t0, pStagIn, node.p0)
 	return result
 }
 

@@ -4,6 +4,7 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math/variator"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/sink"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -167,33 +168,33 @@ func (scheme *singleShaftScheme) linkPorts() {
 }
 
 func (scheme *singleShaftScheme) setEquations() {
-	scheme.massRateEq = c.NewEquality(
+	scheme.massRateEq = utils.NewEquality(
 		scheme.burner.MassRateOutput(),
 		scheme.turbine.MassRateInput(),
 	)
 	scheme.massRateEq.SetName("massRateEq")
 
 	// todo check sign of specific labour of payload
-	scheme.powerEq = c.NewMultiAdderFromPorts(
+	scheme.powerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{scheme.turbine.PowerOutput(), scheme.turbine.MassRateOutput()},
 		[]graph.Port{scheme.compressor.PowerOutput(), graph.NewWeakPort(scheme.compressor.MassRateOutput())},
 		[]graph.Port{scheme.payload.PowerOutput()},
 	)
 	scheme.powerEq.SetName("powerEq")
 
-	scheme.rpmEq = c.NewEquality(
+	scheme.rpmEq = utils.NewEquality(
 		scheme.payload.RPMOutput(),
 		graph.NewWeakPort(scheme.turbine.RPMInput()),
 	)
 	scheme.rpmEq.SetName("rpmEq")
 
-	scheme.pressureEq = c.NewEquality(
+	scheme.pressureEq = utils.NewEquality(
 		scheme.turbine.PressureOutput(),
 		scheme.outputPressureSource.PressureOutput(),
 	)
 	scheme.pressureEq.SetName("pressureEq")
 
-	scheme.temperatureEq = c.NewEquality(
+	scheme.temperatureEq = utils.NewEquality(
 		scheme.burnerTemperatureSource.TemperatureOutput(),
 		graph.NewWeakPort(scheme.burner.TemperatureOutput()),
 	)

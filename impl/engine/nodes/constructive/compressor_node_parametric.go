@@ -6,6 +6,7 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive/utils"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
@@ -40,6 +41,32 @@ type ParametricCompressorNode interface {
 
 	NormalizedRPM() float64
 	RPM() float64
+}
+
+func NewParametricCompressorNodeFromProto(
+	proto CompressorNode, normEtaChar, normRPMChar CompressorCharFunc,
+	rpm0, massRate0, precision float64,
+) ParametricCompressorNode {
+	p0 := proto.PStagIn()
+	t0 := proto.TStagIn()
+
+	p := NewParametricCompressorNode(
+		massRate0, proto.PiStag(),
+		rpm0, proto.Eta(), t0, p0, precision,
+		normEtaChar, normRPMChar,
+	)
+
+	graph.CopyAll(
+		[]graph.Port{
+			proto.GasInput(), proto.TemperatureInput(), proto.PressureInput(), proto.MassRateInput(),
+			proto.GasOutput(), proto.TemperatureOutput(), proto.PressureOutput(), proto.MassRateOutput(),
+		},
+		[]graph.Port{
+			p.GasInput(), p.TemperatureInput(), p.PressureInput(), p.MassRateInput(),
+			p.GasOutput(), p.TemperatureOutput(), p.PressureOutput(), p.MassRateOutput(),
+		},
+	)
+	return p
 }
 
 func NewParametricCompressorNode(
@@ -200,11 +227,11 @@ func (node *parametricCompressorNode) NormalizedRPM() float64 {
 
 func (node *parametricCompressorNode) rpm() float64 {
 	normRpm := node.normRpmCharacteristic(node.normMassRate, node.normPiStag)
-	return Rpm(normRpm, node.rpm0, node.tStagIn(), node.t0)
+	return utils.Rpm(normRpm, node.rpm0, node.tStagIn(), node.t0)
 }
 
 func (node *parametricCompressorNode) massRate() float64 {
-	return MassRate(node.normMassRate, node.massRate0, node.tStagIn(), node.t0, node.pStagIn(), node.p0)
+	return utils.MassRate(node.normMassRate, node.massRate0, node.tStagIn(), node.t0, node.pStagIn(), node.p0)
 }
 
 func (node *parametricCompressorNode) piStag() float64 {

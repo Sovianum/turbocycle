@@ -91,10 +91,10 @@ func (node *burnerNode) Process() error {
 	}
 	node.alpha = alpha
 
-	var gasOut = node.outletGas
-	var tStagOut = node.tgStag
-	var pStagOut = node.pStagIn() * node.sigma
-	var massRateRelOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * (1 + fuelMassRateRel)
+	gasOut := node.outletGas
+	tStagOut := node.tgStag
+	pStagOut := node.pStagIn() * node.sigma
+	massRateRelOut := node.massRateInput.GetState().(states.MassRatePortState).MassRate * (1 + fuelMassRateRel)
 
 	graph.SetAll(
 		[]graph.PortState{
@@ -130,12 +130,12 @@ func (node *burnerNode) getNextAlpha(currAlpha float64) (float64, error) {
 func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {
 	node.outletGas = node.fuel.GetCombustionGas(node.inletGas(), currAlpha)
 
-	var num1 = gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
-	var num2 = -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, nodes.DefaultN) * (node.tStagIn() - node.t0)
+	num1 := gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
+	num2 := -gases.CpMean(node.inletGas(), node.tStagIn(), node.t0, nodes.DefaultN) * (node.tStagIn() - node.t0)
 
-	var denom1 = node.fuel.QLower() * node.etaBurn
-	var denom2 = -gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
-	var denom3 = fuel.CpMean(node.fuel, node.tFuel, node.t0, nodes.DefaultN) * (node.tFuel - node.t0)
+	denom1 := node.fuel.QLower() * node.etaBurn
+	denom2 := -gases.CpMean(node.outletGas, node.tgStag, node.t0, nodes.DefaultN) * (node.tgStag - node.t0)
+	denom3 := fuel.CpMean(node.fuel, node.tFuel, node.t0, nodes.DefaultN) * (node.tFuel - node.t0)
 
 	return (num1 + num2) / (denom1 + denom2 + denom3)
 }
