@@ -28,7 +28,7 @@ func NewRegenerativeGasGeneratorNode(
 	sigmaRegenerator float64,
 	sigmaRegeneratorPipe float64,
 	etaM float64,
-	precision float64,
+	precision, relaxCoef float64, iterLimit int,
 ) RegenerativeGasGeneratorNode {
 	var result = &regenerativeGasGeneratorNode{
 		turboCascade: NewTurboCascadeNode(
@@ -36,7 +36,7 @@ func NewRegenerativeGasGeneratorNode(
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 			etaM, precision,
 		),
-		burner:                  constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
+		burner:                  constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision, relaxCoef, iterLimit),
 		regenerator:             constructive.NewRegeneratorNode(sigmaRegenerator, precision),
 		regeneratorPressureDrop: constructive.NewPressureLossNode(sigmaRegeneratorPipe),
 	}

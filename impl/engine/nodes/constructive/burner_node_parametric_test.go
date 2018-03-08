@@ -6,6 +6,7 @@ import (
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
 	"github.com/Sovianum/turbocycle/core/math/variator"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -120,7 +121,7 @@ func TestParametricBurnerNode_Process_Smoke_Solver(t *testing.T) {
 func getTestParametricBurner(sigmaFunc func(lambda float64) float64) ParametricBurnerNode {
 	return NewParametricBurnerNode(
 		fuel.GetCH4(), tFuel, t0, etaBurn, lambdaIn0,
-		pStagIn0, tStagIn0, massRateIn0, fuelMassRateRel0, 1e-3,
+		pStagIn0, tStagIn0, massRateIn0, fuelMassRateRel0, 1e-3, 1, nodes.DefaultN,
 		sigmaFunc,
 	)
 }

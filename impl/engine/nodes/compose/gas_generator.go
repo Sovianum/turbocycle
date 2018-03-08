@@ -21,7 +21,7 @@ func NewGasGeneratorNode(
 	etaT, lambdaOut float64,
 	leakMassRateFunc, coolMasRateRel, inflowMassRateRel func(constructive.TurbineNode) float64,
 	etaM float64,
-	precision float64,
+	precision, relaxCoef float64, iterLimit int,
 ) GasGeneratorNode {
 	var result = &gasGeneratorNode{
 		turboCascade: NewTurboCascadeNode(
@@ -29,7 +29,7 @@ func NewGasGeneratorNode(
 			leakMassRateFunc, coolMasRateRel, inflowMassRateRel,
 			etaM, precision,
 		),
-		burner: constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision),
+		burner: constructive.NewBurnerNode(fuel, tgStag, tFuel, sigmaBurn, etaBurn, initAlpha, t0, precision, relaxCoef, iterLimit),
 	}
 
 	result.linkPorts()

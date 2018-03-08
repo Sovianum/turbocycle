@@ -1,7 +1,7 @@
 package constructive
 
 import (
-	"math"
+	"fmt"
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
@@ -9,7 +9,6 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
-	"github.com/go-errors/errors"
 )
 
 type BurnerNode interface {
@@ -41,13 +40,15 @@ func FuelMassRate(node BurnerNode) float64 {
 }
 
 func NewBurnerNode(
-	fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn, initAlpha, t0, precision float64,
+	fuel fuel.GasFuel, tgStag, tFuel, sigma, etaBurn, initAlpha, t0, precision, relaxCoef float64, iterLimit int,
 ) BurnerNode {
 	var result = &burnerNode{
 		tgStag:    tgStag,
 		sigma:     sigma,
 		initAlpha: initAlpha,
 		precision: precision,
+		relaxCoef: relaxCoef,
+		iterLimit: iterLimit,
 	}
 	result.baseBurner = newBaseBurner(result, fuel, etaBurn, tFuel, t0, precision)
 
@@ -63,6 +64,8 @@ type burnerNode struct {
 	initAlpha float64
 	alpha     float64
 	precision float64
+	relaxCoef float64
+	iterLimit int
 }
 
 func (node *burnerNode) GetName() string {
@@ -105,24 +108,23 @@ func (node *burnerNode) Process() error {
 }
 
 func (node *burnerNode) getFuelParameters(initAlpha float64) (float64, float64, error) {
-	var currAlpha = initAlpha
-	var nextAlpha = node.getNextAlpha(currAlpha)
-
-	for !common.Converged(currAlpha, nextAlpha, node.precision) {
-		if math.IsNaN(currAlpha) || math.IsNaN(nextAlpha) {
-			return 0, 0, errors.New("failed to converge: try different initial guess")
+	alpha, err := common.SolveIterativelyWithValidation(node.getNextAlpha, func(alpha float64) error {
+		if alpha < 0 {
+			return fmt.Errorf("invalid alpha: %f", alpha)
 		}
-		currAlpha = nextAlpha
-		nextAlpha = node.getNextAlpha(currAlpha)
+		return nil
+	}, initAlpha, node.precision, node.relaxCoef, node.iterLimit)
+	if err != nil {
+		return 0, 0, err
 	}
 
-	var fuelMassRateRel = node.getFuelMassRateRel(nextAlpha)
-	return fuelMassRateRel, nextAlpha, nil
+	var fuelMassRateRel = node.getFuelMassRateRel(alpha)
+	return fuelMassRateRel, alpha, nil
 }
 
-func (node *burnerNode) getNextAlpha(currAlpha float64) float64 {
+func (node *burnerNode) getNextAlpha(currAlpha float64) (float64, error) {
 	var gasMassTheory = node.fuel.GasMassTheory(node.inletGas())
-	return 1 / (node.getFuelMassRateRel(currAlpha) * gasMassTheory)
+	return 1 / (node.getFuelMassRateRel(currAlpha) * gasMassTheory), nil
 }
 
 func (node *burnerNode) getFuelMassRateRel(currAlpha float64) float64 {

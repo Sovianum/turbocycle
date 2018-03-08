@@ -19,7 +19,7 @@ type ParametricBurnerNode interface {
 func NewParametricBurnerNode(
 	fuel fuel.GasFuel, tFuel, t0, etaBurn,
 	lambdaIn0, pStagIn0, tStagIn0, massRateIn0, fuelMassRateRel0,
-	precision float64, sigmaFunc func(lambda float64) float64,
+	precision, relaxCoef float64, iterLimit int, sigmaFunc func(lambda float64) float64,
 ) ParametricBurnerNode {
 	var result = &parametricBurnerNode{
 		fuelMassRateRel: fuelMassRateRel0,
@@ -30,6 +30,8 @@ func NewParametricBurnerNode(
 		massRateIn0: massRateIn0,
 
 		precision: precision,
+		relaxCoef: relaxCoef,
+		iterLimit: iterLimit,
 
 		sigmaFunc: sigmaFunc,
 	}
@@ -51,6 +53,8 @@ type parametricBurnerNode struct {
 	sigmaFunc func(lambda float64) float64
 
 	precision float64
+	relaxCoef float64
+	iterLimit int
 }
 
 func (node *parametricBurnerNode) GetName() string {
@@ -130,7 +134,7 @@ func (node *parametricBurnerNode) tGas() (float64, error) {
 		return (enom1 + enom2 + enom3) / denom, nil
 	}
 
-	return common.SolveIterativly(iterFunc, node.tStagIn(), node.precision, nodes.DefaultN)
+	return common.SolveIteratively(iterFunc, node.tStagIn(), node.precision, node.relaxCoef, node.iterLimit)
 }
 
 func (node *parametricBurnerNode) outletGas() gases.Gas {

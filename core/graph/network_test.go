@@ -30,8 +30,7 @@ func TestNetwork_Solve_OK(t *testing.T) {
 	var network, networkErr = NewNetwork([]Node{node1, node2, node3})
 	assert.Nil(t, networkErr)
 
-	var converged, err = network.Solve(1, 1, 100, 1e-7)
-	assert.True(t, converged)
+	var err = network.Solve(1, 1, 100, 1e-7)
 	assert.Nil(t, err)
 
 	var state = node3.requirePorts[0].GetState().(TestPortState)

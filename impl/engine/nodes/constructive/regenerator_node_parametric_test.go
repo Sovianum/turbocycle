@@ -6,6 +6,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
@@ -58,7 +59,7 @@ func getTestParametricRegenerator() RegeneratorNode {
 	result := NewParametricRegeneratorNode(
 		gases.GetAir(), gases.GetAir(), hotMassRate0, coldMassRate0,
 		hotTemperature0, coldTemperature0, hotPressure0, coldPressure0,
-		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold, 1e-3,
+		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold, 1e-3, 1, nodes.DefaultN,
 		FrowardTDrop, DefaultNuFunc, DefaultNuFunc,
 	)
 

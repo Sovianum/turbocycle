@@ -61,7 +61,7 @@ func NewParametricRegeneratorNode(
 	massRateHot0, massRateCold0, tHotIn0, tColdIn0,
 	pHotIn0, pColdIn0, velocityHot0, velocityCold0,
 	sigma0, hydraulicDiameterHot, hydraulicDiameterCold,
-	precision float64,
+	precision, relaxCoef float64, iterLimit int,
 	meanTemperatureDropFunc TemperatureDropFunc,
 	nuHotFunc, nuColdFunc NuFunc,
 ) RegeneratorNode {
@@ -80,6 +80,8 @@ func NewParametricRegeneratorNode(
 		hydraulicDiameterHot:  hydraulicDiameterHot,
 		hydraulicDiameterCold: hydraulicDiameterCold,
 		precision:             precision,
+		relaxCoef:             relaxCoef,
+		iterLimit:             iterLimit,
 
 		meanTemperatureDropFunc: meanTemperatureDropFunc,
 		nuHotFunc:               nuHotFunc,
@@ -112,6 +114,8 @@ type parametricRegeneratorNode struct {
 	hydraulicDiameterCold float64
 
 	precision float64
+	relaxCoef float64
+	iterLimit int
 
 	meanTemperatureDropFunc TemperatureDropFunc
 
@@ -302,7 +306,7 @@ func (node *parametricRegeneratorNode) getTHotOut0() (float64, error) {
 		return node.tHotIn0 - massRateCoef*cpCoef*node.sigma0*(node.tHotIn0-node.tColdIn0), nil
 	}
 
-	return common.SolveIterativly(iterFunc, node.tHotIn0, node.precision, nodes.DefaultN)
+	return common.SolveIteratively(iterFunc, node.tHotIn0, node.precision, node.relaxCoef, node.iterLimit)
 }
 
 func (node *parametricRegeneratorNode) getTColdOut0() float64 {

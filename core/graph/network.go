@@ -12,7 +12,7 @@ type Network interface {
 	// Solve solves the graph and returns pair (isConverged bool and solutionErr error)
 	// before skipIterations is reached residuals are not checked. This is done to eliminate
 	// necessity to initialize all the ports before Solve call
-	Solve(relaxCoef float64, skipIterations int, maxIterNum int, precision float64) (bool, error)
+	Solve(relaxCoef float64, skipIterations int, maxIterNum int, precision float64) error
 }
 
 func NewNetwork(nodes []Node) (Network, GraphError) {
@@ -29,10 +29,10 @@ type network struct {
 	graphMatrix *graphMatrix
 }
 
-func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum int, precision float64) (bool, error) {
+func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum int, precision float64) error {
 	var callOrder, callErr = network.graphMatrix.GetCallOrder()
 	if callErr != nil {
-		return false, callErr
+		return callErr
 	}
 
 	var converged bool
@@ -42,14 +42,13 @@ func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum 
 	for i := 0; i != maxIterNum; i++ {
 		res, converged, err = network.getStates(callOrder, i >= skipIterations, precision)
 		if math.IsNaN(res) {
-			return false, fmt.Errorf("res is nan on iter %d", i)
+			return fmt.Errorf("res is nan on iter %d", i)
 		}
 
 		if err != nil {
-			err = fmt.Errorf(
+			return fmt.Errorf(
 				"failed on iteration %d: %s", i, err.Error(),
 			)
-			break
 		}
 
 		if converged {
@@ -57,10 +56,9 @@ func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum 
 		}
 	}
 	if !converged {
-		err = fmt.Errorf("failed to converge: residual = %f, precision = %f", res, precision)
+		return fmt.Errorf("failed to converge: residual = %f, precision = %f", res, precision)
 	}
-
-	return converged, err
+	return nil
 }
 
 func (network *network) getStates(callOrder []Node, needCheck bool, precision float64) (float64, bool, error) {

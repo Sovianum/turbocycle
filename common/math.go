@@ -25,28 +25,50 @@ func Product(xArr []float64) float64 {
 	return ReduceFloat64(xArr, func(x, y float64) float64 { return x * y }, 1)
 }
 
-func SolveIterativly(
+func SolveIteratively(
 	f func(xCurr float64) (xNew float64, err error),
-	x0, precision float64, iterLimit int,
+	x0, precision, relaxCoef float64, iterLimit int,
 ) (float64, error) {
-	var xCurr = x0
-	var xNew, err = f(xCurr)
-	if err != nil {
-		return 0, err
+	return SolveIterativelyWithValidation(f, func(float64) error {
+		return nil
+	}, x0, precision, relaxCoef, iterLimit)
+}
+
+func SolveIterativelyWithValidation(
+	f func(xCurr float64) (xNew float64, err error),
+	validator func(x float64) error,
+	x0, precision, relaxCoef float64, iterLimit int,
+) (float64, error) {
+	fixedPrecision := precision * relaxCoef // precision is increased to mitigate relax coef effect
+	interp := func(x1, x2 float64) float64 {
+		return relaxCoef*x2 + (1-relaxCoef)*x1
 	}
 
-	var i = 0
-	for i < iterLimit && !Converged(xCurr, xNew, precision) {
+	xCurr := x0
+	xNew, err := f(xCurr)
+	if err != nil {
+		return 0, err
+	} else {
+		xNew = interp(xCurr, xNew)
+	}
+
+	i := 0
+	for i < iterLimit && !Converged(xCurr, xNew, fixedPrecision) {
 		i++
 
 		xCurr = xNew
 		xNew, err = f(xCurr)
 		if err != nil {
 			return 0, err
+		} else {
+			xNew = interp(xCurr, xNew)
+		}
+		if err := validator(xNew); err != nil {
+			return 0, fmt.Errorf("validation failed: %s", err.Error())
 		}
 	}
 
-	if Converged(xCurr, xNew, precision) {
+	if Converged(xCurr, xNew, fixedPrecision) {
 		return xNew, nil
 	}
 	return 0, fmt.Errorf("failed to converge (SolveIteratively)")

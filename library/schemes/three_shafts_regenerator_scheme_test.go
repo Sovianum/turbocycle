@@ -3,6 +3,7 @@ package schemes
 import (
 	"testing"
 
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
@@ -39,7 +40,7 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 		func(node constructive.TurbineNode) float64 {
 			return 0
 		},
-		0.8, 0.99, 0.99, 0.05,
+		0.8, 0.99, 0.99, 0.05, 1, nodes.DefaultN,
 	)
 
 	var middlePressureCompressorPipe = constructive.NewPressureLossNode(0.98)
@@ -69,7 +70,6 @@ func TestThreeShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 	var network, networkErr = scheme.GetNetwork()
 	assert.Nil(t, networkErr)
 
-	var converged, solveErr = network.Solve(0.2, 1, 100, 0.05)
-	assert.True(t, converged)
+	var solveErr = network.Solve(0.2, 1, 100, 0.05)
 	assert.Nil(t, solveErr)
 }

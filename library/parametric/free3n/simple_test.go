@@ -5,6 +5,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
 	"github.com/Sovianum/turbocycle/core/math/variator"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
@@ -71,10 +72,7 @@ func TestNewTripleShaftFreeScheme_Smoke(t *testing.T) {
 	var network, err = scheme.GetNetwork()
 	assert.Nil(t, err)
 
-	var converged = false
-	converged, err = network.Solve(1, 2, 100, 1e-3)
-
-	assert.True(t, converged)
+	err = network.Solve(1, 2, 100, 1e-3)
 	assert.Nil(t, err)
 
 	var sysCall = variator.SysCallFromNetwork(
@@ -193,7 +191,7 @@ func get3nFreeTestScheme(
 
 	var burner = c.NewParametricBurnerNode(
 		fuel.GetCH4(), tFuel, t0, etaBurn, lambdaIn0, p0*mpcPi0*hpcPi0, tStagIn0,
-		hpcMassRate0, fuelMassRateRel0, precision, burnerSigmaFunc,
+		hpcMassRate0, fuelMassRateRel0, precision, 1, nodes.DefaultN, burnerSigmaFunc,
 	)
 
 	var hpt = c.NewSimpleParametricTurbineNode(

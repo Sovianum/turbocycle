@@ -6,6 +6,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
 	"github.com/Sovianum/turbocycle/core/math/variator"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	c "github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/helper"
 	"github.com/Sovianum/turbocycle/material/fuel"
@@ -19,10 +20,7 @@ func TestNewDoubleShaftRegFreeScheme_Smoke(t *testing.T) {
 	var network, err = scheme.GetNetwork()
 	assert.Nil(t, err)
 
-	var converged = false
-	converged, err = network.Solve(1, 2, 100, 1e-3)
-
-	assert.True(t, converged)
+	err = network.Solve(1, 2, 100, 1e-3)
 	assert.Nil(t, err)
 
 	var sysCall = variator.SysCallFromNetwork(
@@ -98,7 +96,7 @@ func getTestFreeRegScheme(
 
 	var burner = c.NewParametricBurnerNode(
 		fuel.GetCH4(), tFuel, t0, etaBurn, lambdaIn0, p0*piC0, tStagIn0,
-		cMassRate0, fuelMassRateRel0, precision, burnerSigmaFunc,
+		cMassRate0, fuelMassRateRel0, precision, 1, nodes.DefaultN, burnerSigmaFunc,
 	)
 
 	var cTurbine = c.NewSimpleParametricTurbineNode(
@@ -120,7 +118,7 @@ func getTestFreeRegScheme(
 	var regenerator = c.NewParametricRegeneratorNode(
 		gases.GetAir(), gases.GetAir(), cMassRate0, cMassRate0, tGas*0.75, 500,
 		3e5, 3e5, 20, 20, 0.9,
-		1e-3, 1.5e-3, 1e-3,
+		1e-3, 1.5e-3, 1e-3, 1, nodes.DefaultN,
 		c.FrowardTDrop,
 		c.DefaultNuFunc, c.DefaultNuFunc,
 	)

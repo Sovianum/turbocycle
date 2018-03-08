@@ -153,14 +153,15 @@ func (scheme *threeShaftsScheme) GetQLower() float64 {
 
 func (scheme *threeShaftsScheme) GetNetwork() (graph.Network, graph.GraphError) {
 	scheme.linkPorts()
+	return graph.NewNetwork(scheme.nodes())
+}
 
-	return graph.NewNetwork([]graph.Node{
+func (scheme *threeShaftsScheme) nodes() []graph.Node {
+	return []graph.Node{
 		scheme.gasSource, scheme.inletPressureDrop, scheme.middlePressureCascade,
 		scheme.middlePressureCompressorPipe, scheme.gasGenerator, scheme.highPressureTurbinePipe,
-		scheme.middlePressureTurbinePipe, scheme.freeTurbineBlock,
-		scheme.gasSink, scheme.temperatureSink, scheme.pressureSink, scheme.massRateSink, scheme.powerSink,
-		scheme.breaker,
-	})
+		scheme.middlePressureTurbinePipe, scheme.freeTurbineBlock, scheme.breaker,
+	}
 }
 
 func (scheme *threeShaftsScheme) linkPorts() {

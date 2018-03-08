@@ -1,8 +1,6 @@
 package variator
 
 import (
-	"fmt"
-
 	"github.com/Sovianum/turbocycle/core/graph"
 	"gonum.org/v1/gonum/mat"
 )
@@ -15,13 +13,9 @@ func SysCallFromNetwork(
 	precision float64,
 ) SysCall {
 	return func() (*mat.VecDense, error) {
-		var converged, err = network.Solve(relaxCoef, skipIterations, iterLimit, precision)
+		var err = network.Solve(relaxCoef, skipIterations, iterLimit, precision)
 		if err != nil {
 			return nil, err
-		}
-
-		if !converged {
-			return nil, fmt.Errorf("failed to converge (SysCallFromNetwork)")
 		}
 
 		var vec = vectorPort.GetState().(graph.VectorPortState).Vec

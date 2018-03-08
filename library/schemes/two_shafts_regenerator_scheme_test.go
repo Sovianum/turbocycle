@@ -3,6 +3,7 @@ package schemes
 import (
 	"testing"
 
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/compose"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/source"
@@ -25,7 +26,7 @@ func TestTwoShaftsRegeneratorScheme_GetNetwork_Smoke(t *testing.T) {
 			return 0
 		}, 0.99, 0.05,
 	)
-	var burner = constructive.NewBurnerNode(fuel.GetCH4(), 1400, 300, 0.99, 0.99, 3, 300, 0.05)
+	var burner = constructive.NewBurnerNode(fuel.GetCH4(), 1400, 300, 0.99, 0.99, 3, 300, 0.05, 1, nodes.DefaultN)
 	var compressorTurbinePipe = constructive.NewPressureLossNode(0.98)
 	var freeTurbineBlock = compose.NewFreeTurbineBlock(
 		1e5,

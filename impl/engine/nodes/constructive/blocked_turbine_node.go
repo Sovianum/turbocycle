@@ -162,7 +162,7 @@ func (node *blockedTurbineNode) getTStagOut() (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return common.SolveIterativly(node.getNewTtStag, t0, node.precision, nodes.DefaultN)
+	return common.SolveIteratively(node.getNewTtStag, t0, node.precision, 1, nodes.DefaultN)
 }
 
 func (node *blockedTurbineNode) getNewTtStag(currTtStag float64) (float64, error) {

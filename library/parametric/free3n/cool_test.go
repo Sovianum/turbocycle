@@ -21,10 +21,7 @@ func TestNewTripleShaftCoolFreeScheme_Smoke(t *testing.T) {
 	var network, err = scheme.GetNetwork()
 	assert.Nil(t, err)
 
-	var converged = false
-	converged, err = network.Solve(1, 2, 100, 1e-3)
-
-	assert.True(t, converged)
+	err = network.Solve(1, 2, 100, 1e-3)
 	assert.Nil(t, err)
 
 	var sysCall = variator.SysCallFromNetwork(
