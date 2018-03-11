@@ -38,9 +38,10 @@ func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum 
 	var converged bool
 	var err error
 	var res float64
+	var worstPort Port
 
 	for i := 0; i != maxIterNum; i++ {
-		res, converged, err = network.getStates(callOrder, i >= skipIterations, precision)
+		res, converged, worstPort, err = network.getStates(callOrder, i >= skipIterations, precision)
 		if math.IsNaN(res) {
 			return fmt.Errorf("res is nan on iter %d", i)
 		}
@@ -56,35 +57,38 @@ func (network *network) Solve(relaxCoef float64, skipIterations int, maxIterNum 
 		}
 	}
 	if !converged {
-		return fmt.Errorf("failed to converge: residual = %f, precision = %f", res, precision)
+		return fmt.Errorf(
+			"failed to converge on port \"%s\" between node \"%s\" (inner) and node \"%s\": residual = %f, precision = %f",
+			worstPort.GetTag(), worstPort.GetInnerNode().GetName(), worstPort.GetOuterNode().GetName(), res, precision,
+		)
 	}
 	return nil
 }
 
-func (network *network) getStates(callOrder []Node, needCheck bool, precision float64) (float64, bool, error) {
+func (network *network) getStates(callOrder []Node, needCheck bool, precision float64) (float64, bool, Port, error) {
 	var currState, newState networkStateType
 	var err error
 
 	currState, err = network.getState()
 	if err != nil {
-		return 0, false, err
+		return 0, false, nil, err
 	}
 
 	newState, err = network.getNewState(callOrder)
 	if err != nil {
-		return 0, false, err
+		return 0, false, nil, err
 	}
 
 	if !needCheck {
-		return 0, false, nil
+		return 0, false, nil, nil
 	}
 
-	var residual, residualErr = getResidual(currState, newState)
+	var residual, worstPort, residualErr = getResidual(currState, newState)
 	if residualErr != nil {
-		return 0, false, residualErr
+		return 0, false, nil, residualErr
 	}
 
-	return residual, residual <= precision, nil
+	return residual, residual <= precision, worstPort, nil
 }
 
 func (network *network) getNewState(callOrder []Node) (networkStateType, error) {
@@ -115,17 +119,18 @@ func (network *network) getState() (networkStateType, error) {
 	return result, nil
 }
 
-func getResidual(state1, state2 networkStateType) (float64, error) {
+func getResidual(state1, state2 networkStateType) (float64, Port, error) {
 	var result float64 = 0
+	var worstPort Port = nil
 
 	for node, nodeState1 := range state1 {
 		var nodeState2, ok = state2[node]
 		if !ok {
-			return 0, fmt.Errorf("node %v with name %s not found in state2", node, node.GetName())
+			return 0, nil, fmt.Errorf("node %v with name %s not found in state2", node, node.GetName())
 		}
 
 		if len(nodeState1) != len(nodeState2) {
-			return 0, fmt.Errorf(
+			return 0, nil, fmt.Errorf(
 				"states of node %v with name %s has different lengths (%d, %d)",
 				node, node.GetName(), len(nodeState1), len(nodeState2),
 			)
@@ -140,13 +145,13 @@ func getResidual(state1, state2 networkStateType) (float64, error) {
 			}
 
 			if portState1 == nil {
-				return 0, fmt.Errorf(
+				return 0, nil, fmt.Errorf(
 					"port with tag %s of node %s has nil state on curr step",
 					port.GetTag(), port.GetInnerNode().GetName(),
 				)
 			}
 			if portState2 == nil {
-				return 0, fmt.Errorf(
+				return 0, nil, fmt.Errorf(
 					"port with tag %s of node %s has nil state on new step",
 					port.GetTag(), port.GetInnerNode().GetName(),
 				)
@@ -154,16 +159,17 @@ func getResidual(state1, state2 networkStateType) (float64, error) {
 
 			var residual, err = portState1.MaxResidual(portState2)
 			if err != nil {
-				return 0, fmt.Errorf(
+				return 0, nil, fmt.Errorf(
 					"failed to get residual of node %v with name %s at portType %s: %s",
 					node, node.GetName(), port, err.Error(),
 				)
 			}
 			if residual > result {
 				result = residual
+				worstPort = port
 			}
 		}
 	}
 
-	return result, nil
+	return result, worstPort, nil
 }

@@ -45,7 +45,8 @@ func (state VectorPortState) MaxResidual(another PortState) (float64, error) {
 
 		var diff = mat.NewVecDense(state.Vec.Len(), nil)
 		diff.AddScaledVec(state.Vec, -1, casted.Vec)
-		return mat.Norm(diff, 2), nil
+		res := mat.Norm(diff, 2)
+		return res, nil
 
 	default:
 		return 0, common.GetTypeError("VectorPortState", v)
