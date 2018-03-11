@@ -107,5 +107,6 @@ func (scheme *threeShaftBurnFreeScheme) resetEquations() {
 		graph.NewWeakPort(scheme.midBurner.TemperatureOutput()),
 		graph.NewWeakPort(scheme.midBurnerTSource.TemperatureOutput()),
 	)
+	scheme.midBurner.SetName("mid_burner_eq")
 	scheme.assembler.AddInputPorts(scheme.midBurnerEq.OutputPort())
 }
