@@ -65,6 +65,31 @@ func TestNewParametricRegeneratorNodeFromProto_Consistency(t *testing.T) {
 
 	assert.InDelta(
 		t,
+		proto.ColdInput().PressureInput().GetState().Value().(float64),
+		rn.ColdInput().PressureInput().GetState().Value().(float64),
+		1e-6,
+	)
+	assert.InDelta(
+		t,
+		proto.ColdInput().TemperatureInput().GetState().Value().(float64),
+		rn.ColdInput().TemperatureInput().GetState().Value().(float64),
+		1e-6,
+	)
+	assert.InDelta(
+		t,
+		proto.HotInput().PressureInput().GetState().Value().(float64),
+		rn.HotInput().PressureInput().GetState().Value().(float64),
+		1e-6,
+	)
+	assert.InDelta(
+		t,
+		proto.HotInput().TemperatureInput().GetState().Value().(float64),
+		rn.HotInput().TemperatureInput().GetState().Value().(float64),
+		1e-1,
+	)
+
+	assert.InDelta(
+		t,
 		proto.ColdOutput().PressureOutput().GetState().Value().(float64),
 		rn.ColdOutput().PressureOutput().GetState().Value().(float64),
 		1e-6,

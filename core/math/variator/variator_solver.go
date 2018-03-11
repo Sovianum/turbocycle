@@ -21,7 +21,7 @@ func Noise(vec *mat.VecDense, noiseFactorVec *mat.VecDense) *mat.VecDense {
 	r, _ := vec.Dims()
 	result := mat.NewVecDense(r, nil)
 	for i := 0; i != r; i++ {
-		x := vec.At(i, 0) * (1 + rand.Float64()*noiseFactorVec.At(i, 0))
+		x := vec.At(i, 0) * (1 + (rand.Float64()-0.5)*noiseFactorVec.At(i, 0))
 		result.SetVec(i, x)
 	}
 	return result
