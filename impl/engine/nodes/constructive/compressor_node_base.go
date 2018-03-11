@@ -1,7 +1,6 @@
 package constructive
 
 import (
-	"errors"
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
@@ -132,20 +131,16 @@ func (node *baseCompressor) lSpecific() float64 {
 
 func (node *baseCompressor) getTStagOut(tStagOutInit, piStag, etaAd float64) (float64, error) {
 	var k = gases.K(node.gas(), node.tStagIn())
-	var x = math.Pow(piStag, (k-1)/k)
-
-	var tOutCurr = node.tStagIn() * (1 + (x-1)/etaAd)
-	var tOutNext = node.tStagOutNewFunc(tStagOutInit, piStag, etaAd)
-
-	for !common.Converged(tOutCurr, tOutNext, node.precision) {
-		if math.IsNaN(tOutCurr) || math.IsNaN(tOutNext) {
-			return 0, errors.New("failed to converge: try another initial guess")
-		}
-		tOutCurr = tOutNext
-		tOutNext = node.tStagOutNewFunc(tStagOutInit, piStag, etaAd)
+	iterFunc := func(t float64) (float64, error) {
+		//k = gases.KMean(node.gas(), node.tStagIn(), t, nodes.DefaultN)
+		x := math.Pow(piStag, (k-1)/k)
+		return node.tStagIn() * (1 + (x-1)/etaAd), nil
 	}
+	k0 := 1.4
+	x0 := math.Pow(piStag, (k0-1)/k0)
 
-	return tOutNext, nil
+	t, e := common.SolveIteratively(iterFunc, node.tStagIn()*(1+(x0-1)/etaAd), node.precision, 1, 1000)
+	return t, e
 }
 
 func (node *baseCompressor) tStagOutNewFunc(tStagOutCurr, piStag, etaAd float64) float64 {

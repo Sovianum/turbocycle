@@ -127,6 +127,7 @@ func (s *CompressorCharGenTestSuite) TestConsistency() {
 		s.proto.PowerOutput().GetState().Value().(float64),
 		s.protoC.PowerOutput().GetState().Value().(float64), 1e-1,
 	)
+	s.InDelta(massRateNorm0, s.protoC.MassRateInput().GetState().Value().(float64), 1e-4)
 }
 
 func TestCompressorCharGenTestSuite(t *testing.T) {

@@ -12,8 +12,22 @@ import (
 )
 
 func TestRegeneratorNode_Process(t *testing.T) {
-	var rn = NewRegeneratorNode(0.9, 0.05)
-	var coldInput = rn.ColdInput()
+	rn := getTestRegenerator()
+	assert.Nil(t, rn.Process())
+
+	var tColdOut = rn.ColdOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
+	assert.True(t, common.ApproxEqual(750, tColdOut, 0.01))
+
+	var tHotOut = rn.HotOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
+	assert.True(t,
+		common.ApproxEqual(350, tHotOut, 0.03),
+		fmt.Sprintf("Expected %f, got %f (precision %f)", 350., tHotOut, 0.01),
+	)
+}
+
+func getTestRegenerator() RegeneratorNode {
+	rn := NewRegeneratorNode(0.9, 0.05)
+	coldInput := rn.ColdInput()
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(300),
@@ -25,7 +39,7 @@ func TestRegeneratorNode_Process(t *testing.T) {
 		},
 	)
 
-	var hotInput = rn.HotInput()
+	hotInput := rn.HotInput()
 	graph.SetAll(
 		[]graph.PortState{
 			states.NewGasPortState(gases.GetAir()), states.NewTemperaturePortState(800),
@@ -36,16 +50,5 @@ func TestRegeneratorNode_Process(t *testing.T) {
 			hotInput.PressureInput(), hotInput.MassRateInput(),
 		},
 	)
-
-	var err = rn.Process()
-	assert.Nil(t, err)
-
-	var tColdOut = rn.ColdOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
-	assert.True(t, common.ApproxEqual(750, tColdOut, 0.01))
-
-	var tHotOut = rn.HotOutput().TemperatureOutput().GetState().(states.TemperaturePortState).TStag
-	assert.True(t,
-		common.ApproxEqual(350, tHotOut, 0.03),
-		fmt.Sprintf("Expected %f, got %f (precision %f)", 350., tHotOut, 0.01),
-	)
+	return rn
 }

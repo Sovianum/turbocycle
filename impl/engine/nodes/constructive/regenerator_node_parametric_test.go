@@ -51,15 +51,69 @@ func TestParametricRegeneratorNode_Process_Unit(t *testing.T) {
 func TestParametricRegeneratorNode_Consistency(t *testing.T) {
 	rn := getTestParametricRegenerator()
 	assert.Nil(t, rn.Process())
+	sigma := rn.Sigma()
 
-	assert.InDelta(t, sigma0, rn.Sigma(), 1e-3)
+	assert.InDelta(t, sigma0, sigma, 1e-6)
+}
+
+func TestNewParametricRegeneratorNodeFromProto_Consistency(t *testing.T) {
+	proto := getTestRegenerator()
+	assert.Nil(t, proto.Process())
+
+	rn := getTestParametricRegeneratorFromProto()
+	assert.Nil(t, rn.Process())
+
+	assert.InDelta(
+		t,
+		proto.ColdOutput().PressureOutput().GetState().Value().(float64),
+		rn.ColdOutput().PressureOutput().GetState().Value().(float64),
+		1e-6,
+	)
+	assert.InDelta(
+		t,
+		proto.ColdOutput().TemperatureOutput().GetState().Value().(float64),
+		rn.ColdOutput().TemperatureOutput().GetState().Value().(float64),
+		1e-6,
+	)
+	assert.InDelta(
+		t,
+		proto.HotOutput().PressureOutput().GetState().Value().(float64),
+		rn.HotOutput().PressureOutput().GetState().Value().(float64),
+		1e-6,
+	)
+	assert.InDelta(
+		t,
+		proto.HotOutput().TemperatureOutput().GetState().Value().(float64),
+		rn.HotOutput().TemperatureOutput().GetState().Value().(float64),
+		1e-1,
+	)
+	assert.InDelta(t, proto.Sigma(), rn.Sigma(), 1e-6)
+}
+
+func getTestParametricRegeneratorFromProto() RegeneratorNode {
+	rn := getTestRegenerator()
+	hotMassRate := hotMassRate0 * rn.HotInput().MassRateInput().GetState().Value().(float64)
+	coldMassRate := hotMassRate0 * rn.ColdInput().MassRateInput().GetState().Value().(float64)
+
+	result := NewParametricRegeneratorNodeFromProto(
+		rn,
+		hotMassRate, coldMassRate,
+		velocityHot0, velocityCold0,
+		hDiameterHot, hDiameterCold,
+		1e-3, 1, nodes.DefaultN,
+		FrowardTDrop, DefaultNuFunc, DefaultNuFunc,
+	)
+	result.HotInput().MassRateInput().SetState(states.NewMassRatePortState(hotMassRate))
+	result.ColdInput().MassRateInput().SetState(states.NewMassRatePortState(coldMassRate))
+	return result
 }
 
 func getTestParametricRegenerator() RegeneratorNode {
 	result := NewParametricRegeneratorNode(
 		gases.GetAir(), gases.GetAir(), hotMassRate0, coldMassRate0,
 		hotTemperature0, coldTemperature0, hotPressure0, coldPressure0,
-		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold, 1e-3, 1, nodes.DefaultN,
+		velocityHot0, velocityCold0, sigma0, hDiameterHot, hDiameterCold,
+		1e-3, 1, nodes.DefaultN,
 		FrowardTDrop, DefaultNuFunc, DefaultNuFunc,
 	)
 

@@ -93,24 +93,20 @@ func (node *compressorNode) Process() error {
 		return fmt.Errorf("invalid piStag = %f", node.piStag)
 	}
 
-	var tStagOutInit = node.tStagIn()
-
-	var etaAdCurr = node.etaAd(node.tStagIn())
-	var tStagOut, err = node.getTStagOut(tStagOutInit, node.piStag, etaAdCurr)
-	if err != nil {
-		return err
-	}
-	var etaAdNew = node.etaAd(tStagOut)
-
-	for !common.Converged(etaAdCurr, etaAdNew, node.precision) {
-		etaAdCurr = etaAdNew
-		tStagOut, err = node.getTStagOut(tStagOutInit, node.piStag, etaAdCurr)
+	var tStagOut float64
+	var err error
+	iterFunc := func(etaAdCurr float64) (float64, error) {
+		tStagOut, err = node.getTStagOut(node.tStagIn(), node.piStag, etaAdCurr)
 		if err != nil {
-			return err
+			return 0, err
 		}
-		etaAdNew = node.etaAd(tStagOut)
+		return node.etaAd(tStagOut), nil
 	}
 
+	_, etaErr := common.SolveIteratively(iterFunc, node.etaAd(node.tStagIn()), node.precision/100, 1, 1000)
+	if etaErr != nil {
+		return etaErr
+	}
 	var pStagOut = node.pStagIn() * node.piStag
 
 	graph.SetAll(

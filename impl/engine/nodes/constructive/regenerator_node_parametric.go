@@ -56,6 +56,53 @@ func logTDrop(dt1, dt2 float64) float64 {
 	return (dt1 - dt2) / math2.Log(dt1/dt2)
 }
 
+func NewParametricRegeneratorNodeFromProto(
+	proto RegeneratorNode,
+	massRateHot0, massRateCold0,
+	velocityHot0, velocityCold0,
+	hydraulicDiameterHot, hydraulicDiameterCold,
+	precision, relaxCoef float64, iterLimit int,
+	meanTemperatureDropFunc TemperatureDropFunc,
+	nuHotFunc, nuColdFunc NuFunc,
+) RegeneratorNode {
+	result := NewParametricRegeneratorNode(
+		proto.HotInput().GasInput().GetState().Value().(gases.Gas),
+		proto.ColdInput().GasInput().GetState().Value().(gases.Gas),
+		massRateHot0, massRateCold0,
+		proto.HotInput().TemperatureInput().GetState().Value().(float64),
+		proto.ColdInput().TemperatureInput().GetState().Value().(float64),
+		proto.HotInput().PressureInput().GetState().Value().(float64),
+		proto.ColdInput().PressureInput().GetState().Value().(float64),
+		velocityHot0, velocityCold0,
+		proto.Sigma(), hydraulicDiameterHot, hydraulicDiameterCold,
+		precision, relaxCoef, iterLimit,
+		meanTemperatureDropFunc, nuHotFunc, nuColdFunc,
+	)
+	graph.SetAll(
+		[]graph.PortState{
+			proto.HotInput().GasInput().GetState(),
+			proto.HotInput().TemperatureInput().GetState(),
+			proto.HotInput().PressureInput().GetState(),
+			proto.HotInput().MassRateInput().GetState(),
+			proto.ColdInput().GasInput().GetState(),
+			proto.ColdInput().TemperatureInput().GetState(),
+			proto.ColdInput().PressureInput().GetState(),
+			proto.ColdInput().MassRateInput().GetState(),
+		},
+		[]graph.Port{
+			result.HotInput().GasInput(),
+			result.HotInput().TemperatureInput(),
+			result.HotInput().PressureInput(),
+			result.HotInput().MassRateInput(),
+			result.ColdInput().GasInput(),
+			result.ColdInput().TemperatureInput(),
+			result.ColdInput().PressureInput(),
+			result.ColdInput().MassRateInput(),
+		},
+	)
+	return result
+}
+
 func NewParametricRegeneratorNode(
 	hotGas0, coldGas0 gases.Gas,
 	massRateHot0, massRateCold0, tHotIn0, tColdIn0,
@@ -168,45 +215,44 @@ func (node *parametricRegeneratorNode) Process() error {
 }
 
 func (node *parametricRegeneratorNode) getOutputTemperatures() (float64, float64, error) {
-	var hotMassRate = node.hotMassRateInput.GetState().(states.MassRatePortState).MassRate
-	var coldMassRate = node.coldMassRateInput.GetState().(states.MassRatePortState).MassRate
+	hotMassRate := node.hotMassRateInput.GetState().(states.MassRatePortState).MassRate
+	coldMassRate := node.coldMassRateInput.GetState().(states.MassRatePortState).MassRate
 
-	var hotGas = node.hotGasInput.GetState().(states.GasPortState).Gas
-	var coldGas = node.coldGasInput.GetState().(states.GasPortState).Gas
+	hotGas := node.hotGasInput.GetState().(states.GasPortState).Gas
+	coldGas := node.coldGasInput.GetState().(states.GasPortState).Gas
 
-	var tHotIn, tColdIn = node.tStagHotIn(), node.tStagColdIn()
+	tHotIn, tColdIn := node.tStagHotIn(), node.tStagColdIn()
 
-	var pHot = node.hotPressureInput.GetState().(states.PressurePortState).PStag
-	var pCold = node.coldPressureInput.GetState().(states.PressurePortState).PStag
+	pHot := node.hotPressureInput.GetState().(states.PressurePortState).PStag
+	pCold := node.coldPressureInput.GetState().(states.PressurePortState).PStag
 
-	var densityHot = gases.Density(hotGas, tHotIn, pHot)
-	var densityCold = gases.Density(coldGas, tColdIn, pCold)
+	densityHot := gases.Density(hotGas, tHotIn, pHot)
+	densityCold := gases.Density(coldGas, tColdIn, pCold)
 
-	var cHot = hotMassRate / (node.hotArea * densityHot)
-	var cCold = coldMassRate / (node.coldArea * densityCold)
+	cHot := hotMassRate / (node.hotArea * densityHot)
+	cCold := coldMassRate / (node.coldArea * densityCold)
 
-	var residualFunc = func(tVec *mat.VecDense) (*mat.VecDense, error) {
-		var tHotOut, tColdOut = tVec.At(0, 0), tVec.At(1, 0)
+	residualFunc := func(tVec *mat.VecDense) (*mat.VecDense, error) {
+		tHotOut, tColdOut := tVec.At(0, 0), tVec.At(1, 0)
 
-		var cpHot = gases.CpMean(hotGas, tHotIn, tHotOut, nodes.DefaultN)
-		var qHot = hotMassRate * cpHot * (tHotIn - tHotOut)
+		cpHot := gases.CpMean(hotGas, tHotIn, tHotOut, nodes.DefaultN)
+		qHot := hotMassRate * cpHot * (tHotIn - tHotOut)
 
-		var cpCold = gases.CpMean(coldGas, tColdIn, tColdOut, nodes.DefaultN)
-		var qCold = coldMassRate * cpCold * (tColdOut - tColdIn)
+		cpCold := gases.CpMean(coldGas, tColdIn, tColdOut, nodes.DefaultN)
+		qCold := coldMassRate * cpCold * (tColdOut - tColdIn)
 
-		var tDrop = node.meanTemperatureDropFunc(tHotIn, tHotOut, tColdIn, tColdOut)
+		tDrop := node.meanTemperatureDropFunc(tHotIn, tHotOut, tColdIn, tColdOut)
 
-		var tColdMean = tColdIn + tDrop/2
-		var tHotMean = tHotIn - tDrop/2
+		tColdMean := tColdIn + tDrop/2
+		tHotMean := tHotIn - tDrop/2
 
-		var heatTransferCoef = node.getHeatTransferCoef(
+		heatTransferCoef := node.getHeatTransferCoef(
 			hotGas, coldGas, tHotMean, tColdMean, pHot, pCold, cHot, cCold,
 		)
 
-		var qTransfer = node.heatExchangeArea * heatTransferCoef * tDrop
+		qTransfer := node.heatExchangeArea * heatTransferCoef * tDrop
 
-		total := math2.Abs((coldMassRate + hotMassRate) / 2 * (cpHot + cpCold) / 2 * (tHotIn - tColdIn))
-		res := mat.NewVecDense(2, []float64{(qHot - qCold) / total, (qCold - qTransfer) / total})
+		res := mat.NewVecDense(2, []float64{qHot - qCold, qCold - qTransfer})
 		if math2.IsNaN(mat.Norm(res, 2)) {
 			return nil, fmt.Errorf("NaN obtained")
 		}
@@ -214,14 +260,14 @@ func (node *parametricRegeneratorNode) getOutputTemperatures() (float64, float64
 		return res, nil
 	}
 
-	var eqSystem = math.NewEquationSystem(residualFunc, 2)
-	var solver, solverErr = newton.NewUniformNewtonSolver(eqSystem, 1e-3, newton.NoLog)
+	eqSystem := math.NewEquationSystem(residualFunc, 2)
+	solver, solverErr := newton.NewUniformNewtonSolver(eqSystem, 1e-3, newton.NoLog)
 	if solverErr != nil {
 		return 0, 0, solverErr
 	}
 
 	dt := tHotIn - tColdIn
-	var solution, solutionErr = solver.Solve(
+	solution, solutionErr := solver.Solve(
 		mat.NewVecDense(2, []float64{tHotIn - 0.1*dt, tColdIn + 0.1*dt}), temperaturePrecision, 0.5, 1000,
 	)
 	if solutionErr != nil {
@@ -268,7 +314,9 @@ func (node *parametricRegeneratorNode) getHeatTransferCoef0(meanTDrop0 float64) 
 
 func (node *parametricRegeneratorNode) getHeatTransferCoef(
 	hotGas, coldGas gases.Gas,
-	tHotMean, tColdMean, pHot, pCold, cHot, cCold float64,
+	tHotMean, tColdMean,
+	pHot, pCold,
+	cHot, cCold float64,
 ) float64 {
 	var nuCold = node.nuColdFunc(coldGas, cCold, pCold, tColdMean, node.hydraulicDiameterCold)
 	var nuHot = node.nuHotFunc(hotGas, cHot, pHot, tHotMean, node.hydraulicDiameterHot)

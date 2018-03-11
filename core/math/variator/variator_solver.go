@@ -1,9 +1,31 @@
 package variator
 
 import (
+	"math/rand"
+
 	"github.com/Sovianum/turbocycle/core/math"
 	"gonum.org/v1/gonum/mat"
 )
+
+func NoiseUniformly(vec *mat.VecDense, noiseFactor float64) *mat.VecDense {
+	r, _ := vec.Dims()
+	result := mat.NewVecDense(r, nil)
+	for i := 0; i != r; i++ {
+		x := vec.At(i, 0) * (1 + rand.Float64()*noiseFactor)
+		result.SetVec(i, x)
+	}
+	return result
+}
+
+func Noise(vec *mat.VecDense, noiseFactorVec *mat.VecDense) *mat.VecDense {
+	r, _ := vec.Dims()
+	result := mat.NewVecDense(r, nil)
+	for i := 0; i != r; i++ {
+		x := vec.At(i, 0) * (1 + rand.Float64()*noiseFactorVec.At(i, 0))
+		result.SetVec(i, x)
+	}
+	return result
+}
 
 type VariatorSolver interface {
 	math.Solver

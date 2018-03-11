@@ -27,7 +27,7 @@ type DoubleShaftFreeScheme interface {
 }
 
 func NewDoubleShaftFreeScheme(
-	gas gases.Gas, tAtm, pAtm, tGas, etaM float64,
+	gas gases.Gas, tAtm, pAtmIn, pAtmOut, tGas, etaM float64,
 	compressor c.ParametricCompressorNode,
 	compressorPipe c.PressureLossNode,
 	burner c.ParametricBurnerNode,
@@ -39,7 +39,7 @@ func NewDoubleShaftFreeScheme(
 ) DoubleShaftFreeScheme {
 	var result = &doubleShaftFreeScheme{
 		etaM:    etaM,
-		gasPart: parametric.NewGasPart(gas, tAtm, pAtm, pAtm),
+		gasPart: parametric.NewGasPart(gas, tAtm, pAtmIn, pAtmOut),
 		gasGeneratorPart: parametric.NewGasGeneratorPart(
 			compressor, burner, compressorTurbine, c.NewTransmissionNode(etaM), compressorPipe,
 		),
@@ -238,7 +238,7 @@ func (scheme *doubleShaftFreeScheme) setEquations() {
 			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateInput()),
 		},
 		[]graph.Port{
-			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.PowerOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Shaft.PowerOutput()),
 			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.MassRateInput()),
 		},
 	)

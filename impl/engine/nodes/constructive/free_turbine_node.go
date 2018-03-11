@@ -230,7 +230,7 @@ func (node *freeTurbineNode) getTStagOut() (float64, error) {
 	iterFunc := func(tCurr float64) (float64, error) {
 		return node.tStagOutNext(node.pStagIn(), node.pStagOut(), node.tStagIn(), tCurr), nil
 	}
-	tStagOut, err := common.SolveIteratively(iterFunc, node.tStagIn(), node.precision, 1, nodes.DefaultN)
+	tStagOut, err := common.SolveIteratively(iterFunc, node.tStagIn(), node.precision/100, 1, nodes.DefaultN)
 	return tStagOut, err
 }
 

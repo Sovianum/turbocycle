@@ -73,6 +73,7 @@ func (solver *newtonSolver) Solve(
 	if yErr != nil {
 		return nil, fmt.Errorf("failed on initial residual calculation: %s", yErr.Error())
 	}
+	solver.logFunc(0, precision, y)
 
 	var converged = false
 	var residual = 1e10

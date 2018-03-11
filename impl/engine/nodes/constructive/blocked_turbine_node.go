@@ -175,5 +175,5 @@ func (node *blockedTurbineNode) getNewTtStag(currTtStag float64) (float64, error
 }
 
 func (node *blockedTurbineNode) turbineLabour() float64 {
-	return -node.powerInput.GetState().(states.PowerPortState).LSpecific
+	return -node.powerInput.GetState().(states.PowerPortState).LSpecific / node.massRateInput.GetState().Value().(float64)
 }
