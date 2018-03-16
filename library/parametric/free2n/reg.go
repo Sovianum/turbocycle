@@ -18,7 +18,8 @@ type DoubleShaftRegFreeScheme interface {
 }
 
 func NewDoubleShaftRegFreeScheme(
-	gas gases.Gas, tAtm, pAtm, tGas, etaM float64,
+	gas gases.Gas, tAtm, pAtmIn, pAtmOut,
+	tGas, etaM float64,
 	compressor c.ParametricCompressorNode,
 	compressorPipe c.PressureLossNode,
 	regenerator c.RegeneratorNode,
@@ -30,8 +31,8 @@ func NewDoubleShaftRegFreeScheme(
 	freeTurbinePipe c.PressureLossNode,
 	payload c.Payload,
 ) DoubleShaftRegFreeScheme {
-	var result = &doubleShaftRegFreeScheme{
-		gasPart: parametric.NewGasPart(gas, tAtm, pAtm, pAtm),
+	result := &doubleShaftRegFreeScheme{
+		gasPart: parametric.NewGasPart(gas, tAtm, pAtmIn, pAtmOut),
 		gasGeneratorPart: parametric.NewGasGeneratorPart(
 			compressor, burner, compressorTurbine, c.NewTransmissionNode(etaM), compressorPipe,
 		),
@@ -236,7 +237,7 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 	graph.LinkAll(
 		[]graph.Port{
 			scheme.ftPipe.GasOutput(), scheme.ftPipe.TemperatureOutput(),
-			scheme.ftPipe.PressureOutput(), scheme.ftPipe.MassRateOutput(),
+			graph.NewWeakPort(scheme.ftPipe.PressureOutput()), scheme.ftPipe.MassRateOutput(),
 		},
 		[]graph.Port{
 			scheme.breaker.GasInput(), scheme.breaker.TemperatureInput(),
@@ -258,11 +259,8 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 		// as an input parameter
 		scheme.regenerator.HotOutput().GasOutput(),
 		scheme.regenerator.HotOutput().TemperatureOutput(),
-		scheme.regenerator.HotOutput().MassRateOutput(),
-	)
-	graph.Link(
 		scheme.regenerator.HotOutput().PressureOutput(),
-		scheme.ftPipe.PressureOutput(),
+		scheme.regenerator.HotOutput().MassRateOutput(),
 	)
 
 	graph.Link(
@@ -282,11 +280,11 @@ func (scheme *doubleShaftRegFreeScheme) setEquations() {
 	scheme.gasGenPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
 			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.PowerOutput()),
-			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Turbine.MassRateInput()),
 		},
 		[]graph.Port{
-			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.PowerOutput()),
-			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.MassRateOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Shaft.PowerOutput()),
+			graph.NewWeakPort(scheme.gasGeneratorPart.Compressor.MassRateInput()),
 		},
 	)
 	scheme.gasGenPowerEq.SetName("gasGenPowerEq")
@@ -299,7 +297,7 @@ func (scheme *doubleShaftRegFreeScheme) setEquations() {
 
 	scheme.freeTurbinePowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
-			graph.NewWeakPort(scheme.fTurbine.MassRateOutput()),
+			graph.NewWeakPort(scheme.fTurbine.MassRateInput()),
 			graph.NewWeakPort(scheme.fTurbine.PowerOutput()),
 		},
 		[]graph.Port{graph.NewWeakPort(scheme.payload.PowerOutput())},
