@@ -104,20 +104,23 @@ func (ccg *compressorCharGen) etaStag(phi, rpmNorm float64) float64 {
 		a1 = 0.2
 	}
 
-	c1 := 1.33319
-	if a1 > 0.5 {
-		c1 = common.Sum([]float64{
-			-7.86223, 0.203704 * ccg.piC0,
-			34.851 * rpmNorm, 1.55811e-3 * ccg.piC0,
-			-0.307129 * ccg.piC0 * rpmNorm,
-			-43.3512 * rpmNorm * rpmNorm,
-			17.8252 * rpmNorm * rpmNorm * rpmNorm,
-		})
-	}
+	// removed this factor cos made solution extremely unstable
+	//c1 := 1.33319
+	//if a1 > 0.5 {
+	//	c1 = common.Sum([]float64{
+	//		-7.86223, 0.203704 * ccg.piC0,
+	//		34.851 * rpmNorm,
+	//		1.55811e-3 * ccg.piC0 * ccg.piC0,
+	//		-0.307129 * ccg.piC0 * rpmNorm,
+	//		-43.3512 * rpmNorm * rpmNorm,
+	//		17.8252 * rpmNorm * rpmNorm * rpmNorm,
+	//	})
+	//}
+	//b1 := 1.
+	//if phi > math.Pi/4 {
+	//	b1 = 1 - math.Pow(phi-math.Pi/4, 1.2*c1)
+	//}
 	b1 := 1.
-	if phi > math.Pi/4 {
-		b1 = 1 - math.Pow(phi-math.Pi/4, 1.2*c1)
-	}
 
 	factor := b1 * math.Pow(math.Sin(2*phi), a1)
 	return ccg.etaStagOpt(rpmNorm) * factor
