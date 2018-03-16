@@ -86,6 +86,16 @@ type doubleShaftRegFreeScheme struct {
 	variators []variator.Variator
 }
 
+func (scheme *doubleShaftRegFreeScheme) Efficiency() float64 {
+	b := scheme.gasGeneratorPart.Burner
+	fuel := b.Fuel()
+
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	power := scheme.fTurbine.MassRateInput().GetState().Value().(float64) * scheme.fTurbine.PowerOutput().GetState().Value().(float64)
+
+	return power / fuelHeat
+}
+
 func (scheme *doubleShaftRegFreeScheme) TemperatureSource() source.TemperatureSourceNode {
 	return scheme.burnerTemperatureSource
 }

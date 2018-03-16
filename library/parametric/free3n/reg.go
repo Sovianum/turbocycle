@@ -125,6 +125,16 @@ type threeShaftRegFreeScheme struct {
 	variators []variator.Variator
 }
 
+func (scheme *threeShaftRegFreeScheme) Efficiency() float64 {
+	b := scheme.burner
+	fuel := b.Fuel()
+
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	power := scheme.lpt.MassRateInput().GetState().Value().(float64) * scheme.lpt.PowerOutput().GetState().Value().(float64)
+
+	return power / fuelHeat
+}
+
 func (scheme *threeShaftRegFreeScheme) HPShaft() c.TransmissionNode {
 	return scheme.hpShaft.Shaft
 }

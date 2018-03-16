@@ -56,6 +56,20 @@ type threeShaftBurnFreeScheme struct {
 	midBurnerEq graph.ReduceNode
 }
 
+func (scheme *threeShaftBurnFreeScheme) Efficiency() float64 {
+	mainBurner := scheme.burner
+	mainFuel := mainBurner.Fuel()
+	mainFuelHeat := mainBurner.MassRateInput().GetState().Value().(float64) * mainBurner.FuelRateRel() * mainFuel.QLower() * mainBurner.Eta()
+
+	midBurner := scheme.midBurner
+	midFuel := midBurner.Fuel()
+	midFuelHeat := midBurner.MassRateInput().GetState().Value().(float64) * midBurner.FuelRateRel() * midFuel.QLower() * midBurner.Eta()
+
+	power := scheme.lpt.MassRateInput().GetState().Value().(float64) * scheme.lpt.PowerOutput().GetState().Value().(float64)
+
+	return power / (mainFuelHeat + midFuelHeat)
+}
+
 func (scheme *threeShaftBurnFreeScheme) MidBurner() c.ParametricBurnerNode {
 	return scheme.midBurner
 }

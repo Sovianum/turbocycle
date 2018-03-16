@@ -12,6 +12,7 @@ import (
 )
 
 type DoubleShaftFreeScheme interface {
+	parametric.Efficient
 	TemperatureSource() source.TemperatureSourceNode
 	Compressor() c.ParametricCompressorNode
 	CompressorPipe() c.PressureLossNode
@@ -88,6 +89,16 @@ type doubleShaftFreeScheme struct {
 
 	assembler graph.VectorAssemblerNode
 	variators []variator.Variator
+}
+
+func (scheme *doubleShaftFreeScheme) Efficiency() float64 {
+	b := scheme.gasGeneratorPart.Burner
+	fuel := b.Fuel()
+
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	power := scheme.fTurbine.MassRateInput().GetState().Value().(float64) * scheme.fTurbine.PowerOutput().GetState().Value().(float64)
+
+	return power / fuelHeat
 }
 
 func (scheme *doubleShaftFreeScheme) TemperatureSource() source.TemperatureSourceNode {

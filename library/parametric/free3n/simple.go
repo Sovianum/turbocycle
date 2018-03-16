@@ -12,6 +12,7 @@ import (
 )
 
 type ThreeShaftFreeScheme interface {
+	parametric.Efficient
 	TemperatureSource() source.TemperatureSourceNode
 
 	HPC() c.ParametricCompressorNode
@@ -138,6 +139,16 @@ type threeShaftFreeScheme struct {
 
 	assembler graph.VectorAssemblerNode
 	variators []variator.Variator
+}
+
+func (scheme *threeShaftFreeScheme) Efficiency() float64 {
+	b := scheme.burner
+	fuel := b.Fuel()
+
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	power := scheme.lpt.MassRateInput().GetState().Value().(float64) * scheme.lpt.PowerOutput().GetState().Value().(float64)
+
+	return power / fuelHeat
 }
 
 func (scheme *threeShaftFreeScheme) HPShaft() c.TransmissionNode {
