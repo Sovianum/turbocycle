@@ -125,6 +125,14 @@ type threeShaftRegFreeScheme struct {
 	variators []variator.Variator
 }
 
+func (scheme *threeShaftRegFreeScheme) HPShaft() c.TransmissionNode {
+	return scheme.hpShaft.Shaft
+}
+
+func (scheme *threeShaftRegFreeScheme) LPShaft() c.TransmissionNode {
+	return scheme.mpShaft.Shaft
+}
+
 func (scheme *threeShaftRegFreeScheme) TemperatureSource() source.TemperatureSourceNode {
 	return scheme.burnerTSource
 }

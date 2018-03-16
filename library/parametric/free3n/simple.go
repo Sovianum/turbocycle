@@ -18,11 +18,13 @@ type ThreeShaftFreeScheme interface {
 	HPCPipe() c.PressureLossNode
 	HPT() c.ParametricTurbineNode
 	HPTPipe() c.PressureLossNode
+	HPShaft() c.TransmissionNode
 
 	LPC() c.ParametricCompressorNode
 	LPCPipe() c.PressureLossNode
 	LPT() c.ParametricTurbineNode
 	LPTPipe() c.PressureLossNode
+	LPShaft() c.TransmissionNode
 
 	Burner() c.ParametricBurnerNode
 
@@ -136,6 +138,14 @@ type threeShaftFreeScheme struct {
 
 	assembler graph.VectorAssemblerNode
 	variators []variator.Variator
+}
+
+func (scheme *threeShaftFreeScheme) HPShaft() c.TransmissionNode {
+	return scheme.hpShaft.Shaft
+}
+
+func (scheme *threeShaftFreeScheme) LPShaft() c.TransmissionNode {
+	return scheme.mpShaft.Shaft
 }
 
 func (scheme *threeShaftFreeScheme) TemperatureSource() source.TemperatureSourceNode {
@@ -435,11 +445,11 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 
 	scheme.hpPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
-			graph.NewWeakPort(scheme.hpShaft.Compressor.MassRateOutput()),
+			graph.NewWeakPort(scheme.hpShaft.Compressor.MassRateInput()),
 			graph.NewWeakPort(scheme.hpShaft.Shaft.PowerOutput()),
 		},
 		[]graph.Port{
-			graph.NewWeakPort(scheme.hpShaft.Turbine.MassRateOutput()),
+			graph.NewWeakPort(scheme.hpShaft.Turbine.MassRateInput()),
 			graph.NewWeakPort(scheme.hpShaft.Turbine.PowerOutput()),
 		},
 	)
@@ -447,11 +457,11 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 
 	scheme.mpPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
-			graph.NewWeakPort(scheme.mpShaft.Compressor.MassRateOutput()),
+			graph.NewWeakPort(scheme.mpShaft.Compressor.MassRateInput()),
 			graph.NewWeakPort(scheme.mpShaft.Shaft.PowerOutput()),
 		},
 		[]graph.Port{
-			graph.NewWeakPort(scheme.mpShaft.Turbine.MassRateOutput()),
+			graph.NewWeakPort(scheme.mpShaft.Turbine.MassRateInput()),
 			graph.NewWeakPort(scheme.mpShaft.Turbine.PowerOutput()),
 		},
 	)
@@ -459,7 +469,7 @@ func (scheme *threeShaftFreeScheme) setEquations() {
 
 	scheme.lpPowerEq = utils.NewMultiAdderFromPorts(
 		[]graph.Port{
-			graph.NewWeakPort(scheme.lpt.MassRateOutput()),
+			graph.NewWeakPort(scheme.lpt.MassRateInput()),
 			graph.NewWeakPort(scheme.lpt.PowerOutput()),
 		},
 		[]graph.Port{

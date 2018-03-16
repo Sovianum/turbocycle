@@ -158,16 +158,20 @@ func (node *freeTurbineNode) Process() error {
 		return err
 	}
 
+	l := node.leakMassRateFunc(node)
+	c := node.coolMasRateRel(node)
+	i := node.inflowMassRateRel(node)
+
+	massRateRelOut := node.massRateInput.GetState().(states.MassRatePortState).MassRate * (1 + l + i)
+
 	node.temperatureOutput.SetState(states.NewTemperaturePortState(tStagOut))
 	node.pressureOutput.SetState(states.NewPressurePortState(node.pStagOut()))
 	node.gasOutput.SetState(states.NewGasPortState(node.inputGas()))
-	node.massRateOutput.SetState(
-		states.NewMassRatePortState(node.massRateInput.GetState().(states.MassRatePortState).MassRate *
-			node.massRateRelFactor()),
-	)
+	node.massRateOutput.SetState(states.NewMassRatePortState(massRateRelOut))
 
+	labour := node.lSpecific() * (1 + l + c)
 	node.powerOutput.SetState(
-		states.NewPowerPortState(node.lSpecific()),
+		states.NewPowerPortState(labour),
 	)
 
 	return nil
@@ -220,10 +224,6 @@ func (node *freeTurbineNode) pStatOut() float64 {
 	var tStagOut = node.tStagOut()
 	var k = gases.K(node.inputGas(), tStagOut)
 	return pStagOut * gdf.Tau(node.lambdaOut, k)
-}
-
-func (node *freeTurbineNode) massRateRelFactor() float64 {
-	return 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node) + node.inflowMassRateRel(node)
 }
 
 func (node *freeTurbineNode) getTStagOut() (float64, error) {

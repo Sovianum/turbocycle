@@ -102,14 +102,19 @@ func (node *blockedTurbineNode) Process() error {
 
 	var piTStag = node.piTStag(tStagOut, node.etaT)
 	var pStagOut = node.pStagIn() / piTStag
-	var massRateRelOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * node.massRateRelFactor()
+
+	l := node.leakMassRateFunc(node)
+	i := node.inflowMassRateRel(node)
+
+	var massRateRelOut = node.massRateInput.GetState().(states.MassRatePortState).MassRate * (1 + l + i)
 
 	node.temperatureOutput.SetState(states.NewTemperaturePortState(tStagOut))
 	node.pressureOutput.SetState(states.NewPressurePortState(pStagOut))
 	node.gasOutput.SetState(states.NewGasPortState(node.inputGas()))
 	node.massRateOutput.SetState(states.NewMassRatePortState(massRateRelOut))
 
-	node.powerOutput.SetState(states.NewPowerPortState(node.turbineLabour())) // TODO maybe need to pass sum of labours
+	labour := node.turbineLabour()
+	node.powerOutput.SetState(states.NewPowerPortState(labour)) // TODO maybe need to pass sum of labours
 
 	return nil
 }
@@ -136,13 +141,6 @@ func (node *blockedTurbineNode) PowerInput() graph.Port {
 
 func (node *blockedTurbineNode) MassRateInput() graph.Port {
 	return node.massRateInput
-}
-
-func (node *blockedTurbineNode) massRateRelFactor() float64 {
-	l := node.leakMassRateFunc(node)
-	c := node.coolMasRateRel(node)
-	i := node.inflowMassRateRel(node)
-	return 1 + l + c + i
 }
 
 // here it is assumed that pressure drop is calculated by stagnation parameters
@@ -175,5 +173,8 @@ func (node *blockedTurbineNode) getNewTtStag(currTtStag float64) (float64, error
 }
 
 func (node *blockedTurbineNode) turbineLabour() float64 {
-	return -node.powerInput.GetState().(states.PowerPortState).LSpecific / node.massRateInput.GetState().Value().(float64)
+	shaftLabour := node.powerInput.GetState().(states.PowerPortState).LSpecific
+	inletMassRateFactor := node.massRateInput.GetState().Value().(float64)
+	extraMassRateFactor := 1 + node.leakMassRateFunc(node) + node.coolMasRateRel(node)
+	return -shaftLabour / (inletMassRateFactor * extraMassRateFactor)
 }

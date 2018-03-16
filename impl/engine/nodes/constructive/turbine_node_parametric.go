@@ -181,10 +181,17 @@ func (node *parametricTurbineNode) Process() error {
 	var pStagOut = node.pStagIn() / piTStag
 
 	var massRateIn = node.massRate()
-	var massRateOut = massRateIn * node.massRateRelFactor()
+
+	l := node.leakMassRateFunc(node)
+	c := node.coolMasRateRel(node)
+	i := node.inflowMassRateRel(node)
+	// here we do not take cooling into account cos this mass rate
+	// goes downstream
+	massRateOut := massRateIn * (1 + i + l)
 
 	var cp = gases.CpMean(node.inputGas(), node.tStagIn(), tStagOut, nodes.DefaultN)
-	var lSpecific = cp * (node.tStagIn() - tStagOut)
+	// it is assumed that cooling air does not make labour
+	var lSpecific = cp * (node.tStagIn() - tStagOut) * (1 + l + c)
 
 	graph.SetAll(
 		[]graph.PortState{
