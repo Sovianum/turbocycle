@@ -115,6 +115,29 @@ func TestNewParametricRegeneratorNodeFromProto_Consistency(t *testing.T) {
 	assert.InDelta(t, proto.Sigma(), rn.Sigma(), 1e-6)
 }
 
+func TestNewParametricBurnerFromProto_Trends(t *testing.T) {
+	rn := getTestParametricRegeneratorFromProto()
+	assert.Nil(t, rn.Process())
+
+	startMassRate := hotMassRate0
+
+	factors := common.Arange(0.8, 0.01, 50)
+	sigmaArr := make([]float64, len(factors))
+
+	for i, factor := range factors {
+		massRate := startMassRate * factor
+		rn.HotInput().MassRateInput().SetState(states.NewMassRatePortState(massRate))
+		rn.ColdInput().MassRateInput().SetState(states.NewMassRatePortState(massRate))
+		assert.Nil(t, rn.Process())
+
+		sigmaArr[i] = rn.Sigma()
+	}
+
+	for i := range sigmaArr[:len(sigmaArr)-1] {
+		assert.True(t, sigmaArr[i] > sigmaArr[i+1])
+	}
+}
+
 func getTestParametricRegeneratorFromProto() RegeneratorNode {
 	rn := getTestRegenerator()
 	hotMassRate := hotMassRate0 * rn.HotInput().MassRateInput().GetState().Value().(float64)

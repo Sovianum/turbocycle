@@ -198,6 +198,14 @@ func Factorial(x int) int {
 	return result
 }
 
+func Arange(start, step float64, stepNum int) []float64 {
+	result := make([]float64, stepNum)
+	for i := range result {
+		result[i] = start + step*float64(i)
+	}
+	return result
+}
+
 func LinSpace(x1, x2 float64, n int) []float64 {
 	var step = (x2 - x1) / float64(n-1)
 	var result = make([]float64, n)
