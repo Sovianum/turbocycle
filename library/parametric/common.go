@@ -8,6 +8,10 @@ import (
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
+type Efficient interface {
+	Efficiency() float64
+}
+
 func NewGasPart(gas gases.Gas, tStagIn, pStagIn, pStagOut float64) *GasPart {
 	return &GasPart{
 		GasSource:            source.NewGasSourceNode(gas),
