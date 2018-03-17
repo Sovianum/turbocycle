@@ -1,6 +1,11 @@
 package nodes
 
-import "github.com/Sovianum/turbocycle/core/graph"
+import (
+	"math"
+
+	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/material/gases"
+)
 
 const (
 	DefaultN             = 50
@@ -17,6 +22,27 @@ const (
 	MassRateInputTag     = "massRateInput"
 	MassRateOutputTag    = "massRateOutput"
 )
+
+type EnthalpyChannel interface {
+	TemperatureChannel
+	MassRateChannel
+	GasChannel
+}
+
+func EnthalpyDiff(ch EnthalpyChannel) float64 {
+	mri := ch.MassRateInput().GetState().Value().(float64)
+	mro := ch.MassRateOutput().GetState().Value().(float64)
+
+	iGas := ch.GasInput().GetState().Value().(gases.Gas)
+	oGas := ch.GasOutput().GetState().Value().(gases.Gas)
+
+	it := ch.TemperatureInput().GetState().Value().(float64)
+	ot := ch.TemperatureOutput().GetState().Value().(float64)
+
+	tMin := math.Min(it, ot)
+
+	return mro*(ot-tMin)*gases.CpMean(oGas, tMin, ot, DefaultN) - mri*(it-tMin)*gases.CpMean(iGas, tMin, it, DefaultN)
+}
 
 type RPMChannel interface {
 	RPMSink

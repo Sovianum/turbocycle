@@ -114,7 +114,6 @@ func NewParametricTurbineNode(
 }
 
 type parametricTurbineNode struct {
-	graph.BaseNode
 	*baseBlockedTurbine
 
 	rpmInput      graph.Port

@@ -129,7 +129,7 @@ func (scheme *threeShaftRegFreeScheme) Efficiency() float64 {
 	b := scheme.burner
 	fuel := b.Fuel()
 
-	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower()
 	power := scheme.lpt.MassRateInput().GetState().Value().(float64) * scheme.lpt.PowerOutput().GetState().Value().(float64)
 
 	return power / fuelHeat

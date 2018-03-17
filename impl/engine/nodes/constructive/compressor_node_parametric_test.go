@@ -84,6 +84,22 @@ func TestParametricCompressorNode_Process_Smoke_NonLinear(t *testing.T) {
 	assert.InDelta(t, compressor.MassRate(), massRate, 1e-7)
 }
 
+func TestParametricCompressorNode_Process_PowerDiff(t *testing.T) {
+	f := func(x float64) float64 { return 1 - 0.1*(1-x)*(1-x) }
+	compressor := getTestParametricCompressor(
+		func(normMassRate float64, normPiStag float64) float64 {
+			return f(normMassRate)
+		},
+		func(normMassRate float64, normPiStag float64) float64 { return 1. },
+	)
+
+	assert.Nil(t, compressor.Process())
+
+	enthalpyDiff := -nodes.EnthalpyDiff(compressor)
+	power := compressor.PowerOutput().GetState().Value().(float64) * compressor.MassRateInput().GetState().Value().(float64)
+	assert.InDelta(t, enthalpyDiff, power, 1e-9)
+}
+
 func getTestParametricCompressor(normEtaChar, normRpmChar CompressorCharFunc) ParametricCompressorNode {
 	var compressor = NewParametricCompressorNode(
 		massRate0, piC0, rpm0, etaAd0,

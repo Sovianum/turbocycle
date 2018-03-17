@@ -91,6 +91,23 @@ func TestParametricBlockedTurbineNode_Process_Smoke_NonLinear(t *testing.T) {
 	)
 }
 
+func TestParametricBlockedTurbineNodeProcess_Process_powerDiff(t *testing.T) {
+	f := func(x float64) float64 { return 1 - 0.05*(1-x)*(1-x) }
+
+	turbine := getTestParametricTurbine(
+		func(float64, float64) float64 { return 1. },
+		func(normMassRate float64, normPiStag float64) float64 {
+			return f(normMassRate)
+		},
+	)
+
+	assert.Nil(t, turbine.Process())
+
+	enthalpyDiff := -nodes.EnthalpyDiff(turbine)
+	power := turbine.PowerOutput().GetState().Value().(float64) * turbine.MassRateInput().GetState().Value().(float64)
+	assert.InDelta(t, enthalpyDiff, power, 1e-8)
+}
+
 func getTestParametricTurbine(normMassRateChar, normEtaChar TurbineCharFunc) ParametricTurbineNode {
 	var turbine = NewSimpleParametricTurbineNode(
 		massRate0, piT0, etaT0, states.StandardTemperature, states.StandardPressure,

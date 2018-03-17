@@ -95,7 +95,7 @@ func (scheme *doubleShaftFreeScheme) Efficiency() float64 {
 	b := scheme.gasGeneratorPart.Burner
 	fuel := b.Fuel()
 
-	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower()
 	power := scheme.fTurbine.MassRateInput().GetState().Value().(float64) * scheme.fTurbine.PowerOutput().GetState().Value().(float64)
 
 	return power / fuelHeat

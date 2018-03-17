@@ -90,7 +90,7 @@ func (scheme *doubleShaftRegFreeScheme) Efficiency() float64 {
 	b := scheme.gasGeneratorPart.Burner
 	fuel := b.Fuel()
 
-	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower() * b.Eta()
+	fuelHeat := b.MassRateInput().GetState().Value().(float64) * b.FuelRateRel() * fuel.QLower()
 	power := scheme.fTurbine.MassRateInput().GetState().Value().(float64) * scheme.fTurbine.PowerOutput().GetState().Value().(float64)
 
 	return power / fuelHeat
@@ -155,6 +155,7 @@ func (scheme *doubleShaftRegFreeScheme) GetNetwork() (graph.Network, error) {
 }
 
 func (scheme *doubleShaftRegFreeScheme) linkPorts() {
+	scheme.ftPipe.SetName("ftPipe")
 	graph.LinkAll(
 		[]graph.Port{
 			scheme.gasPart.GasSource.GasOutput(),
@@ -200,6 +201,10 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 	sink.SinkAll(
 		scheme.gasGeneratorPart.Compressor.MassRateInput(),
 		scheme.ftPipe.PressureInput(),
+		scheme.ftPipe.GasInput(),
+		scheme.ftPipe.TemperatureInput(), scheme.ftPipe.MassRateInput(),
+		scheme.ftPipe.GasOutput(),
+		scheme.ftPipe.TemperatureOutput(), scheme.ftPipe.MassRateOutput(),
 	)
 
 	graph.LinkAll(
@@ -233,25 +238,26 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 		scheme.ctPipe.MassRateOutput(), scheme.fTurbine.MassRateInput(),
 	)
 
+	// fTurbine is linked directly to breaker because ftPipe only passes pressure from atmosphere to free turbine
+	// and does not update output temperature
 	graph.LinkAll(
 		[]graph.Port{
 			scheme.fTurbine.GasOutput(), scheme.fTurbine.TemperatureOutput(),
 			scheme.fTurbine.MassRateOutput(),
 		},
 		[]graph.Port{
-			scheme.ftPipe.GasInput(), scheme.ftPipe.TemperatureInput(),
-			scheme.ftPipe.MassRateInput(),
+			scheme.breaker.GasInput(), scheme.breaker.TemperatureInput(),
+			scheme.breaker.MassRateInput(),
 		},
 	)
 	sink.SinkAll(scheme.fTurbine.PressureOutput())
+
 	graph.LinkAll(
 		[]graph.Port{
-			scheme.ftPipe.GasOutput(), scheme.ftPipe.TemperatureOutput(),
-			graph.NewWeakPort(scheme.ftPipe.PressureOutput()), scheme.ftPipe.MassRateOutput(),
+			graph.NewWeakPort(scheme.ftPipe.PressureOutput()),
 		},
 		[]graph.Port{
-			scheme.breaker.GasInput(), scheme.breaker.TemperatureInput(),
-			scheme.breaker.PressureInput(), scheme.breaker.MassRateInput(),
+			scheme.breaker.PressureInput(),
 		},
 	)
 	graph.LinkAll(

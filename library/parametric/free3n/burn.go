@@ -59,11 +59,11 @@ type threeShaftBurnFreeScheme struct {
 func (scheme *threeShaftBurnFreeScheme) Efficiency() float64 {
 	mainBurner := scheme.burner
 	mainFuel := mainBurner.Fuel()
-	mainFuelHeat := mainBurner.MassRateInput().GetState().Value().(float64) * mainBurner.FuelRateRel() * mainFuel.QLower() * mainBurner.Eta()
+	mainFuelHeat := mainBurner.MassRateInput().GetState().Value().(float64) * mainBurner.FuelRateRel() * mainFuel.QLower()
 
 	midBurner := scheme.midBurner
 	midFuel := midBurner.Fuel()
-	midFuelHeat := midBurner.MassRateInput().GetState().Value().(float64) * midBurner.FuelRateRel() * midFuel.QLower() * midBurner.Eta()
+	midFuelHeat := midBurner.MassRateInput().GetState().Value().(float64) * midBurner.FuelRateRel() * midFuel.QLower()
 
 	power := scheme.lpt.MassRateInput().GetState().Value().(float64) * scheme.lpt.PowerOutput().GetState().Value().(float64)
 
