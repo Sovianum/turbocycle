@@ -183,6 +183,25 @@ func IsDataSource(port graph.Port) (bool, error) {
 	return false, nil
 }
 
+type channelLinker struct {
+	currSource ComplexGasSource
+}
+
+func StartLink(source ComplexGasSource) channelLinker {
+	return channelLinker{currSource: source}
+}
+
+func (cl channelLinker) Link(ch ComplexGasChannel) channelLinker {
+	LinkComplexOutToIn(cl.currSource, ch)
+	cl.currSource = ch
+	return cl
+}
+
+func (cl channelLinker) FinishLink(sink ComplexGasSink) {
+	LinkComplexOutToIn(cl.currSource, sink)
+	cl.currSource = nil
+}
+
 func LinkComplexInToOut(node1 ComplexGasSink, node2 ComplexGasSource) {
 	LinkComplexOutToIn(node2, node1)
 }
