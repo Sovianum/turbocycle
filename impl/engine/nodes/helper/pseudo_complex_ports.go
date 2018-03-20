@@ -5,6 +5,15 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 )
 
+func NewWeakPseudoComplexGasSource(source nodes.ComplexGasSource) nodes.ComplexGasSource {
+	return NewPseudoComplexGasSource(
+		graph.NewWeakPort(source.GasOutput()),
+		graph.NewWeakPort(source.TemperatureOutput()),
+		graph.NewWeakPort(source.PressureOutput()),
+		graph.NewWeakPort(source.MassRateOutput()),
+	)
+}
+
 func NewPseudoComplexGasSource(
 	gasOutput, temperatureOutput,
 	pressureOutput, massRateOutput graph.Port,
@@ -38,6 +47,15 @@ func (s *pseudoComplexGasSource) PressureOutput() graph.Port {
 
 func (s *pseudoComplexGasSource) MassRateOutput() graph.Port {
 	return s.massRateOutput
+}
+
+func NewWeakPseudoComplexGasSink(sink nodes.ComplexGasSink) nodes.ComplexGasSink {
+	return NewPseudoComplexGasSink(
+		graph.NewWeakPort(sink.GasInput()),
+		graph.NewWeakPort(sink.TemperatureInput()),
+		graph.NewWeakPort(sink.PressureInput()),
+		graph.NewWeakPort(sink.MassRateInput()),
+	)
 }
 
 func NewPseudoComplexGasSink(
