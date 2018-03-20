@@ -59,6 +59,7 @@ func CopyState(p1, p2 Port) {
 type Port interface {
 	GetState() PortState
 	SetState(state PortState)
+	SetStateNoReverse(state PortState, caller Port)
 	GetInnerNode() Node
 	SetInnerNode(Node)
 	GetOuterNode() Node
@@ -67,6 +68,7 @@ type Port interface {
 	SetLinkPort(Port)
 	GetTag() string
 	SetTag(string)
+	Attach(another Port)
 }
 
 func NewAttachedPortWithTag(node Node, tag string) Port {
@@ -101,6 +103,12 @@ type portType struct {
 	outerNode Node
 	linkPort  Port
 	tag       string
+
+	attachedPorts []Port
+}
+
+func (port *portType) Attach(another Port) {
+	port.attachedPorts = append(port.attachedPorts, another)
 }
 
 func (port *portType) GetTag() string {
@@ -118,7 +126,17 @@ func (port *portType) GetState() PortState {
 func (port *portType) SetState(state PortState) {
 	port.state = state
 	if port.linkPort != nil {
-		port.linkPort.(*portType).state = state
+		port.linkPort.SetStateNoReverse(state, port)
+	}
+	for _, another := range port.attachedPorts {
+		another.SetStateNoReverse(state, port)
+	}
+}
+
+func (port *portType) SetStateNoReverse(state PortState, caller Port) {
+	port.state = state
+	for _, another := range port.attachedPorts {
+		another.SetStateNoReverse(state, caller)
 	}
 }
 
@@ -144,4 +162,11 @@ func (port *portType) GetLinkPort() Port {
 
 func (port *portType) SetLinkPort(another Port) {
 	port.linkPort = another
+}
+
+func (port *portType) setStateNoReverse(state PortState) {
+	port.state = state
+	for _, another := range port.attachedPorts {
+		another.SetState(state)
+	}
 }

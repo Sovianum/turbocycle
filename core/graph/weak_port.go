@@ -8,7 +8,9 @@ func NewTransformWeakPort(referencePort Port, transformFunc func(PortState) Port
 }
 
 func NewWeakPort(referencePort Port) Port {
-	return &weakPort{referencePort: referencePort}
+	result := &weakPort{referencePort: referencePort}
+	referencePort.Attach(result)
+	return result
 }
 
 type weakPort struct {
@@ -17,6 +19,10 @@ type weakPort struct {
 
 	outerNode Node
 	linkPort  Port
+}
+
+func (p *weakPort) Attach(another Port) {
+	p.referencePort.Attach(another)
 }
 
 func (p *weakPort) GetTag() string {
@@ -36,6 +42,14 @@ func (p *weakPort) GetState() PortState {
 
 func (p *weakPort) SetState(state PortState) {
 	p.referencePort.SetState(state)
+	p.linkPort.SetStateNoReverse(state, p)
+}
+
+func (p *weakPort) SetStateNoReverse(state PortState, caller Port) {
+	// if called through attached
+	if p.linkPort != caller {
+		p.linkPort.SetStateNoReverse(state, p)
+	}
 }
 
 func (p *weakPort) GetInnerNode() Node {
