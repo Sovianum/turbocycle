@@ -33,7 +33,7 @@ type mixture struct {
 func (m mixture) String() string {
 	result := "Mixture: "
 	for i := range m.gases {
-		result += fmt.Sprintf("%s (%.1f%)", m.gases[i].String(), m.fractions[i]*100)
+		result += fmt.Sprintf("%s (%.1f)", m.gases[i].String(), m.fractions[i]*100)
 	}
 	return result
 }
