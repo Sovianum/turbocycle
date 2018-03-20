@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
@@ -42,7 +41,7 @@ func TestFreeTurbineNode_Process(t *testing.T) {
 	var expectedPitStag = turbine.PStagIn() / turbine.PStagOut()
 	assert.Equal(t, expectedPitStag, turbine.PiTStag())
 
-	var expectedPit = expectedPitStag / gdf.Pi(lambdaOut, kAir)
+	var expectedPit = expectedPitStag
 
 	var k = gases.KMean(inputGas, turbine.TStagOut(), turbine.TStagIn(), nodes.DefaultN)
 	var expectedTtStag = turbine.TStagIn() * (1 - (1-math.Pow(expectedPit, (1-k)/k))*etaT)
