@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	piT0  = 2
+	piT0  = 2.
 	etaT0 = 0.9
 )
 
