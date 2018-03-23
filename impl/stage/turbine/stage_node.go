@@ -1,4 +1,4 @@
-package nodes
+package turbine
 
 import (
 	"fmt"
@@ -9,8 +9,9 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
-	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
-	states2 "github.com/Sovianum/turbocycle/impl/turbine/states"
+	common2 "github.com/Sovianum/turbocycle/impl/stage/common"
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
+	states2 "github.com/Sovianum/turbocycle/impl/stage/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/go-errors/errors"
 )
@@ -20,7 +21,7 @@ type TurbineStageNode interface {
 	nodes.GasChannel
 	nodes.PressureChannel
 	nodes.TemperatureChannel
-	VelocityChannel
+	common2.VelocityChannel
 	nodes.MassRateChannel
 	SetFirstStageMode(isFirstStage bool)
 	SetAlpha1FirstStage(alpha1FirstStage float64)

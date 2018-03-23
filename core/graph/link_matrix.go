@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	inaccessibleNodesMsg  = "inaccessible nodes detected"
+	inaccessibleNodesMsg  = "inaccessible turbine detected"
 	unconnectedPortsMsg   = "unconnected port detected"
-	contextUndefinedNodes = "context undefined nodes detected"
+	contextUndefinedNodes = "context undefined turbine detected"
 )
 
 func newGraphMatrix(nodeArr []Node) (*graphMatrix, GraphError) {
@@ -149,16 +149,16 @@ func (m *graphMatrix) getContextUndefinedNodes() []Node {
 	return undefined
 }
 
-// get nodes with at least one dependency
+// get turbine with at least one dependency
 func (m *graphMatrix) getDependentNodes() []Node {
 	var nodes = make(map[Node]bool)
-	// add all nodes to the map
+	// add all turbine to the map
 	for pair := range m.nodes.Iterate() {
 		nodes[pair.Val.(Node)] = true
 	}
 
 	var freeNodes = m.getFreeNodes()
-	// remove free nodes from the map
+	// remove free turbine from the map
 	for _, node := range freeNodes {
 		delete(nodes, node)
 	}
@@ -216,7 +216,7 @@ func getUnconnectedErrMsg(ports []Port) string {
 		nodeNames[i] = port.GetInnerNode().GetName()
 		portTags[i] = port.GetTag()
 	}
-	return unconnectedPortsMsg + " nodes: " + strings.Join(nodeNames, ", ") + " tags: " + strings.Join(portTags, ", ")
+	return unconnectedPortsMsg + " turbine: " + strings.Join(nodeNames, ", ") + " tags: " + strings.Join(portTags, ", ")
 }
 
 func getUndefinedErrMsg(nodes []Node) string {

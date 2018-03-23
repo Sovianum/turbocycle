@@ -3,7 +3,7 @@ package laws
 import (
 	"math"
 
-	"github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/impl/stage/states"
 )
 
 func NewPowerVelocityLaw(powerCoef float64) VelocityLaw {

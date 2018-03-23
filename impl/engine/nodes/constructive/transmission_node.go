@@ -7,7 +7,7 @@ import (
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 )
 
-// Transmission nodes transmits energy DEMAND, not the energy supply
+// Transmission turbine transmits energy DEMAND, not the energy supply
 // so its power input must be attached to compressor
 type TransmissionNode interface {
 	graph.Node

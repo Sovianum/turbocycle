@@ -93,7 +93,7 @@ func (scheme *threeShaftsSubCompressScheme) GetNetwork() (graph.Network, graph.G
 }
 
 func (scheme *threeShaftsSubCompressScheme) nodes() []graph.Node {
-	disassembledNodes := []graph.Node{ // nodes are disassembled to prevent its processing as a whole
+	disassembledNodes := []graph.Node{ // turbine are disassembled to prevent its processing as a whole
 		scheme.gasSource,
 		scheme.inletPressureDrop,
 		scheme.LPC(),
@@ -144,7 +144,7 @@ func (scheme *threeShaftsSubCompressScheme) linkPorts() {
 	nodes.LinkComplexOutToIn(scheme.gasCombiner.Output(), scheme.LPT())
 
 	// make extra power path. Power demand from subcompressor is compensated with
-	// middle pressure turbine
+	// middle pressure stage
 	graph.Link(
 		graph.NewWeakPort(scheme.subCompressor.MassRateInput()),
 		scheme.powerAggregator.ExtraMassRateInput(),
@@ -167,7 +167,7 @@ func (scheme *threeShaftsSubCompressScheme) linkPorts() {
 	)
 }
 
-// this method disassembles all complex nodes nodes of base scheme
+// this method disassembles all complex turbine turbine of base scheme
 // to prevent cyclic dependencies
 func (scheme *threeShaftsSubCompressScheme) linkDisassemble() {
 	nodes.StartLink(scheme.gasSource).

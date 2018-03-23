@@ -1,4 +1,4 @@
-package nodes
+package common
 
 import "github.com/Sovianum/turbocycle/core/graph"
 

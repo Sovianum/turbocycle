@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/Sovianum/turbocycle/utils/turbine/radial/profiles"
 )

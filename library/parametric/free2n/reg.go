@@ -238,7 +238,7 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 		scheme.ctPipe.MassRateOutput(), scheme.fTurbine.MassRateInput(),
 	)
 
-	// fTurbine is linked directly to breaker because ftPipe only passes pressure from atmosphere to free turbine
+	// fTurbine is linked directly to breaker because ftPipe only passes pressure from atmosphere to free stage
 	// and does not update output temperature
 	graph.LinkAll(
 		[]graph.Port{
@@ -271,7 +271,7 @@ func (scheme *doubleShaftRegFreeScheme) linkPorts() {
 		},
 	)
 	sink.SinkAll(
-		// ports on the first line are sinked cos parametric turbine does not take output pressure
+		// ports on the first line are sinked cos parametric stage does not take output pressure
 		// as an input parameter
 		scheme.regenerator.HotOutput().GasOutput(),
 		scheme.regenerator.HotOutput().TemperatureOutput(),

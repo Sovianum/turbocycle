@@ -1,6 +1,6 @@
 package profilers
 
-import "github.com/Sovianum/turbocycle/impl/turbine/states"
+import "github.com/Sovianum/turbocycle/impl/stage/states"
 
 func NewInletSide(profiler Profiler) Side {
 	return inletSide{profiler: profiler}

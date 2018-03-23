@@ -80,7 +80,7 @@ func (node *powerAggregator) Process() error {
 
 	node.powerOutput.SetState(states.NewPowerPortState(
 		// divided by mainMR not by error, but to fulfill
-		// energy balance according to current blocked turbine
+		// energy balance according to current blocked stage
 		// implementation
 		(mainMR*mainLabour + extraMR*extraLabour) / mainMR,
 	))

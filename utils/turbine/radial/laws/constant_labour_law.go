@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/impl/stage/states"
 )
 
 func NewConstantLabourLaw(law InletVelocityLaw, inletTriangle states.VelocityTriangle) OutletVelocityLaw {

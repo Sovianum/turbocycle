@@ -1,4 +1,4 @@
-package nodes
+package turbine
 
 import (
 	"math"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
-	"github.com/Sovianum/turbocycle/impl/turbine/geometry"
-	states2 "github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
+	states2 "github.com/Sovianum/turbocycle/impl/stage/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

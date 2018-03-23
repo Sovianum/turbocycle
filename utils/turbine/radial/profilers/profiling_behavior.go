@@ -1,7 +1,7 @@
 package profilers
 
 import (
-	"github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/impl/stage/states"
 )
 
 func NewStatorProfilingBehavior() ProfilingBehavior {

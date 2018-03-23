@@ -1,6 +1,6 @@
 package laws
 
-import "github.com/Sovianum/turbocycle/impl/turbine/states"
+import "github.com/Sovianum/turbocycle/impl/stage/states"
 
 type VelocityLaw interface {
 	InletVelocityLaw

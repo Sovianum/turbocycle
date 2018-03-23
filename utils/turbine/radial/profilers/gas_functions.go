@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common/gdf"
-	"github.com/Sovianum/turbocycle/impl/turbine/states"
+	"github.com/Sovianum/turbocycle/impl/stage/states"
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 

@@ -132,7 +132,7 @@ func (node *baseCompressor) lSpecific() float64 {
 func (node *baseCompressor) getTStagOut(tStagOutInit, piStag, etaAd float64) (float64, error) {
 	var k = gases.K(node.gas(), node.tStagIn())
 	iterFunc := func(t float64) (float64, error) {
-		//k = gases.KMean(node.gas(), node.tStagIn(), t, nodes.DefaultN)
+		//k = gases.KMean(node.gas(), node.tStagIn(), t, turbine.DefaultN)
 		x := math.Pow(piStag, (k-1)/k)
 		return node.tStagIn() * (1 + (x-1)/etaAd), nil
 	}

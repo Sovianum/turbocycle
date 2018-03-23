@@ -217,7 +217,7 @@ func (scheme *doubleShaftFreeScheme) linkPorts() {
 		},
 	)
 	sink.SinkAll(
-		// ports on the first line are sinked cos parametric turbine does not take output pressure
+		// ports on the first line are sinked cos parametric stage does not take output pressure
 		// as an input parameter
 		scheme.fTurbine.PressureOutput(),
 		scheme.ftPipe.GasOutput(), scheme.ftPipe.TemperatureOutput(),
