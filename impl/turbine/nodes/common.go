@@ -2,19 +2,6 @@ package nodes
 
 import "github.com/Sovianum/turbocycle/core/graph"
 
-type MassRateChannel interface {
-	MassRateSource
-	MassRateSink
-}
-
-type MassRateSink interface {
-	MassRateInput() graph.Port
-}
-
-type MassRateSource interface {
-	MassRateOutput() graph.Port
-}
-
 type VelocityChannel interface {
 	VelocitySink
 	VelocitySource

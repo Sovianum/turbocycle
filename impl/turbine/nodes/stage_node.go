@@ -21,7 +21,7 @@ type TurbineStageNode interface {
 	nodes.PressureChannel
 	nodes.TemperatureChannel
 	VelocityChannel
-	MassRateChannel
+	nodes.MassRateChannel
 	SetFirstStageMode(isFirstStage bool)
 	SetAlpha1FirstStage(alpha1FirstStage float64)
 	StageGeomGen() geometry.StageGeometryGenerator
