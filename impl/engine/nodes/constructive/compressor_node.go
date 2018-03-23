@@ -89,7 +89,7 @@ func (node *compressorNode) SetPiStag(piStag float64) {
 }
 
 func (node *compressorNode) Process() error {
-	if node.piStag <= 1 {
+	if node.piStag < 1 {
 		return fmt.Errorf("invalid piStag = %f", node.piStag)
 	}
 
