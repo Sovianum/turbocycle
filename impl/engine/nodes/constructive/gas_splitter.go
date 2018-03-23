@@ -14,6 +14,7 @@ type GasSplitter interface {
 	MainOutput() nodes.ComplexGasSource
 	ExtraOutput() nodes.ComplexGasSource
 	ExtraWeight() float64
+	SetExtraWeight(weight float64)
 }
 
 func NewGasSplitter(weight float64) GasSplitter {
@@ -52,6 +53,10 @@ type gasSplitter struct {
 	pEOutput  graph.Port
 	gEOutput  graph.Port
 	mrEOutput graph.Port
+}
+
+func (node *gasSplitter) SetExtraWeight(weight float64) {
+	node.weight = weight
 }
 
 func (node *gasSplitter) GetName() string {
