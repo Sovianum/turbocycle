@@ -50,6 +50,18 @@ type threeShaftsBurnScheme struct {
 	midBurner constructive.BurnerNode
 }
 
+func (scheme *threeShaftsBurnScheme) GetFuelMassRateRel() float64 {
+	mainBurner := scheme.gasGenerator.Burner()
+	mainMassRateRel := mainBurner.MassRateInput().GetState().(states.MassRatePortState).MassRate
+	mainFuelRate := mainBurner.FuelRateRel() * mainMassRateRel
+
+	extraBurner := scheme.midBurner
+	extraMassRateRel := extraBurner.MassRateInput().GetState().(states.MassRatePortState).MassRate
+	extraFuelRate := extraBurner.FuelRateRel() * extraMassRateRel
+
+	return mainFuelRate + extraFuelRate
+}
+
 func (scheme *threeShaftsBurnScheme) GetNetwork() (graph.Network, graph.GraphError) {
 	scheme.linkPorts()
 	baseNodes := scheme.threeShaftsScheme.nodes()
