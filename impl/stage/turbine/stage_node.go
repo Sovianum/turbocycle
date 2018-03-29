@@ -16,7 +16,7 @@ import (
 	"github.com/go-errors/errors"
 )
 
-type TurbineStageNode interface {
+type StageNode interface {
 	graph.Node
 	nodes.GasChannel
 	nodes.PressureChannel
@@ -25,13 +25,13 @@ type TurbineStageNode interface {
 	nodes.MassRateChannel
 	SetFirstStageMode(isFirstStage bool)
 	SetAlpha1FirstStage(alpha1FirstStage float64)
-	StageGeomGen() geometry.StageGeometryGenerator
+	StageGeomGen() StageGeometryGenerator
 	Ht() float64
 	Reactivity() float64
 	GetDataPack() DataPack
 }
 
-func InitFromTurbineNode(stage TurbineStageNode, turbine constructive.TurbineNode, massRate, alpha1 float64) {
+func InitFromTurbineNode(stage StageNode, turbine constructive.TurbineNode, massRate, alpha1 float64) {
 	stage.GasInput().SetState(states.NewGasPortState(turbine.InputGas()))
 	stage.TemperatureInput().SetState(states.NewTemperaturePortState(turbine.TStagIn()))
 	stage.PressureInput().SetState(states.NewPressurePortState(turbine.PStagIn()))
@@ -41,8 +41,8 @@ func InitFromTurbineNode(stage TurbineStageNode, turbine constructive.TurbineNod
 
 func NewTurbineStageNode(
 	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
-	gen geometry.StageGeometryGenerator,
-) TurbineStageNode {
+	gen StageGeometryGenerator,
+) StageNode {
 	var result = &turbineStageNode{
 		n:                n,
 		stageHeatDrop:    stageHeatDrop,
@@ -101,7 +101,7 @@ type turbineStageNode struct {
 	airGapRel        float64
 	alpha1FirstStage float64
 
-	stageGeomGen geometry.StageGeometryGenerator
+	stageGeomGen StageGeometryGenerator
 
 	precision float64
 
@@ -273,7 +273,7 @@ func (node *turbineStageNode) MassRateOutput() graph.Port {
 	return node.massRateOutput
 }
 
-func (node *turbineStageNode) StageGeomGen() geometry.StageGeometryGenerator {
+func (node *turbineStageNode) StageGeomGen() StageGeometryGenerator {
 	return node.stageGeomGen
 }
 
@@ -864,6 +864,7 @@ func (node *turbineStageNode) getStatorMeanInletDiameter(pack *DataPack) {
 	var _, gammaMean = geometry.GetTotalAndMeanLineAngles(
 		node.stageGeomGen.StatorGenerator().GammaIn(),
 		node.stageGeomGen.StatorGenerator().GammaOut(),
+		MidLineFactor,
 	)
 	var deltaRel = node.stageGeomGen.StatorGenerator().DeltaRel()
 	var lRelOut = node.stageGeomGen.StatorGenerator().LRelOut()

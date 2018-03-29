@@ -1,10 +1,14 @@
-package geometry
+package turbine
 
-import "math"
+import (
+	"math"
+
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
+)
 
 type StageGeometryGenerator interface {
-	GenerateFromRotorInlet(dMeanIn float64) StageGeometry
-	GenerateFromStatorInlet(dMeanIn float64) StageGeometry
+	GenerateFromRotorInlet(dMeanIn float64) geometry.StageGeometry
+	GenerateFromStatorInlet(dMeanIn float64) geometry.StageGeometry
 	StatorGenerator() BladingGeometryGenerator
 	RotorGenerator() BladingGeometryGenerator
 }
@@ -16,7 +20,7 @@ func NewStageGeometryGenerator(
 ) StageGeometryGenerator {
 	var getFactor = func(lRelOut float64) float64 {
 		var gammaIn, gammaOut = statorIncompleteGen.GammaIn(), statorIncompleteGen.GammaOut()
-		var _, gammaMean = GetTotalAndMeanLineAngles(gammaIn, gammaOut)
+		var _, gammaMean = geometry.GetTotalAndMeanLineAngles(gammaIn, gammaOut, MidLineFactor)
 
 		var elongation = statorIncompleteGen.Elongation()
 		var deltaRel = statorIncompleteGen.DeltaRel()
@@ -44,16 +48,16 @@ type stageGeometryGenerator struct {
 	rotorGenerator  BladingGeometryGenerator
 }
 
-func (gen *stageGeometryGenerator) GenerateFromRotorInlet(dMeanIn float64) StageGeometry {
+func (gen *stageGeometryGenerator) GenerateFromRotorInlet(dMeanIn float64) geometry.StageGeometry {
 	var rotor = gen.rotorGenerator.GenerateFromInlet(dMeanIn)
 	var stator = gen.statorGenerator.GenerateFromOutlet(dMeanIn)
-	return NewStageGeometry(stator, rotor)
+	return geometry.NewStageGeometry(stator, rotor)
 }
 
-func (gen *stageGeometryGenerator) GenerateFromStatorInlet(dMeanIn float64) StageGeometry {
+func (gen *stageGeometryGenerator) GenerateFromStatorInlet(dMeanIn float64) geometry.StageGeometry {
 	var stator = gen.statorGenerator.GenerateFromInlet(dMeanIn)
 	var rotor = gen.rotorGenerator.GenerateFromInlet(stator.MeanProfile().Diameter(stator.XGapOut()))
-	return NewStageGeometry(stator, rotor)
+	return geometry.NewStageGeometry(stator, rotor)
 }
 
 func (gen *stageGeometryGenerator) StatorGenerator() BladingGeometryGenerator {

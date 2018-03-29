@@ -2,13 +2,25 @@ package geometry
 
 import "math"
 
-func NewBladingGeometry(bladeWidth, gapWidth float64, innerProfile, outerProfile AxialProfileLine) BladingGeometry {
+func NewCompressorBladingGeometry(bladeWidth, gapWidth float64, innerProfile, outerProfile AxialProfileLine) BladingGeometry {
+	dIn := innerProfile.Diameter(0)
+	dOut := outerProfile.Diameter(0)
+	dRel := dIn / dOut
+	midLineFactor := math.Sqrt(1 - dRel*dRel)
+	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, outerProfile, midLineFactor)
+}
+
+func NewBladingGeometry(
+	bladeWidth, gapWidth float64,
+	innerProfile, outerProfile AxialProfileLine,
+	midLineInterpFactor float64,
+) BladingGeometry {
 	return &bladingGeometry{
 		bladeWidth:   bladeWidth,
 		gapWidth:     gapWidth,
 		innerProfile: innerProfile,
 		outerProfile: outerProfile,
-		meanProfile:  MeanLine(innerProfile, outerProfile, 0.5),
+		meanProfile:  MeanLine(innerProfile, outerProfile, midLineInterpFactor),
 	}
 }
 
@@ -49,13 +61,23 @@ func AxialGapProjection(geom BladingGeometry) float64 {
 }
 
 func Area(x float64, geom BladingGeometry) float64 {
-	return math.Pi * geom.MeanProfile().Diameter(x) * Height(x, geom)
+	dOut := geom.OuterProfile().Diameter(x)
+	dIn := geom.InnerProfile().Diameter(x)
+	return math.Pi / 4 * (dOut*dOut - dIn*dIn)
 }
 
 func AxisDistance(x, hRel float64, geom BladingGeometry) float64 {
 	var dIn = geom.InnerProfile().Diameter(x)
 	var length = Height(x, geom)
 	return dIn/2 + length*hRel
+}
+
+func RRel(dRel float64) float64 {
+	return math.Sqrt((1 + dRel) / 2)
+}
+
+func DRel(x float64, geom BladingGeometry) float64 {
+	return geom.InnerProfile().Diameter(x) / geom.OuterProfile().Diameter(x)
 }
 
 type bladingGeometry struct {

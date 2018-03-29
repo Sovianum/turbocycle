@@ -1,9 +1,10 @@
-package geometry
+package turbine
 
 import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,10 +32,10 @@ type StageGeometryGeneratorTestSuite struct {
 }
 
 func (suite *StageGeometryGeneratorTestSuite) SetupTest() {
-	var rotorIncompleteGen = NewIncompleteGeneratorFromProfileAngles(
+	var rotorIncompleteGen = NewIncompleteGenerator(
 		rotorElongation, rotorDeltaRel, rotorGammaIn, rotorGammaOut, rotorApproxTRel,
 	)
-	var statorIncompleteGen = NewIncompleteGeneratorFromProfileAngles(
+	var statorIncompleteGen = NewIncompleteGenerator(
 		statorElongation, statorDeltaRel, statorGammaIn, statorGammaOut, statorApproxTRel,
 	)
 	suite.gen = NewStageGeometryGenerator(
@@ -53,8 +54,8 @@ func (suite *StageGeometryGeneratorTestSuite) TestDiameterContinuity() {
 		testMessage(dMeanStatorOut, dMeanRotorIn),
 	)
 
-	var heightRelStatorOut = RelativeHeight(stageGeom.StatorGeometry().XGapOut(), stageGeom.StatorGeometry())
-	var heightRelRotorIn = RelativeHeight(0, stageGeom.RotorGeometry())
+	var heightRelStatorOut = geometry.RelativeHeight(stageGeom.StatorGeometry().XGapOut(), stageGeom.StatorGeometry())
+	var heightRelRotorIn = geometry.RelativeHeight(0, stageGeom.RotorGeometry())
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(heightRelStatorOut, heightRelRotorIn, 0.000001),

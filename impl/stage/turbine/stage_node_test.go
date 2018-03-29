@@ -4,8 +4,6 @@ import (
 	"math"
 	"testing"
 
-	"fmt"
-
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
@@ -28,19 +26,11 @@ const (
 	tg       = 1200.
 	pg       = 1e6
 	massRate = 100.
-
-	gammaIn  = -0.09
-	gammaOut = 0.09
 	baRel    = 4
-	lRelOut  = 0.15
-	deltaRel = 0.1
 
 	t0       = 1130.
 	p0       = 7.8e5
 	density0 = 2.405
-
-	statorApproxTRel = 0.7
-	rotorApproxTRel  = 0.7
 
 	alpha = 0.5
 )
@@ -49,14 +39,14 @@ type StageNodeTestSuite struct {
 	suite.Suite
 	pack *DataPack
 	node *turbineStageNode
-	gen  geometry.StageGeometryGenerator
+	gen  StageGeometryGenerator
 }
 
 func (suite *StageNodeTestSuite) SetupTest() {
-	suite.gen = geometry.NewStageGeometryGenerator(
+	suite.gen = NewStageGeometryGenerator(
 		lRelOut,
-		geometry.NewIncompleteGeneratorFromProfileAngles(baRel, deltaRel, gammaIn, gammaOut, statorApproxTRel),
-		geometry.NewIncompleteGeneratorFromProfileAngles(baRel, deltaRel, gammaIn, gammaOut, rotorApproxTRel),
+		NewIncompleteGenerator(baRel, deltaRel, gammaIn, gammaOut, statorApproxTRel),
+		NewIncompleteGenerator(baRel, deltaRel, gammaIn, gammaOut, rotorApproxTRel),
 	)
 
 	suite.node = NewTurbineStageNode(
@@ -80,50 +70,50 @@ func (suite *StageNodeTestSuite) TestCalcFirstStage() {
 	suite.node.SetAlpha1FirstStage(common.ToRadians(14))
 	var pack = suite.node.getDataPack()
 
-	assert.False(suite.T(), math.IsNaN(pack.U2))
-	assert.False(suite.T(), math.IsNaN(pack.Tw1))
-	assert.False(suite.T(), math.IsNaN(pack.Pw1))
-	assert.False(suite.T(), math.IsNaN(pack.RotorHeatDrop))
-	assert.False(suite.T(), math.IsNaN(pack.WAd2))
-	assert.False(suite.T(), math.IsNaN(pack.W2))
-	assert.False(suite.T(), math.IsNaN(pack.T2))
-	assert.False(suite.T(), math.IsNaN(pack.T2Prime))
-	assert.False(suite.T(), math.IsNaN(pack.P2))
-	assert.False(suite.T(), math.IsNaN(pack.Density2))
-	assert.False(suite.T(), math.IsNaN(pack.C2a))
-	assert.False(suite.T(), math.IsNaN(pack.Beta2))
-	assert.False(suite.T(), math.IsNaN(pack.C2u))
-	assert.False(suite.T(), math.IsNaN(pack.Pi))
-	assert.False(suite.T(), math.IsNaN(pack.MeanRadiusLabour))
-	assert.False(suite.T(), math.IsNaN(pack.EtaU))
-	assert.False(suite.T(), math.IsNaN(pack.StatorSpecificLoss))
-	assert.False(suite.T(), math.IsNaN(pack.RotorSpecificLoss))
-	assert.False(suite.T(), math.IsNaN(pack.OutletVelocitySpecificLoss))
-	assert.False(suite.T(), math.IsNaN(pack.AirGapSpecificLoss))
-	assert.False(suite.T(), math.IsNaN(pack.VentilationSpecificLoss))
-	assert.False(suite.T(), math.IsNaN(pack.EtaT))
-	assert.False(suite.T(), math.IsNaN(pack.T2Stag))
-	assert.False(suite.T(), math.IsNaN(pack.P2Stag))
-	assert.False(suite.T(), math.IsNaN(pack.StageLabour))
-	assert.False(suite.T(), math.IsNaN(pack.StageHeatDropStag))
-	assert.False(suite.T(), math.IsNaN(pack.EtaT))
+	suite.False(math.IsNaN(pack.U2))
+	suite.False(math.IsNaN(pack.Tw1))
+	suite.False(math.IsNaN(pack.Pw1))
+	suite.False(math.IsNaN(pack.RotorHeatDrop))
+	suite.False(math.IsNaN(pack.WAd2))
+	suite.False(math.IsNaN(pack.W2))
+	suite.False(math.IsNaN(pack.T2))
+	suite.False(math.IsNaN(pack.T2Prime))
+	suite.False(math.IsNaN(pack.P2))
+	suite.False(math.IsNaN(pack.Density2))
+	suite.False(math.IsNaN(pack.C2a))
+	suite.False(math.IsNaN(pack.Beta2))
+	suite.False(math.IsNaN(pack.C2u))
+	suite.False(math.IsNaN(pack.Pi))
+	suite.False(math.IsNaN(pack.MeanRadiusLabour))
+	suite.False(math.IsNaN(pack.EtaU))
+	suite.False(math.IsNaN(pack.StatorSpecificLoss))
+	suite.False(math.IsNaN(pack.RotorSpecificLoss))
+	suite.False(math.IsNaN(pack.OutletVelocitySpecificLoss))
+	suite.False(math.IsNaN(pack.AirGapSpecificLoss))
+	suite.False(math.IsNaN(pack.VentilationSpecificLoss))
+	suite.False(math.IsNaN(pack.EtaT))
+	suite.False(math.IsNaN(pack.T2Stag))
+	suite.False(math.IsNaN(pack.P2Stag))
+	suite.False(math.IsNaN(pack.StageLabour))
+	suite.False(math.IsNaN(pack.StageHeatDropStag))
+	suite.False(math.IsNaN(pack.EtaT))
 }
 
 func (suite *StageNodeTestSuite) TestInitCalcFirstStage() {
 	suite.node.SetFirstStageMode(true)
 	suite.node.SetAlpha1FirstStage(common.ToRadians(14))
 	suite.node.initCalcFirstStage(suite.pack)
-	assert.False(suite.T(), math.IsNaN(suite.pack.RotorHeatDrop))
-	assert.False(suite.T(), math.IsNaN(suite.pack.T1Prime))
-	assert.False(suite.T(), math.IsNaN(suite.pack.C1Ad))
-	assert.False(suite.T(), math.IsNaN(suite.pack.C1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.C1a))
-	assert.False(suite.T(), math.IsNaN(suite.pack.T1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.P1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.Density1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.Area1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.RotorMeanInletDiameter))
-	assert.False(suite.T(), math.IsNaN(suite.pack.U1))
+	suite.False(math.IsNaN(suite.pack.RotorHeatDrop))
+	suite.False(math.IsNaN(suite.pack.T1Prime))
+	suite.False(math.IsNaN(suite.pack.C1Ad))
+	suite.False(math.IsNaN(suite.pack.C1))
+	suite.False(math.IsNaN(suite.pack.C1a))
+	suite.False(math.IsNaN(suite.pack.T1))
+	suite.False(math.IsNaN(suite.pack.P1))
+	suite.False(math.IsNaN(suite.pack.Density1))
+	suite.False(math.IsNaN(suite.pack.Area1))
+	suite.False(math.IsNaN(suite.pack.RotorMeanInletDiameter))
+	suite.False(math.IsNaN(suite.pack.U1))
 }
 
 func (suite *StageNodeTestSuite) TestInitCalc() {
@@ -133,28 +123,27 @@ func (suite *StageNodeTestSuite) TestInitCalc() {
 	))
 	suite.node.initCalc(suite.pack)
 
-	assert.False(suite.T(), math.IsNaN(suite.pack.T0))
-	assert.False(suite.T(), math.IsNaN(suite.pack.P0))
-	assert.False(suite.T(), math.IsNaN(suite.pack.Density0))
-	assert.False(suite.T(), math.IsNaN(suite.pack.StatorMeanInletDiameter))
-	assert.False(suite.T(), math.IsNaN(suite.pack.StatorHeatDrop))
-	assert.False(suite.T(), math.IsNaN(suite.pack.T1Prime))
-	assert.False(suite.T(), math.IsNaN(suite.pack.C1Ad))
-	assert.False(suite.T(), math.IsNaN(suite.pack.C1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.T1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.P1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.Density1))
+	suite.False(math.IsNaN(suite.pack.T0))
+	suite.False(math.IsNaN(suite.pack.P0))
+	suite.False(math.IsNaN(suite.pack.Density0))
+	suite.False(math.IsNaN(suite.pack.StatorMeanInletDiameter))
+	suite.False(math.IsNaN(suite.pack.StatorHeatDrop))
+	suite.False(math.IsNaN(suite.pack.T1Prime))
+	suite.False(math.IsNaN(suite.pack.C1Ad))
+	suite.False(math.IsNaN(suite.pack.C1))
+	suite.False(math.IsNaN(suite.pack.T1))
+	suite.False(math.IsNaN(suite.pack.P1))
+	suite.False(math.IsNaN(suite.pack.Density1))
 
-	assert.False(suite.T(), math.IsNaN(suite.pack.Area1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.C1a))
-	assert.False(suite.T(), math.IsNaN(suite.pack.U1))
-	assert.False(suite.T(), math.IsNaN(suite.pack.Alpha1))
+	suite.False(math.IsNaN(suite.pack.Area1))
+	suite.False(math.IsNaN(suite.pack.C1a))
+	suite.False(math.IsNaN(suite.pack.U1))
+	suite.False(math.IsNaN(suite.pack.Alpha1))
 }
 
 func (suite *StageNodeTestSuite) TestStatorHeatDrop() {
 	suite.node.statorHeatDrop(suite.pack)
-	assert.True(
-		suite.T(),
+	suite.True(
 		common.ApproxEqual(stageHeatDrop*(1-reactivity), suite.pack.StatorHeatDrop, 0.00001),
 	)
 }
@@ -164,7 +153,7 @@ func (suite *StageNodeTestSuite) TestGetStatorMeanInletDiameter() {
 
 	var baRel = suite.gen.StatorGenerator().Elongation()
 	var _, gammaMean = geometry.GetTotalAndMeanLineAngles(
-		gammaIn, gammaOut,
+		gammaIn, gammaOut, MidLineFactor,
 	)
 
 	var enom = baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
@@ -174,10 +163,7 @@ func (suite *StageNodeTestSuite) TestGetStatorMeanInletDiameter() {
 
 	suite.node.getStatorMeanInletDiameter(suite.pack)
 
-	assert.True(
-		suite.T(),
-		common.ApproxEqual(expectedDMean, suite.pack.StatorMeanInletDiameter, 0.00001),
-	)
+	suite.InDelta(expectedDMean, suite.pack.StatorMeanInletDiameter, 1e-4)
 }
 
 func (suite *StageNodeTestSuite) TestDensity0() {
@@ -219,8 +205,4 @@ func TestStageNodeTestSuite(t *testing.T) {
 
 func getGas() gases.Gas {
 	return gases.GetAir()
-}
-
-func testMessage(x0, x float64) string {
-	return fmt.Sprintf("expected: %v; got %v", x0, x)
 }

@@ -1,12 +1,14 @@
-package geometry
+package turbine
 
 import (
 	"testing"
 
+	"math"
+
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"math"
 )
 
 const (
@@ -22,7 +24,7 @@ type BladingGeometryGeneratorTestSuite struct {
 }
 
 func (suite *BladingGeometryGeneratorTestSuite) SetupTest() {
-	suite.gen = NewGeneratorFromProfileAngles(
+	suite.gen = NewBladingGenerator(
 		lRelOut, elongation, deltaRel, gammaIn, gammaOut, approxTRel,
 	)
 }
@@ -33,8 +35,8 @@ func (suite *BladingGeometryGeneratorTestSuite) TestAngleConversions() {
 	var expectedMeanAngle = 0.
 	var expectedTotalAngle = 1.
 
-	var innerAngle, outerAngle = GetInnerAndOuterAngles(expectedTotalAngle, expectedMeanAngle)
-	var totalAngle, meanAngle = GetTotalAndMeanLineAngles(expectedInnerAngle, expectedOuterAngle)
+	var innerAngle, outerAngle = geometry.GetInnerAndOuterAngles(expectedTotalAngle, expectedMeanAngle, 0.5)
+	var totalAngle, meanAngle = geometry.GetTotalAndMeanLineAngles(expectedInnerAngle, expectedOuterAngle, 0.5)
 
 	assert.True(
 		suite.T(),
@@ -80,7 +82,7 @@ func (suite *BladingGeometryGeneratorTestSuite) TestGenerateFromInlet() {
 	)
 
 	var expectedLOut = lRelOut * expectedDMeanOut
-	var lOut = Height(geom.XGapOut(), geom)
+	var lOut = geometry.Height(geom.XGapOut(), geom)
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(expectedLOut, lOut, 0.0000001),
@@ -91,7 +93,7 @@ func (suite *BladingGeometryGeneratorTestSuite) TestGenerateFromInlet() {
 func (suite *BladingGeometryGeneratorTestSuite) TestDiameterContinuity() {
 	var statorGeom = suite.gen.GenerateFromInlet(dMeanIn)
 
-	var lRotorIn = Height(statorGeom.XGapOut(), statorGeom)
+	var lRotorIn = geometry.Height(statorGeom.XGapOut(), statorGeom)
 	var lRotorOut = 1 / (1 - (math.Tan(gammaOut)-math.Tan(gammaIn))/elongation*(1+deltaRel)) * lRotorIn
 	var bladeWidth = lRotorOut / elongation
 	var bladingWidth = bladeWidth * (1 + deltaRel)
@@ -100,31 +102,31 @@ func (suite *BladingGeometryGeneratorTestSuite) TestDiameterContinuity() {
 
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(Height(statorGeom.XGapOut(), statorGeom), lRotorIn, 0.000001),
-		testMessage(Height(statorGeom.XGapOut(), statorGeom), lRotorIn),
+		common.ApproxEqual(geometry.Height(statorGeom.XGapOut(), statorGeom), lRotorIn, 0.000001),
+		testMessage(geometry.Height(statorGeom.XGapOut(), statorGeom), lRotorIn),
 	)
 
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(Height(statorGeom.XGapOut()+bladingWidth, statorGeom), lRotorOut, 0.000001),
-		testMessage(Height(statorGeom.XGapOut()+bladingWidth, statorGeom), lRotorOut),
+		common.ApproxEqual(geometry.Height(statorGeom.XGapOut()+bladingWidth, statorGeom), lRotorOut, 0.000001),
+		testMessage(geometry.Height(statorGeom.XGapOut()+bladingWidth, statorGeom), lRotorOut),
 	)
 
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(RelativeHeight(statorGeom.XGapOut()+bladingWidth, statorGeom), lRelOut, 0.000001),
-		testMessage(RelativeHeight(statorGeom.XGapOut()+bladingWidth, statorGeom), lRelOut),
+		common.ApproxEqual(geometry.RelativeHeight(statorGeom.XGapOut()+bladingWidth, statorGeom), lRelOut, 0.000001),
+		testMessage(geometry.RelativeHeight(statorGeom.XGapOut()+bladingWidth, statorGeom), lRelOut),
 	)
 
-	var rotorGeomGen = NewGeneratorFromProfileAngles(
+	var rotorGeomGen = NewBladingGenerator(
 		lRelOut, elongation, deltaRel, gammaIn, gammaOut, approxTRel,
 	)
 	var rotorGeom = rotorGeomGen.GenerateFromInlet(statorGeom.MeanProfile().Diameter(statorGeom.XGapOut()))
 
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(Height(statorGeom.XGapOut(), statorGeom), Height(0, rotorGeom), 0.00001),
-		testMessage(Height(statorGeom.XGapOut(), statorGeom), Height(0, rotorGeom)),
+		common.ApproxEqual(geometry.Height(statorGeom.XGapOut(), statorGeom), geometry.Height(0, rotorGeom), 0.00001),
+		testMessage(geometry.Height(statorGeom.XGapOut(), statorGeom), geometry.Height(0, rotorGeom)),
 	)
 
 	assert.True(
@@ -141,8 +143,8 @@ func (suite *BladingGeometryGeneratorTestSuite) TestDiameterContinuity() {
 		testMessage(dMeanStatorOut, dMeanRotorIn),
 	)
 
-	var heightRelStatorOut = RelativeHeight(statorGeom.XGapOut(), statorGeom)
-	var heightRelRotorIn = RelativeHeight(0, rotorGeom)
+	var heightRelStatorOut = geometry.RelativeHeight(statorGeom.XGapOut(), statorGeom)
+	var heightRelRotorIn = geometry.RelativeHeight(0, rotorGeom)
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(heightRelStatorOut, heightRelRotorIn, 0.000001),
@@ -172,7 +174,7 @@ func (suite *BladingGeometryGeneratorTestSuite) TestGenerateFromOutlet() {
 	assert.Equal(suite.T(), dMeanOut, geom.MeanProfile().Diameter(geom.XGapOut()))
 
 	var expectedLOut = lRelOut * dMeanOut
-	var lOut = Height(geom.XGapOut(), geom)
+	var lOut = geometry.Height(geom.XGapOut(), geom)
 	assert.InDelta(suite.T(), expectedLOut, lOut, 0.0000001, testMessage(expectedLOut, lOut))
 }
 

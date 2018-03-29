@@ -3,8 +3,8 @@ package profilers
 import (
 	"math"
 
-	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/Sovianum/turbocycle/impl/stage/states"
+	"github.com/Sovianum/turbocycle/impl/stage/turbine"
 	"github.com/Sovianum/turbocycle/utils/turbine/radial/laws"
 )
 
@@ -13,7 +13,7 @@ func NewProfiler(
 	approxTRel float64,
 
 	behavior ProfilingBehavior,
-	geomGen geometry.BladingGeometryGenerator,
+	geomGen turbine.BladingGeometryGenerator,
 
 	meanInletTriangle states.VelocityTriangle,
 	meanOutletTriangle states.VelocityTriangle,
@@ -135,7 +135,7 @@ func OutletSSAngle(hRel float64, profiler Profiler) float64 {
 type profiler struct {
 	behavior ProfilingBehavior
 
-	geomGen geometry.BladingGeometryGenerator
+	geomGen turbine.BladingGeometryGenerator
 
 	meanInletTriangle  states.VelocityTriangle
 	meanOutletTriangle states.VelocityTriangle
@@ -204,7 +204,7 @@ func (profiler *profiler) inletTriangle(hRel float64) states.VelocityTriangle {
 	return profiler.inletVelocityLaw.InletTriangle(
 		profiler.meanInletTriangle,
 		hRel,
-		geometry.LRelIn(profiler.geomGen),
+		turbine.LRelIn(profiler.geomGen),
 	)
 }
 

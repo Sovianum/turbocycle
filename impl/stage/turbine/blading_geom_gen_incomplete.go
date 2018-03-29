@@ -1,17 +1,6 @@
-package geometry
+package turbine
 
-func NewIncompleteGeneratorFromProfileAngles(elongation, deltaRel, gammaIn, gammaOut, approxTRel float64) IncompleteBladingGeometryGenerator {
-	return &incompleteBladingGeometryGenerator{
-		elongation: elongation,
-		deltaRel:   deltaRel,
-		gammaIn:    gammaIn,
-		gammaOut:   gammaOut,
-		approxTRel: approxTRel,
-	}
-}
-
-func NewIncompleteGeneratorFromTotalAndMeanAngles(elongation, deltaRel, totalAngle, meanAngle, approxTRel float64) IncompleteBladingGeometryGenerator {
-	var gammaIn, gammaOut = GetInnerAndOuterAngles(totalAngle, meanAngle)
+func NewIncompleteGenerator(elongation, deltaRel, gammaIn, gammaOut, approxTRel float64) IncompleteBladingGeometryGenerator {
 	return &incompleteBladingGeometryGenerator{
 		elongation: elongation,
 		deltaRel:   deltaRel,
@@ -38,7 +27,7 @@ type incompleteBladingGeometryGenerator struct {
 }
 
 func (gen *incompleteBladingGeometryGenerator) GetGenerator(lRelOut float64) BladingGeometryGenerator {
-	return NewGeneratorFromProfileAngles(lRelOut, gen.elongation, gen.deltaRel, gen.gammaIn, gen.gammaOut, gen.approxTRel)
+	return NewBladingGenerator(lRelOut, gen.elongation, gen.deltaRel, gen.gammaIn, gen.gammaOut, gen.approxTRel)
 }
 
 func (gen *incompleteBladingGeometryGenerator) Elongation() float64 {

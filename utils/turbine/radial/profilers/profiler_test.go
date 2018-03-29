@@ -42,7 +42,7 @@ type profilingFunc func(hRel float64) float64
 type ProfilerTestSuite struct {
 	suite.Suite
 	behavior                 ProfilingBehavior
-	geomGen                  geometry.BladingGeometryGenerator
+	geomGen                  geometry.TurbineBladingGeometryGenerator
 	meanInletTriangle        states.VelocityTriangle
 	meanOutletTriangle       states.VelocityTriangle
 	inletVelocityLaw         laws.VelocityLaw
@@ -59,7 +59,7 @@ type ProfilerTestSuite struct {
 
 func (suite *ProfilerTestSuite) SetupTest() {
 	suite.behavior = NewStatorProfilingBehavior()
-	suite.geomGen = geometry.NewGeneratorFromProfileAngles(
+	suite.geomGen = geometry.NewTurbineBladingGenerator(
 		lRelOut, bRel, deltaRel,
 		common.ToRadians(gammaIn), common.ToRadians(gammaOut), approxTRel,
 	)

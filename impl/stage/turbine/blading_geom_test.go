@@ -1,4 +1,4 @@
-package geometry
+package turbine
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
+	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,12 +23,12 @@ const (
 
 type BladingGeometryTestSuite struct {
 	suite.Suite
-	geom BladingGeometry
+	geom geometry.BladingGeometry
 }
 
 func (suite *BladingGeometryTestSuite) SetupTest() {
-	var innerLine = NewAxialProfileLine(0, dIn, gammaIn)
-	var outerLine = NewAxialProfileLine(0, dOut, gammaOut)
+	var innerLine = geometry.NewAxialProfileLine(0, dIn, gammaIn)
+	var outerLine = geometry.NewAxialProfileLine(0, dOut, gammaOut)
 	suite.geom = NewBladingGeometry(
 		bladeWidth, gapWidth,
 		innerLine, outerLine,
@@ -39,7 +40,7 @@ func (suite *BladingGeometryTestSuite) TestFreeFunctions() {
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(
-			Height(x, suite.geom),
+			geometry.Height(x, suite.geom),
 			(suite.geom.OuterProfile().Diameter(x)-suite.geom.InnerProfile().Diameter(x))/2,
 			0.000001,
 		),
@@ -47,18 +48,18 @@ func (suite *BladingGeometryTestSuite) TestFreeFunctions() {
 
 	var lIn = (dOut - dIn) / 2
 	var lRelIn = lIn / dMeanIn
-	assert.True(suite.T(), common.ApproxEqual(lRelIn, RelativeHeight(0, suite.geom), 0.0001))
-	assert.True(suite.T(), common.ApproxEqual(bladeWidth, ChordProjection(suite.geom), 0.00001))
+	assert.True(suite.T(), common.ApproxEqual(lRelIn, geometry.RelativeHeight(0, suite.geom), 0.0001))
+	assert.True(suite.T(), common.ApproxEqual(bladeWidth, geometry.ChordProjection(suite.geom), 0.00001))
 
 	var elongationIn = lIn / bladeWidth
-	assert.True(suite.T(), common.ApproxEqual(elongationIn, Elongation(0, suite.geom), 0.000001))
-	assert.True(suite.T(), common.ApproxEqual(gapWidth, AxialGapProjection(suite.geom), 0.000001))
+	assert.True(suite.T(), common.ApproxEqual(elongationIn, geometry.Elongation(0, suite.geom), 0.000001))
+	assert.True(suite.T(), common.ApproxEqual(gapWidth, geometry.AxialGapProjection(suite.geom), 0.000001))
 
 	var expectedArea = math.Pi * lIn * dMeanIn
 	assert.True(
 		suite.T(),
-		common.ApproxEqual(expectedArea, Area(0, suite.geom), 0.00001),
-		testMessage(expectedArea, Area(0, suite.geom)),
+		common.ApproxEqual(expectedArea, geometry.Area(0, suite.geom), 0.00001),
+		testMessage(expectedArea, geometry.Area(0, suite.geom)),
 	)
 }
 
@@ -81,7 +82,7 @@ func (suite *BladingGeometryTestSuite) TestMeanLine() {
 }
 
 func (suite *BladingGeometryTestSuite) TestExpansionAngle() {
-	assert.True(suite.T(), common.ApproxEqual(gammaOut-gammaIn, ExpansionAngle(suite.geom), 0.00001))
+	assert.True(suite.T(), common.ApproxEqual(gammaOut-gammaIn, geometry.ExpansionAngle(suite.geom), 0.00001))
 }
 
 func TestBladingGeometryTestSuite(t *testing.T) {
