@@ -10,8 +10,11 @@ import (
 )
 
 const (
-	InletTriangleType  = "InletTriangleType"
-	OutletTriangleType = "OutletTriangleType"
+	InletTriangleType      = "InletTriangleType"
+	OutletTriangleType     = "OutletTriangleType"
+	CompressorTriangleType = "CompressorTriangleType"
+	VelocityInletTag       = "VelocityInletTag"
+	VelocityOutletTag      = "VelocityOutletTag"
 )
 
 type VelocityPortState struct {

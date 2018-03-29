@@ -82,6 +82,48 @@ func (triangle rotorInletVelocityTriangle) W() float64 {
 	return math.Sqrt(term1 + term2 + term3)
 }
 
+func NewCompressorVelocityTriangle(c, u, alpha float64) VelocityTriangle {
+	return &compressorVelocityTriangle{
+		velocityTriangle{
+			c:     c,
+			u:     u,
+			alpha: alpha,
+		},
+	}
+}
+
+func NewCompressorVelocityTriangleFromProjections(cu, ca, u float64) VelocityTriangle {
+	c := math.Sqrt(cu*cu + ca*ca)
+	alpha := math.Atan2(ca, cu)
+	return &compressorVelocityTriangle{
+		velocityTriangle{
+			c:     c,
+			u:     u,
+			alpha: alpha,
+		},
+	}
+}
+
+type compressorVelocityTriangle struct {
+	velocityTriangle
+}
+
+func (triangle *compressorVelocityTriangle) W() float64 {
+	wu := triangle.WU()
+	wa := triangle.CA()
+	return math.Sqrt(wu*wu + wa*wa)
+}
+
+func (triangle *compressorVelocityTriangle) Beta() float64 {
+	wu := triangle.WU()
+	wa := triangle.CA()
+	return math.Atan2(wa, wu)
+}
+
+func (triangle *compressorVelocityTriangle) WU() float64 {
+	return triangle.u - triangle.c*math.Sin(triangle.alpha)
+}
+
 type velocityTriangle struct {
 	c     float64
 	u     float64
