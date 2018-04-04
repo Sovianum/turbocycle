@@ -11,8 +11,8 @@ import (
 	"github.com/Sovianum/turbocycle/impl/stage/states"
 )
 
-type DimlessFirstStage func(dRelIn float64) StageNode
-type DimlessMidStage func(prevGeom geometry.StageGeometry) StageNode
+type dimlessFirstStage func(dRelIn float64) StageNode
+type dimlessMidStage func(prevGeom geometry.StageGeometry) StageNode
 
 type StagedCompressorNode interface {
 	graph.Node
@@ -215,7 +215,7 @@ func (node *stagedCompressorNode) Stage(num int) StageNode {
 	return node.stages[num]
 }
 
-func (node *stagedCompressorNode) solveAll(preFirstStage DimlessFirstStage, preMidStages []DimlessMidStage) ([]StageNode, error) {
+func (node *stagedCompressorNode) solveAll(preFirstStage dimlessFirstStage, preMidStages []dimlessMidStage) ([]StageNode, error) {
 	stages := make([]StageNode, len(preMidStages)+1)
 	firstStage := preFirstStage(node.dRelIn)
 	stages[0] = firstStage
@@ -257,8 +257,8 @@ func (node *stagedCompressorNode) initFirstStage(firstStage StageNode) {
 	)
 }
 
-func (node *stagedCompressorNode) preInitMidStages() []DimlessMidStage {
-	result := make([]DimlessMidStage, node.stageNum-1)
+func (node *stagedCompressorNode) preInitMidStages() []dimlessMidStage {
+	result := make([]dimlessMidStage, node.stageNum-1)
 	for i := range result {
 		j := i // another variable used cos variables are captured by reference
 		result[j] = func(prevGeom geometry.StageGeometry) StageNode {
@@ -275,7 +275,7 @@ func (node *stagedCompressorNode) preInitMidStages() []DimlessMidStage {
 	return result
 }
 
-func (node *stagedCompressorNode) preInitFirstStage() DimlessFirstStage {
+func (node *stagedCompressorNode) preInitFirstStage() dimlessFirstStage {
 	return func(dRelIn float64) StageNode {
 		return NewFirstStageNode(
 			dRelIn,
