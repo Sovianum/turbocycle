@@ -13,8 +13,14 @@ import (
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	states2 "github.com/Sovianum/turbocycle/impl/stage/states"
 	"github.com/Sovianum/turbocycle/material/gases"
-	"github.com/go-errors/errors"
 )
+
+func notNanValidator(x float64) error {
+	if math.IsNaN(x) {
+		return fmt.Errorf("nan obtained")
+	}
+	return nil
+}
 
 type StageNode interface {
 	graph.Node
@@ -295,29 +301,13 @@ func (node *turbineStageNode) getDataPack() *DataPack {
 		node.initCalcFirstStage(pack)
 	}
 
-	node.rotorInletTriangle(pack)
-	node.u2(pack)
-	node.tw1(pack)
-	node.pw1(pack)
-	node.rotorHeatDrop(pack)
-	node.wAd2(pack)
-	node.w2(pack)
-	node.t2(pack)
-	node.t2Prime(pack)
-	node.p2(pack)
-	node.density2(pack)
-	node.c2a(pack)
-	node.beta2(pack)
-	node.c2u(pack)
-	node.rotorOutletTriangle(pack)
+	node.relativeThermo(pack)
+	node.thermo2(pack)
+	node.velocity2(pack)
 	node.pi(pack)
 	node.meanRadiusLabour(pack)
 	node.etaU(pack)
-	node.statorSpecificLoss(pack)
-	node.rotorSpecificLoss(pack)
-	node.outletVelocitySpecificLoss(pack)
-	node.airGapSpecificLoss(pack)
-	node.ventilationSpecificLoss(pack)
+	node.losses(pack)
 	node.etaT(pack)
 	node.t2Stag(pack)
 	node.p2Stag(pack)
@@ -338,39 +328,16 @@ func (node *turbineStageNode) pushExtraData(pack *DataPack) {
 }
 
 func (node *turbineStageNode) initCalc(pack *DataPack) {
-	node.t0(pack)
-	node.p0(pack)
-	node.density0(pack)
-	node.getStatorMeanInletDiameter(pack)
+	node.thermo0(pack)
 	node.getStageGeometry(pack)
-	node.statorHeatDrop(pack)
-	node.t1Prime(pack)
-	node.c1Ad(pack)
-	node.c1(pack)
-	node.t1(pack)
-	node.p1(pack)
-	node.density1(pack)
-	node.area1(pack)
-	node.c1a(pack)
-	node.u1(pack)
-	node.alpha1(pack)
+	node.thermo1(pack)
+	node.velocity1(pack)
 }
 
 func (node *turbineStageNode) initCalcFirstStage(pack *DataPack) {
 	pack.Alpha1 = node.alpha1FirstStage
-	node.statorHeatDrop(pack)
-	node.t1Prime(pack)
-	node.c1Ad(pack)
-	node.c1(pack)
-	node.c1aFirstStage(pack)
-	node.t1(pack)
-	node.p1(pack)
-	node.density1(pack)
-	node.area1FirstStage(pack)
-	node.dRotorBladeMean(pack)
-	node.getStageGeometryFirstStage(pack)
-	node.u1(pack)
-	node.inletVelocityTriangleFirstStage(pack)
+	node.thermo1(pack)
+	node.velocity1FirstStage(pack)
 }
 
 func (node *turbineStageNode) etaTStag(pack *DataPack) {
@@ -426,52 +393,29 @@ func (node *turbineStageNode) etaT(pack *DataPack) {
 	pack.EtaT = pack.EtaU - (pack.AirGapSpecificLoss+pack.VentilationSpecificLoss)/node.stageHeatDrop
 }
 
-func (node *turbineStageNode) ventilationSpecificLoss(pack *DataPack) {
+func (node *turbineStageNode) losses(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: ventilationSpecificLoss", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: losses", pack.Err.Error())
 		return
 	}
-	var x = pack.StageGeometry.RotorGeometry().XBladeOut()
-	var d = pack.StageGeometry.RotorGeometry().MeanProfile().Diameter(x)
-	var ventilationPower = 1.07 * math.Pow(d, 2) * math.Pow(pack.U2/100, 3) * pack.Density2 * 1000
-	pack.VentilationSpecificLoss = ventilationPower / node.massRate()
-}
+	//node.ventilationSpecificLoss(pack)
 
-func (node *turbineStageNode) airGapSpecificLoss(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: airGapSpecificLoss", pack.Err.Error())
-		return
-	}
-	var lRel = geometry.RelativeHeight(
+	defaultSpecificLoss := (math.Pow(node.phi, -2) - 1) * math.Pow(pack.C1, 2) / 2
+	pack.StatorSpecificLoss = defaultSpecificLoss * pack.T2Prime / pack.T1
+
+	pack.RotorSpecificLoss = (math.Pow(node.psi, -2) - 1) * math.Pow(pack.W2, 2) / 2
+	pack.OutletVelocitySpecificLoss = math.Pow(pack.RotorOutletTriangle.C(), 2) / 2
+
+	lRel := geometry.RelativeHeight(
 		pack.StageGeometry.RotorGeometry().XBladeOut(),
 		pack.StageGeometry.RotorGeometry(),
 	)
 	pack.AirGapSpecificLoss = 1.37 * (1 + 1.6*node.reactivity) * (1 + lRel) * node.airGapRel * pack.MeanRadiusLabour
-}
 
-func (node *turbineStageNode) outletVelocitySpecificLoss(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: outletVelocitySpecificLoss", pack.Err.Error())
-		return
-	}
-	pack.OutletVelocitySpecificLoss = math.Pow(pack.RotorOutletTriangle.C(), 2) / 2
-}
-
-func (node *turbineStageNode) rotorSpecificLoss(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: rotorSpecificLoss", pack.Err.Error())
-		return
-	}
-	pack.RotorSpecificLoss = (math.Pow(node.psi, -2) - 1) * math.Pow(pack.W2, 2) / 2
-}
-
-func (node *turbineStageNode) statorSpecificLoss(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: statorSpecificLoss", pack.Err.Error())
-		return
-	}
-	var defaultSpecificLoss = (math.Pow(node.phi, -2) - 1) * math.Pow(pack.C1, 2) / 2
-	pack.StatorSpecificLoss = defaultSpecificLoss * pack.T2Prime / pack.T1
+	x := pack.StageGeometry.RotorGeometry().XBladeOut()
+	d := pack.StageGeometry.RotorGeometry().MeanProfile().Diameter(x)
+	ventilationPower := 1.07 * math.Pow(d, 2) * math.Pow(pack.U2/100, 3) * pack.Density2 * 1000
+	pack.VentilationSpecificLoss = ventilationPower / node.massRate()
 }
 
 func (node *turbineStageNode) etaU(pack *DataPack) {
@@ -499,194 +443,127 @@ func (node *turbineStageNode) pi(pack *DataPack) {
 	pack.Pi = node.p0Stag() / pack.P2
 }
 
-func (node *turbineStageNode) rotorOutletTriangle(pack *DataPack) {
+func (node *turbineStageNode) velocity2(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: rotorOutletTriangle", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: velocity2", pack.Err.Error())
 		return
 	}
+	rotorGeom := pack.StageGeometry.RotorGeometry()
+	d := rotorGeom.MeanProfile().Diameter(rotorGeom.XGapOut())
+	pack.U2 = math.Pi * d * node.n / 60
+
+	pack.C2a = node.massRate() / (pack.Density2 * geometry.Area(
+		pack.StageGeometry.RotorGeometry().XBladeOut(), pack.StageGeometry.RotorGeometry(),
+	))
+	pack.Beta2 = math.Asin(pack.C2a / pack.W2)
+	pack.C2u = pack.W2*math.Cos(pack.Beta2) - pack.U2
 	pack.RotorOutletTriangle = states2.NewOutletTriangleFromProjections(
 		pack.C2u, pack.C2a, pack.U2,
 	)
 }
 
-func (node *turbineStageNode) c2u(pack *DataPack) {
+func (node *turbineStageNode) thermo2(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: c2u", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: thermo2", pack.Err.Error())
 		return
 	}
-	pack.C2u = pack.W2*math.Cos(pack.Beta2) - pack.U2
-}
+	t1 := pack.T1
+	w1 := pack.RotorInletTriangle.W()
+	w2 := pack.W2
+	u1 := pack.U1
+	u2 := pack.U2
 
-func (node *turbineStageNode) beta2(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: beta2", pack.Err.Error())
+	t2Func := func(currT2 float64) (float64, error) {
+		cp := gases.CpMean(node.gas(), t1, currT2, nodes.DefaultN)
+		newT2 := t1 + ((w1*w1-w2*w2)+(u2*u2-u1*u1))/(2*cp)
+		return newT2, nil
+	}
+	t2, err := common.SolveIterativelyWithValidation(t2Func, notNanValidator, t1, node.precision, 1, nodes.DefaultN)
+	if err != nil {
+		pack.Err = fmt.Errorf("%s: t2: thermo2", err.Error())
 		return
 	}
-	pack.Beta2 = math.Asin(pack.C2a / pack.W2)
-}
+	pack.T2 = t2
 
-func (node *turbineStageNode) c2a(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: c2a", pack.Err.Error())
-		return
-	}
-	pack.C2a = node.massRate() / (pack.Density2 * geometry.Area(
-		pack.StageGeometry.RotorGeometry().XBladeOut(), pack.StageGeometry.RotorGeometry(),
-	))
-}
+	cp := gases.CpMean(node.gas(), pack.T1, pack.T2, nodes.DefaultN)
+	pack.T2Prime = pack.T1 - pack.RotorHeatDrop/cp
 
-func (node *turbineStageNode) density2(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: density2", pack.Err.Error())
-		return
-	}
+	k := gases.KMean(node.gas(), pack.T2Prime, pack.T1, nodes.DefaultN)
+	pack.P2 = pack.P1 * math.Pow(pack.T2Prime/pack.T1, k/(k-1))
+
 	pack.Density2 = pack.P2 / (node.gas().R() * pack.T2)
 }
 
-func (node *turbineStageNode) p2(pack *DataPack) {
+func (node *turbineStageNode) relativeThermo(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: p2", pack.Err.Error())
-		return
-	}
-	var k = gases.KMean(node.gas(), pack.T2Prime, pack.T1, nodes.DefaultN)
-
-	pack.P2 = pack.P1 * math.Pow(pack.T2Prime/pack.T1, k/(k-1))
-}
-
-func (node *turbineStageNode) t2Prime(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: t2Prime", pack.Err.Error())
-		return
-	}
-	var cp = gases.CpMean(node.gas(), pack.T1, pack.T2, nodes.DefaultN)
-	pack.T2Prime = pack.T1 - pack.RotorHeatDrop/cp
-}
-
-func (node *turbineStageNode) t2(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: t2", pack.Err.Error())
-		return
-	}
-	var t1 = pack.T1
-	var w1 = pack.RotorInletTriangle.W()
-	var w2 = pack.W2
-	var u1 = pack.U1
-	var u2 = pack.U2
-
-	var iterate = func(currT2, currCp float64) (newT2, newCp float64) {
-		newT2 = t1 + ((w1*w1-w2*w2)+(u2*u2-u1*u1))/(2*currCp)
-		newCp = gases.CpMean(node.gas(), t1, newT2, nodes.DefaultN)
-		return
-	}
-
-	var currT2 = t1
-	var currCp = node.gas().Cp(t1)
-	var newT2, newCp = iterate(currT2, currCp)
-
-	for !(common.Converged(currT2, newT2, node.precision) && common.Converged(currCp, newCp, node.precision)) {
-		currT2, currCp = newT2, newCp
-		newT2, newCp = iterate(currT2, currCp)
-	}
-
-	pack.T2 = newT2
-}
-
-func (node *turbineStageNode) w2(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: w2", pack.Err.Error())
-		return
-	}
-	var wAd2 = pack.WAd2
-	pack.W2 = wAd2 * node.psi
-}
-
-func (node *turbineStageNode) wAd2(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: wAd2", pack.Err.Error())
-		return
-	}
-	var w1 = pack.RotorInletTriangle.W()
-	var hl = pack.RotorHeatDrop
-	var u1 = pack.U1
-	var u2 = pack.U2
-	pack.WAd2 = math.Sqrt(w1*w1 + 2*hl + (u2*u2 - u1*u1))
-}
-
-func (node *turbineStageNode) rotorHeatDrop(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: rotorHeatDrop", pack.Err.Error())
-		return
-	}
-	var t1 = pack.T1
-	var tw1 = pack.Tw1
-	pack.RotorHeatDrop = node.stageHeatDrop * node.reactivity * t1 / tw1
-}
-
-func (node *turbineStageNode) pw1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: pw1", pack.Err.Error())
-		return
-	}
-	var t1 = pack.T1
-	var k = gases.K(node.gas(), t1) // todo check if using correct cp
-	var p1 = pack.P1
-	var tw1 = pack.Tw1
-	pack.Pw1 = p1 * math.Pow(tw1/t1, k/(k-1))
-}
-
-func (node *turbineStageNode) tw1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: tw1", pack.Err.Error())
-		return
-	}
-
-	var w1 = pack.RotorInletTriangle.W()
-	var t1 = pack.T1
-	pack.Tw1 = t1 + w1*w1/(2*node.gas().Cp(t1)) // todo check if using correct cp
-}
-
-func (node *turbineStageNode) u2(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: u2", pack.Err.Error())
-		return
-	}
-	var rotorGeom = pack.StageGeometry.RotorGeometry()
-	var d = rotorGeom.MeanProfile().Diameter(rotorGeom.XGapOut())
-	pack.U2 = math.Pi * d * node.n / 60
-}
-
-func (node *turbineStageNode) rotorInletTriangle(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: rotorInletTriangle", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: relativeThermo", pack.Err.Error())
 		return
 	}
 	pack.RotorInletTriangle = states2.NewInletTriangle(pack.U1, pack.C1, pack.Alpha1)
+
+	w1 := pack.RotorInletTriangle.W()
+	t1 := pack.T1
+	pack.Tw1 = t1 + w1*w1/(2*node.gas().Cp(t1)) // todo check if using correct cp
+
+	k := gases.K(node.gas(), t1) // todo check if using correct cp
+	p1 := pack.P1
+	tw1 := pack.Tw1
+
+	pack.Pw1 = p1 * math.Pow(tw1/t1, k/(k-1))
+	pack.RotorHeatDrop = node.stageHeatDrop * node.reactivity * t1 / tw1
+
+	hl := pack.RotorHeatDrop
+	u1 := pack.U1
+	u2 := pack.U2
+	pack.WAd2 = math.Sqrt(w1*w1 + 2*hl + (u2*u2 - u1*u1))
+	pack.W2 = pack.WAd2 * node.psi
 }
 
-func (node *turbineStageNode) alpha1(pack *DataPack) {
+func (node *turbineStageNode) velocity1FirstStage(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: alpha1", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: velocity1FirstStage", pack.Err.Error())
 		return
 	}
-	var alpha1 = math.Asin(pack.C1a / pack.C1)
+	pack.Area1 = node.massRate() / (pack.C1a * pack.Density1)
+
+	lRelOut := node.stageGeomGen.StatorGenerator().LRelOut()
+	pack.RotorMeanInletDiameter = math.Sqrt(pack.Area1 / (math.Pi * lRelOut))
+
+	pack.StageGeometry = node.stageGeomGen.GenerateFromRotorInlet(
+		pack.RotorMeanInletDiameter,
+	)
+	node.u1(pack)
+
+	// initialize velocity input when using first stage model
+	// currently it sets velocity in axial direction
+	massRate := node.massRate()
+	area := geometry.Area(0, pack.StageGeometry.StatorGeometry())
+	density := node.p0Stag() / (node.gas().R() * node.t0Stag()) // todo use static density instead of stag
+	ca := massRate / (area * density)
+	node.velocityInput.SetState(states2.NewVelocityPortState(
+		states2.NewInletTriangle(0, ca, math.Pi/2),
+		states2.InletTriangleType,
+	))
+}
+
+func (node *turbineStageNode) velocity1(pack *DataPack) {
+	if pack.Err != nil {
+		pack.Err = fmt.Errorf("%s: velocity1", pack.Err.Error())
+		return
+	}
+	pack.Area1 = geometry.Area(
+		pack.StageGeometry.StatorGeometry().XGapOut(),
+		pack.StageGeometry.StatorGeometry(),
+	)
+	pack.C1a = node.massRate() / (pack.Area1 * pack.Density1)
+	node.u1(pack)
+
+	alpha1 := math.Asin(pack.C1a / pack.C1)
 	if math.IsNaN(alpha1) {
 		pack.Err = fmt.Errorf("failed to calculate alpha_1 (c_a_1 = %v, c1 = %v)", pack.C1a, pack.C1)
 		return
 	}
 	pack.Alpha1 = alpha1
-}
-
-// function initializes velocity input when using first stage model
-// currently it sets velocity in axial direction
-func (node *turbineStageNode) inletVelocityTriangleFirstStage(pack *DataPack) {
-	var massRate = node.massRate()
-	var area = geometry.Area(0, pack.StageGeometry.StatorGeometry())
-	var density = node.p0Stag() / (node.gas().R() * node.t0Stag()) // todo use static density instead of stag
-	var ca = massRate / (area * density)
-	node.velocityInput.SetState(states2.NewVelocityPortState(
-		states2.NewInletTriangle(0, ca, math.Pi/2),
-		states2.InletTriangleType,
-	))
 }
 
 func (node *turbineStageNode) u1(pack *DataPack) {
@@ -697,6 +574,43 @@ func (node *turbineStageNode) u1(pack *DataPack) {
 	pack.U1 = math.Pi * pack.StageGeometry.RotorGeometry().MeanProfile().Diameter(
 		pack.StageGeometry.RotorGeometry().XBladeIn(),
 	) * node.n / 60
+}
+
+func (node *turbineStageNode) thermo1(pack *DataPack) {
+	if pack.Err != nil {
+		pack.Err = fmt.Errorf("%s: thermo1", pack.Err.Error())
+		return
+	}
+	pack.StatorHeatDrop = node.stageHeatDrop * (1 - node.reactivity)
+	pack.C1Ad = math.Sqrt(2 * pack.StatorHeatDrop)
+	pack.C1 = pack.C1Ad * node.phi
+	if node.isFirstStageNode {
+		node.c1aFirstStage(pack)
+	}
+
+	t0Stag := node.t0Stag()
+	cp := node.gas().Cp(t0Stag)
+	hc := pack.StatorHeatDrop
+	pack.T1Prime = t0Stag - hc/cp
+
+	t1Func := func(t1 float64) (float64, error) {
+		t0Stag := node.t0Stag()
+		c1 := pack.C1
+		cp := gases.CpMean(node.gas(), t1, node.t0Stag(), nodes.DefaultN)
+		return t0Stag - c1*c1/(2*cp), nil
+	}
+	t1, err := common.SolveIterativelyWithValidation(
+		t1Func, notNanValidator, node.t0Stag(), node.precision, 1, nodes.DefaultN,
+	)
+	if err != nil {
+		pack.Err = fmt.Errorf("%s: t1: thermo1", err.Error())
+		return
+	}
+	pack.T1 = t1
+
+	k := gases.KMean(node.gas(), node.t0Stag(), pack.T1Prime, nodes.DefaultN)
+	pack.P1 = node.p0Stag() * math.Pow(pack.T1Prime/t0Stag, k/(k-1))
+	pack.Density1 = pack.P1 / (node.gas().R() * pack.T1)
 }
 
 func (node *turbineStageNode) c1aFirstStage(pack *DataPack) {
@@ -710,197 +624,47 @@ func (node *turbineStageNode) c1aFirstStage(pack *DataPack) {
 	pack.C1a = pack.C1 * math.Sin(node.alpha1FirstStage)
 }
 
-func (node *turbineStageNode) c1a(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: c1a", pack.Err.Error())
-		return
-	}
-	pack.C1a = node.massRate() / (pack.Area1 * pack.Density1)
-}
-
-func (node *turbineStageNode) dRotorBladeMean(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: dRotorBladeMean", pack.Err.Error())
-		return
-	}
-	var lRelOut = node.stageGeomGen.StatorGenerator().LRelOut()
-	pack.RotorMeanInletDiameter = math.Sqrt(pack.Area1 / (math.Pi * lRelOut))
-}
-
-func (node *turbineStageNode) area1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: area1", pack.Err.Error())
-		return
-	}
-	pack.Area1 = geometry.Area(
-		pack.StageGeometry.StatorGeometry().XGapOut(),
-		pack.StageGeometry.StatorGeometry(),
-	)
-}
-
-func (node *turbineStageNode) area1FirstStage(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: area1", pack.Err.Error())
-		return
-	}
-	pack.Area1 = node.massRate() / (pack.C1a * pack.Density1)
-}
-
-func (node *turbineStageNode) density1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: density1", pack.Err.Error())
-		return
-	}
-	pack.Density1 = pack.P1 / (node.gas().R() * pack.T1)
-}
-
-func (node *turbineStageNode) p1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: p1", pack.Err.Error())
-		return
-	}
-
-	var k = gases.KMean(node.gas(), node.t0Stag(), pack.T1Prime, nodes.DefaultN)
-	var p0Stag = node.p0Stag()
-	var t1Prime = pack.T1Prime
-	var t0Stag = node.t0Stag()
-
-	pack.P1 = p0Stag * math.Pow(t1Prime/t0Stag, k/(k-1))
-}
-
-func (node *turbineStageNode) t1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: t1", pack.Err.Error())
-		return
-	}
-
-	var getNewT1 = func(t1 float64) float64 {
-		var t0Stag = node.t0Stag()
-		var c1 = pack.C1
-		var cp = gases.CpMean(node.gas(), t1, node.t0Stag(), nodes.DefaultN)
-		return t0Stag - c1*c1/(2*cp)
-	}
-
-	var t1Curr = node.t0Stag()
-	var t1New = getNewT1(t1Curr)
-
-	for !common.Converged(t1Curr, t1New, node.precision) {
-		if math.IsNaN(t1Curr) || math.IsNaN(t1New) {
-			pack.Err = errors.New("failed to converge: try different initial guess")
-			return
-		}
-		t1Curr = t1New
-		t1New = getNewT1(t1Curr)
-	}
-
-	pack.T1 = t1New
-}
-
-func (node *turbineStageNode) c1(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: c1", pack.Err.Error())
-		return
-	}
-	pack.C1 = pack.C1Ad * node.phi
-}
-
-func (node *turbineStageNode) c1Ad(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: c1Ad", pack.Err.Error())
-		return
-	}
-	pack.C1Ad = math.Sqrt(2 * pack.StatorHeatDrop)
-}
-
-func (node *turbineStageNode) t1Prime(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: t1Prime", pack.Err.Error())
-		return
-	}
-
-	var t0Stag = node.t0Stag()
-	var cp = node.gas().Cp(t0Stag)
-	var hc = pack.StatorHeatDrop
-	pack.T1Prime = t0Stag - hc/cp
-}
-
-func (node *turbineStageNode) statorHeatDrop(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: statorHeatDrop", pack.Err.Error())
-		return
-	}
-	pack.StatorHeatDrop = node.stageHeatDrop * (1 - node.reactivity)
-}
-
-func (node *turbineStageNode) getStageGeometryFirstStage(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: getStageGeometry", pack.Err.Error())
-		return
-	}
-	pack.StageGeometry = node.stageGeomGen.GenerateFromRotorInlet(
-		pack.RotorMeanInletDiameter,
-	)
-}
-
 func (node *turbineStageNode) getStageGeometry(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: getStageGeometry", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: StageGeometry", pack.Err.Error())
 		return
 	}
+
+	baRel := node.stageGeomGen.StatorGenerator().Elongation()
+	gammaIn := node.stageGeomGen.StatorGenerator().GammaIn()
+	gammaOut := node.stageGeomGen.StatorGenerator().GammaOut()
+	_, gammaMean := geometry.GetTotalAndMeanLineAngles(
+		node.stageGeomGen.StatorGenerator().GammaIn(),
+		node.stageGeomGen.StatorGenerator().GammaOut(),
+		MidLineFactor,
+	)
+	deltaRel := node.stageGeomGen.StatorGenerator().DeltaRel()
+	lRelOut := node.stageGeomGen.StatorGenerator().LRelOut()
+	enom := baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
+	denom := baRel - 2*(1+deltaRel)*lRelOut*math.Tan(gammaMean)
+	lRelIn := enom / denom
+
+	c0 := node.statorInletTriangle().C()
+
+	pack.StatorMeanInletDiameter = math.Sqrt(node.massRate() / (math.Pi * pack.Density0 * c0 * lRelIn))
 	pack.StageGeometry = node.stageGeomGen.GenerateFromStatorInlet(
 		pack.StatorMeanInletDiameter,
 	)
 }
 
-func (node *turbineStageNode) getStatorMeanInletDiameter(pack *DataPack) {
+func (node *turbineStageNode) thermo0(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: getStatorMeanDiameter", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: thermo0", pack.Err.Error())
 		return
 	}
-
-	var baRel = node.stageGeomGen.StatorGenerator().Elongation()
-	var gammaIn = node.stageGeomGen.StatorGenerator().GammaIn()
-	var gammaOut = node.stageGeomGen.StatorGenerator().GammaOut()
-	var _, gammaMean = geometry.GetTotalAndMeanLineAngles(
-		node.stageGeomGen.StatorGenerator().GammaIn(),
-		node.stageGeomGen.StatorGenerator().GammaOut(),
-		MidLineFactor,
-	)
-	var deltaRel = node.stageGeomGen.StatorGenerator().DeltaRel()
-	var lRelOut = node.stageGeomGen.StatorGenerator().LRelOut()
-	var enom = baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
-	var denom = baRel - 2*(1+deltaRel)*lRelOut*math.Tan(gammaMean)
-	var lRelIn = enom / denom
-
-	var c0 = node.statorInletTriangle().C()
-	pack.StatorMeanInletDiameter = math.Sqrt(node.massRate() / (math.Pi * pack.Density0 * c0 * lRelIn))
-}
-
-func (node *turbineStageNode) density0(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: density0", pack.Err.Error())
-		return
-	}
-	pack.Density0 = pack.P0 / (node.gas().R() * pack.T0)
-}
-
-func (node *turbineStageNode) p0(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: p0", pack.Err.Error())
-		return
-	}
-	var k = gases.K(node.gas(), node.t0Stag()) // todo check if correct temperature
-	pack.P0 = node.p0Stag() * math.Pow(node.t0Stag()/pack.T0, -k/(k-1))
-}
-
-func (node *turbineStageNode) t0(pack *DataPack) {
-	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: t0", pack.Err.Error())
-		return
-	}
-	var c0 = node.statorInletTriangle().C()
-	var cp = node.gas().Cp(node.t0Stag()) // todo check if correct temperature
+	c0 := node.statorInletTriangle().C()
+	cp := node.gas().Cp(node.t0Stag()) // todo check if correct temperature
 	pack.T0 = node.t0Stag() - c0*c0/(2*cp)
+
+	k := gases.K(node.gas(), node.t0Stag()) // todo check if correct temperature
+	pack.P0 = node.p0Stag() * math.Pow(node.t0Stag()/pack.T0, -k/(k-1))
+
+	pack.Density0 = pack.P0 / (node.gas().R() * pack.T0)
 }
 
 // below are private accessors

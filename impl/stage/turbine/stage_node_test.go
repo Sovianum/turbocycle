@@ -142,7 +142,7 @@ func (suite *StageNodeTestSuite) TestInitCalc() {
 }
 
 func (suite *StageNodeTestSuite) TestStatorHeatDrop() {
-	suite.node.statorHeatDrop(suite.pack)
+	suite.node.thermo1(suite.pack)
 	suite.True(
 		common.ApproxEqual(stageHeatDrop*(1-reactivity), suite.pack.StatorHeatDrop, 0.00001),
 	)
@@ -161,38 +161,23 @@ func (suite *StageNodeTestSuite) TestGetStatorMeanInletDiameter() {
 	var lRelIn = enom / denom
 	var expectedDMean = math.Sqrt(massRate / (math.Pi * c0 * density0 * lRelIn))
 
-	suite.node.getStatorMeanInletDiameter(suite.pack)
+	suite.node.getStageGeometry(suite.pack)
 
 	suite.InDelta(expectedDMean, suite.pack.StatorMeanInletDiameter, 1e-4)
 }
 
 func (suite *StageNodeTestSuite) TestDensity0() {
 	var density0 = p0 / (getGas().R() * t0)
+	suite.node.temperatureInput.SetState(states.NewTemperaturePortState(t0))
+	suite.node.pressureInput.SetState(states.NewPressurePortState(p0))
+	suite.node.thermo0(suite.pack)
 
-	suite.pack.T0 = t0
-	suite.pack.P0 = p0
-	suite.node.density0(suite.pack)
-
-	assert.InDelta(suite.T(), density0, suite.pack.Density0, 0.001)
-}
-
-func (suite *StageNodeTestSuite) TestP0() {
-	var k = gases.K(getGas(), tg)
-	var expectedP0 = pg * math.Pow(tg/t0, -k/(k-1))
-
-	suite.pack.T0 = t0
-	suite.node.p0(suite.pack)
-
-	assert.True(
-		suite.T(),
-		common.ApproxEqual(expectedP0, suite.pack.P0, 0.0001),
-		testMessage(expectedP0, suite.pack.P0),
-	)
+	assert.InDelta(suite.T(), density0, suite.pack.Density0, 0.1) // low precision cos use static parameters
 }
 
 func (suite *StageNodeTestSuite) TestT0() {
 	var cp = getGas().Cp(tg)
-	suite.node.t0(suite.pack)
+	suite.node.thermo0(suite.pack)
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(tg-c0*c0/(2*cp), suite.pack.T0, 0.0001),
