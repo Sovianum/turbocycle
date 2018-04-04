@@ -53,7 +53,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 		NewIncompleteGenerator(baRel, deltaRel, gammaIn, gammaOut),
 	)
 
-	suite.node = NewStageNode(
+	suite.node = NewFirstStageNode(
 		dRelIn,
 		htCoef, htCoef,
 		reactivity, reactivity,

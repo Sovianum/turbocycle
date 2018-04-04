@@ -22,6 +22,36 @@ func notNanValidator(x float64) error {
 	return nil
 }
 
+func InitFromPreviousStage(source, dest StageNode) {
+	graph.CopyAll(
+		[]graph.Port{
+			source.GasOutput(), source.PressureOutput(),
+			source.TemperatureOutput(), source.MassRateOutput(),
+			source.VelocityOutput(),
+		},
+		[]graph.Port{
+			dest.GasInput(), dest.PressureInput(),
+			dest.TemperatureInput(), dest.MassRateInput(),
+			dest.VelocityInput(),
+		},
+	)
+}
+
+func LinkStages(source, dest StageNode) {
+	graph.LinkAll(
+		[]graph.Port{
+			source.GasOutput(), source.PressureOutput(),
+			source.TemperatureOutput(), source.MassRateOutput(),
+			source.VelocityOutput(),
+		},
+		[]graph.Port{
+			dest.GasInput(), dest.PressureInput(),
+			dest.TemperatureInput(), dest.MassRateInput(),
+			dest.VelocityInput(),
+		},
+	)
+}
+
 type StageNode interface {
 	graph.Node
 	nodes.GasChannel
@@ -58,7 +88,31 @@ type DataPack struct {
 	MidTriangle    states.VelocityTriangle `json:"mid_triangle"`
 }
 
-func NewStageNode(
+func NewMidStageNode(
+	prevStageGeom geometry.StageGeometry,
+	htCoef, htCoefNext,
+	reactivity, reactivityNext,
+	labourCoef, etaAd, caCoef,
+	rpm float64,
+	stageGeomGen StageGeometryGenerator,
+	precision, relaxCoef, initLambda float64, iterLimit int,
+) StageNode {
+	prevGeom := prevStageGeom.StatorGeometry()
+	dRelIn := geometry.DRel(prevGeom.XGapOut(), prevGeom)
+	result := NewFirstStageNode(
+		dRelIn,
+		htCoef, htCoefNext,
+		reactivity, reactivityNext,
+		labourCoef, etaAd, caCoef,
+		rpm, stageGeomGen,
+		precision, relaxCoef, initLambda, iterLimit,
+	).(*stageNode)
+	result.prevStageGeom = prevStageGeom
+	result.isFirstStage = false
+	return result
+}
+
+func NewFirstStageNode(
 	dRelIn,
 	htCoef, htCoefNext,
 	reactivity, reactivityNext,
@@ -82,6 +136,7 @@ func NewStageNode(
 		relaxCoef:      relaxCoef,
 		initLambda:     initLambda,
 		iterLimit:      iterLimit,
+		isFirstStage:   true,
 	}
 
 	graph.AttachAllWithTags(
@@ -138,6 +193,9 @@ type stageNode struct {
 	iterLimit  int
 
 	pack *DataPack
+
+	isFirstStage  bool
+	prevStageGeom geometry.StageGeometry
 }
 
 func (node *stageNode) GetDataPack() *DataPack {
@@ -150,7 +208,11 @@ func (node *stageNode) GetName() string {
 
 func (node *stageNode) Process() error {
 	node.pack = new(DataPack)
-	node.inletVelocities(node.pack)
+	if node.isFirstStage {
+		node.inletVelocitiesFirstStage(node.pack)
+	} else {
+		node.inletVelocities(node.pack)
+	}
 	node.hT(node.pack)
 	node.labour(node.pack)
 	node.temperatures(node.pack)
@@ -161,6 +223,7 @@ func (node *stageNode) Process() error {
 	node.gasOutput.SetState(states2.NewGasPortState(node.gas()))
 	node.pressureOutput.SetState(states2.NewPressurePortState(node.pack.P3Stag))
 	node.temperatureOutput.SetState(states2.NewTemperaturePortState(node.pack.T3Stag))
+	graph.CopyState(node.massRateInput, node.massRateOutput)
 	node.velocityOutput.SetState(states.NewVelocityPortState(node.pack.OutletTriangle, states.CompressorTriangleType))
 	return node.pack.Err
 }
@@ -371,9 +434,9 @@ func (node *stageNode) hT(pack *DataPack) {
 	pack.HT = node.htCoef * u * u
 }
 
-func (node *stageNode) inletVelocities(pack *DataPack) {
+func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 	if pack.Err != nil {
-		pack.Err = fmt.Errorf("%s: inlet_velocities", pack.Err.Error())
+		pack.Err = fmt.Errorf("%s: inlet_velocities_first_stage", pack.Err.Error())
 		return
 	}
 	gas := node.gas()
@@ -413,6 +476,33 @@ func (node *stageNode) inletVelocities(pack *DataPack) {
 	}
 
 	area1 := area1Func(lambda1)
+	pack.Area1 = area1
+
+	dOutIn := math.Sqrt(4 / math.Pi * 1 / (1 - node.dRelIn*node.dRelIn) * area1)
+	pack.StageGeometry = node.stageGeomGen.Generate(dOutIn)
+
+	u1Out := math.Pi * dOutIn * node.rpm / 60
+	pack.UOut = u1Out
+	ca1 := node.caCoef * u1Out
+	cu1 := cuCoef * u1Out
+
+	u1 := rRel * u1Out
+
+	pack.InletTriangle = states.NewCompressorVelocityTriangleFromProjections(cu1, ca1, u1)
+}
+
+func (node *stageNode) inletVelocities(pack *DataPack) {
+	if pack.Err != nil {
+		pack.Err = fmt.Errorf("%s: inlet_velocities", pack.Err.Error())
+		return
+	}
+
+	rRel := geometry.RRel(node.dRelIn)
+	cuCoef := rRel*(1-node.reactivity) - node.htCoef/(2*rRel)
+
+	prevGeom := node.prevStageGeom.StatorGeometry()
+	area1 := geometry.Area(prevGeom.XGapOut(), prevGeom)
+
 	pack.Area1 = area1
 
 	dOutIn := math.Sqrt(4 / math.Pi * 1 / (1 - node.dRelIn*node.dRelIn) * area1)
