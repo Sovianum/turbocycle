@@ -1,7 +1,6 @@
 package compressor
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
@@ -38,11 +37,6 @@ func (suite CompressorFittingTetSuite) TestUnitShape() {
 	suite.Require().NoError(err)
 
 	suite.InDelta(expectedPi, PiStag(suite.node), 1e-5)
-
-	for i, stage := range suite.node.Stages() {
-		fmt.Println("const", i+1, stage.GetDataPack().PiStag)
-	}
-	fmt.Println()
 }
 
 func (suite CompressorFittingTetSuite) TestBiParabolicShape() {
@@ -56,11 +50,6 @@ func (suite CompressorFittingTetSuite) TestBiParabolicShape() {
 	suite.Require().NoError(err)
 
 	suite.InDelta(expectedPi, PiStag(suite.node), 1e-5)
-
-	for i, stage := range suite.node.Stages() {
-		fmt.Println("bp", i+1, stage.GetDataPack().PiStag)
-	}
-	fmt.Println()
 }
 
 func TestCompressorFittingTestSuite(t *testing.T) {

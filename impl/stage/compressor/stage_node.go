@@ -91,19 +91,20 @@ type DataPack struct {
 func NewMidStageNode(
 	prevStageGeom geometry.StageGeometry,
 	htCoef, htCoefNext,
-	reactivity, reactivityNext,
-	labourCoef, etaAd, caCoef,
+	reactivityNext,
+	labourCoef, etaAd,
 	rpm float64,
 	stageGeomGen StageGeometryGenerator,
 	precision, relaxCoef, initLambda float64, iterLimit int,
 ) StageNode {
 	prevGeom := prevStageGeom.StatorGeometry()
 	dRelIn := geometry.DRel(prevGeom.XGapOut(), prevGeom)
+	// zeros below are values not used in mid stage calculation
 	result := NewFirstStageNode(
 		dRelIn,
 		htCoef, htCoefNext,
-		reactivity, reactivityNext,
-		labourCoef, etaAd, caCoef,
+		0, reactivityNext,
+		labourCoef, etaAd, 0,
 		rpm, stageGeomGen,
 		precision, relaxCoef, initLambda, iterLimit,
 	).(*stageNode)
@@ -352,7 +353,10 @@ func (node *stageNode) outletVelocities(pack *DataPack) {
 		return cuCoef * pack.UOut / (gdf.ACrit(k, gas.R(), pack.T3Stag) * cosAlpha * f3), nil
 	}
 
-	lambda3, err := common.SolveIterativelyWithValidation(lambda3Func, notNanValidator, node.initLambda, node.precision, node.relaxCoef, node.iterLimit)
+	lambda3, err := common.SolveIterativelyWithValidation(
+		lambda3Func, notNanValidator, node.initLambda,
+		node.precision, node.relaxCoef, node.iterLimit,
+	)
 	if err != nil {
 		pack.Err = fmt.Errorf("%s: outlet_velocities", err.Error())
 		return
@@ -496,10 +500,6 @@ func (node *stageNode) inletVelocities(pack *DataPack) {
 		pack.Err = fmt.Errorf("%s: inlet_velocities", pack.Err.Error())
 		return
 	}
-
-	rRel := geometry.RRel(node.dRelIn)
-	cuCoef := rRel*(1-node.reactivity) - node.htCoef/(2*rRel)
-
 	prevGeom := node.prevStageGeom.StatorGeometry()
 	area1 := geometry.Area(prevGeom.XGapOut(), prevGeom)
 
@@ -510,12 +510,8 @@ func (node *stageNode) inletVelocities(pack *DataPack) {
 
 	u1Out := math.Pi * dOutIn * node.rpm / 60
 	pack.UOut = u1Out
-	ca1 := node.caCoef * u1Out
-	cu1 := cuCoef * u1Out
 
-	u1 := rRel * u1Out
-
-	pack.InletTriangle = states.NewCompressorVelocityTriangleFromProjections(cu1, ca1, u1)
+	pack.InletTriangle = node.velocityInput.GetState().Value().(states.VelocityTriangle)
 }
 
 // below are private accessors

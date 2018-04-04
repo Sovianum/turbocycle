@@ -265,8 +265,8 @@ func (node *stagedCompressorNode) preInitMidStages() []DimlessMidStage {
 			return NewMidStageNode(
 				prevGeom,
 				node.htLaw(j), node.htLaw(j+1),
-				node.reactivityLaw(j), node.reactivityLaw(j+1),
-				node.labourCoefLaw(j), node.etaAdLaw(j), node.caCoefLaw(j),
+				node.reactivityLaw(j+1),
+				node.labourCoefLaw(j), node.etaAdLaw(j),
 				node.rpm, node.geomList[j],
 				node.precision, node.relaxCoef, node.initLambda, node.iterLimit,
 			)
