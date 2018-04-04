@@ -23,6 +23,16 @@ type StagedCompressorNode interface {
 	nodes.MassRateChannel
 	Stages() []StageNode
 	Stage(num int) StageNode
+	GetHtLaw() common.DiscreteFunc
+	SetHtLaw(htLaw common.DiscreteFunc)
+}
+
+func PiStag(node StagedCompressorNode) float64 {
+	result := 1.
+	for _, stage := range node.Stages() {
+		result *= stage.GetDataPack().PiStag
+	}
+	return result
 }
 
 func NewStagedCompressorNode(
@@ -102,6 +112,14 @@ type stagedCompressorNode struct {
 	velocityOutput    graph.Port
 
 	stages []StageNode
+}
+
+func (node *stagedCompressorNode) GetHtLaw() common.DiscreteFunc {
+	return node.htLaw
+}
+
+func (node *stagedCompressorNode) SetHtLaw(htLaw common.DiscreteFunc) {
+	node.htLaw = htLaw
 }
 
 func (node *stagedCompressorNode) GetName() string {

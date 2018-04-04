@@ -20,9 +20,9 @@ func FromArr(arr []float64, extend bool) DiscreteFunc {
 	}
 }
 
-func FromContinuousFunc(f func(x float64) float64) DiscreteFunc {
+func FromDistribution(d Func1D) DiscreteFunc {
 	return func(id int) float64 {
-		return f(float64(id))
+		return d(float64(id))
 	}
 }
 
