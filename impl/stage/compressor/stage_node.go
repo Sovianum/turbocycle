@@ -15,50 +15,8 @@ import (
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
-func notNanValidator(x float64) error {
-	if math.IsNaN(x) {
-		return fmt.Errorf("nan obtained")
-	}
-	return nil
-}
-
-func InitFromPreviousStage(source, dest StageNode) {
-	graph.CopyAll(
-		[]graph.Port{
-			source.GasOutput(), source.PressureOutput(),
-			source.TemperatureOutput(), source.MassRateOutput(),
-			source.VelocityOutput(),
-		},
-		[]graph.Port{
-			dest.GasInput(), dest.PressureInput(),
-			dest.TemperatureInput(), dest.MassRateInput(),
-			dest.VelocityInput(),
-		},
-	)
-}
-
-func LinkStages(source, dest StageNode) {
-	graph.LinkAll(
-		[]graph.Port{
-			source.GasOutput(), source.PressureOutput(),
-			source.TemperatureOutput(), source.MassRateOutput(),
-			source.VelocityOutput(),
-		},
-		[]graph.Port{
-			dest.GasInput(), dest.PressureInput(),
-			dest.TemperatureInput(), dest.MassRateInput(),
-			dest.VelocityInput(),
-		},
-	)
-}
-
 type StageNode interface {
-	graph.Node
-	nodes.GasChannel
-	nodes.PressureChannel
-	nodes.TemperatureChannel
-	common2.VelocityChannel
-	nodes.MassRateChannel
+	common2.StageChannel
 	GetDataPack() *DataPack
 }
 
@@ -139,40 +97,12 @@ func NewFirstStageNode(
 		iterLimit:      iterLimit,
 		isFirstStage:   true,
 	}
-
-	graph.AttachAllWithTags(
-		result,
-		[]*graph.Port{
-			&result.gasInput, &result.gasOutput,
-			&result.pressureInput, &result.pressureOutput,
-			&result.temperatureInput, &result.temperatureOutput,
-			&result.velocityInput, &result.velocityOutput,
-			&result.massRateInput, &result.massRateOutput,
-		},
-		[]string{
-			nodes.GasInputTag, nodes.GasOutputTag,
-			nodes.PressureInputTag, nodes.PressureOutputTag,
-			nodes.TemperatureInputTag, nodes.TemperatureOutputTag,
-			states.VelocityInletTag, states.VelocityOutletTag,
-			nodes.MassRateInputTag, nodes.MassRateOutputTag,
-		},
-	)
+	result.BaseStage = common2.NewBaseStage(result)
 	return result
 }
 
 type stageNode struct {
-	graph.BaseNode
-
-	gasInput          graph.Port
-	gasOutput         graph.Port
-	pressureInput     graph.Port
-	pressureOutput    graph.Port
-	temperatureInput  graph.Port
-	temperatureOutput graph.Port
-	velocityInput     graph.Port
-	velocityOutput    graph.Port
-	massRateInput     graph.Port
-	massRateOutput    graph.Port
+	*common2.BaseStage
 
 	dRelIn     float64
 	caCoef     float64
@@ -221,87 +151,12 @@ func (node *stageNode) Process() error {
 	node.outletVelocities(node.pack)
 	node.midVelocities(node.pack)
 
-	node.gasOutput.SetState(states2.NewGasPortState(node.gas()))
-	node.pressureOutput.SetState(states2.NewPressurePortState(node.pack.P3Stag))
-	node.temperatureOutput.SetState(states2.NewTemperaturePortState(node.pack.T3Stag))
-	graph.CopyState(node.massRateInput, node.massRateOutput)
-	node.velocityOutput.SetState(states.NewVelocityPortState(node.pack.OutletTriangle, states.CompressorTriangleType))
+	node.GasOutput().SetState(states2.NewGasPortState(node.gas()))
+	node.PressureOutput().SetState(states2.NewPressurePortState(node.pack.P3Stag))
+	node.TemperatureOutput().SetState(states2.NewTemperaturePortState(node.pack.T3Stag))
+	graph.CopyState(node.MassRateInput(), node.MassRateOutput())
+	node.VelocityOutput().SetState(states.NewVelocityPortState(node.pack.OutletTriangle, states.CompressorTriangleType))
 	return node.pack.Err
-}
-
-func (node *stageNode) GetRequirePorts() ([]graph.Port, error) {
-	return []graph.Port{
-		node.gasInput,
-		node.pressureInput,
-		node.temperatureInput,
-		node.velocityInput,
-		node.massRateInput,
-	}, nil
-}
-
-func (node *stageNode) GetUpdatePorts() ([]graph.Port, error) {
-	return []graph.Port{
-		node.gasOutput,
-		node.pressureOutput,
-		node.temperatureOutput,
-		node.velocityOutput,
-		node.massRateOutput,
-	}, nil
-}
-
-func (node *stageNode) GetPorts() []graph.Port {
-	return []graph.Port{
-		node.gasInput,
-		node.gasOutput,
-		node.pressureInput,
-		node.pressureOutput,
-		node.temperatureInput,
-		node.temperatureOutput,
-		node.velocityInput,
-		node.velocityOutput,
-		node.massRateInput,
-		node.massRateOutput,
-	}
-}
-
-func (node *stageNode) GasOutput() graph.Port {
-	return node.gasOutput
-}
-
-func (node *stageNode) GasInput() graph.Port {
-	return node.gasInput
-}
-
-func (node *stageNode) PressureOutput() graph.Port {
-	return node.pressureOutput
-}
-
-func (node *stageNode) PressureInput() graph.Port {
-	return node.pressureInput
-}
-
-func (node *stageNode) TemperatureOutput() graph.Port {
-	return node.temperatureOutput
-}
-
-func (node *stageNode) TemperatureInput() graph.Port {
-	return node.temperatureInput
-}
-
-func (node *stageNode) VelocityInput() graph.Port {
-	return node.velocityInput
-}
-
-func (node *stageNode) VelocityOutput() graph.Port {
-	return node.velocityOutput
-}
-
-func (node *stageNode) MassRateInput() graph.Port {
-	return node.massRateInput
-}
-
-func (node *stageNode) MassRateOutput() graph.Port {
-	return node.massRateOutput
 }
 
 func (node *stageNode) midVelocities(pack *DataPack) {
@@ -354,7 +209,7 @@ func (node *stageNode) outletVelocities(pack *DataPack) {
 	}
 
 	lambda3, err := common.SolveIterativelyWithValidation(
-		lambda3Func, notNanValidator, node.initLambda,
+		lambda3Func, common2.NotNanValidator, node.initLambda,
 		node.precision, node.relaxCoef, node.iterLimit,
 	)
 	if err != nil {
@@ -406,7 +261,7 @@ func (node *stageNode) temperatures(pack *DataPack) {
 
 	tOut, err := common.SolveIterativelyWithValidation(
 		iterFunc,
-		notNanValidator,
+		common2.NotNanValidator,
 		node.t1Stag(), node.precision, node.relaxCoef, node.iterLimit,
 	)
 	if err != nil {
@@ -471,7 +326,7 @@ func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 
 	lambda1, err := common.SolveIterativelyWithValidation(
 		lambda1Func,
-		notNanValidator,
+		common2.NotNanValidator,
 		node.initLambda, node.precision, node.relaxCoef, node.iterLimit,
 	)
 	if err != nil {
@@ -511,31 +366,31 @@ func (node *stageNode) inletVelocities(pack *DataPack) {
 	u1Out := math.Pi * dOutIn * node.rpm / 60
 	pack.UOut = u1Out
 
-	pack.InletTriangle = node.velocityInput.GetState().Value().(states.VelocityTriangle)
+	pack.InletTriangle = node.VelocityInput().GetState().Value().(states.VelocityTriangle)
 }
 
 // below are private accessors
 
 func (node *stageNode) inletTriangle() states.VelocityTriangle {
-	return node.velocityInput.GetState().Value().(states.VelocityTriangle)
+	return node.VelocityInput().GetState().Value().(states.VelocityTriangle)
 }
 
 func (node *stageNode) massRate() float64 {
-	return node.massRateInput.GetState().(states2.MassRatePortState).MassRate
+	return node.MassRateInput().GetState().(states2.MassRatePortState).MassRate
 }
 
 func (node *stageNode) p1Stag() float64 {
-	return node.pressureInput.GetState().(states2.PressurePortState).PStag
+	return node.PressureInput().GetState().(states2.PressurePortState).PStag
 }
 
 func (node *stageNode) t1Stag() float64 {
-	return node.temperatureInput.GetState().(states2.TemperaturePortState).TStag
+	return node.TemperatureInput().GetState().(states2.TemperaturePortState).TStag
 }
 
 func (node *stageNode) gas() gases.Gas {
-	return node.gasInput.GetState().(states2.GasPortState).Gas
+	return node.GasInput().GetState().(states2.GasPortState).Gas
 }
 
 func (node *stageNode) statorInletTriangle() states.VelocityTriangle {
-	return node.velocityInput.GetState().(states.VelocityPortState).Triangle
+	return node.VelocityInput().GetState().(states.VelocityPortState).Triangle
 }

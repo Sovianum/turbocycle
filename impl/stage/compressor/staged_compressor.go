@@ -5,22 +5,15 @@ import (
 
 	common2 "github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
-	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/stage/common"
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
-	"github.com/Sovianum/turbocycle/impl/stage/states"
 )
 
 type dimlessFirstStage func(dRelIn float64) StageNode
 type dimlessMidStage func(prevGeom geometry.StageGeometry) StageNode
 
 type StagedCompressorNode interface {
-	graph.Node
-	nodes.GasChannel
-	nodes.PressureChannel
-	nodes.TemperatureChannel
-	common.VelocityChannel
-	nodes.MassRateChannel
+	common.StageChannel
 	Stages() []StageNode
 	Stage(num int) StageNode
 	GetHtLaw() common.DiscreteFunc
@@ -58,29 +51,12 @@ func NewStagedCompressorNode(
 		initLambda: initLambda,
 		iterLimit:  iterLimit,
 	}
-
-	graph.AttachAllWithTags(
-		result,
-		[]*graph.Port{
-			&result.gasInput, &result.gasOutput,
-			&result.pressureInput, &result.pressureOutput,
-			&result.temperatureInput, &result.temperatureOutput,
-			&result.velocityInput, &result.velocityOutput,
-			&result.massRateInput, &result.massRateOutput,
-		},
-		[]string{
-			nodes.GasInputTag, nodes.GasOutputTag,
-			nodes.PressureInputTag, nodes.PressureOutputTag,
-			nodes.TemperatureInputTag, nodes.TemperatureOutputTag,
-			states.VelocityInletTag, states.VelocityOutletTag,
-			nodes.MassRateInputTag, nodes.MassRateOutputTag,
-		},
-	)
+	result.BaseStage = common.NewBaseStage(result)
 	return result
 }
 
 type stagedCompressorNode struct {
-	graph.BaseNode
+	*common.BaseStage
 
 	stageNum int
 	geomList []StageGeometryGenerator
@@ -98,18 +74,6 @@ type stagedCompressorNode struct {
 	relaxCoef  float64
 	initLambda float64
 	iterLimit  int
-
-	gasInput         graph.Port
-	temperatureInput graph.Port
-	pressureInput    graph.Port
-	massRateInput    graph.Port
-	velocityInput    graph.Port
-
-	gasOutput         graph.Port
-	temperatureOutput graph.Port
-	pressureOutput    graph.Port
-	massRateOutput    graph.Port
-	velocityOutput    graph.Port
 
 	stages []StageNode
 }
@@ -144,67 +108,12 @@ func (node *stagedCompressorNode) Process() error {
 			lastStage.VelocityOutput(),
 		},
 		[]graph.Port{
-			node.gasOutput, node.temperatureOutput,
-			node.pressureOutput, node.massRateOutput,
-			node.velocityOutput,
+			node.GasOutput(), node.TemperatureOutput(),
+			node.PressureOutput(), node.MassRateOutput(),
+			node.VelocityOutput(),
 		},
 	)
 	return nil
-}
-
-func (node *stagedCompressorNode) GetRequirePorts() ([]graph.Port, error) {
-	return []graph.Port{node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput, node.velocityInput}, nil
-}
-
-func (node *stagedCompressorNode) GetUpdatePorts() ([]graph.Port, error) {
-	return []graph.Port{node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput, node.velocityOutput}, nil
-}
-
-func (node *stagedCompressorNode) GetPorts() []graph.Port {
-	return []graph.Port{
-		node.gasInput, node.temperatureInput, node.pressureInput, node.massRateInput, node.velocityInput,
-		node.gasOutput, node.temperatureOutput, node.pressureOutput, node.massRateOutput, node.velocityOutput,
-	}
-}
-
-func (node *stagedCompressorNode) GasOutput() graph.Port {
-	return node.gasOutput
-}
-
-func (node *stagedCompressorNode) GasInput() graph.Port {
-	return node.gasInput
-}
-
-func (node *stagedCompressorNode) PressureOutput() graph.Port {
-	return node.pressureOutput
-}
-
-func (node *stagedCompressorNode) PressureInput() graph.Port {
-	return node.pressureInput
-}
-
-func (node *stagedCompressorNode) TemperatureOutput() graph.Port {
-	return node.temperatureOutput
-}
-
-func (node *stagedCompressorNode) TemperatureInput() graph.Port {
-	return node.temperatureInput
-}
-
-func (node *stagedCompressorNode) VelocityInput() graph.Port {
-	return node.velocityInput
-}
-
-func (node *stagedCompressorNode) VelocityOutput() graph.Port {
-	return node.velocityOutput
-}
-
-func (node *stagedCompressorNode) MassRateInput() graph.Port {
-	return node.massRateInput
-}
-
-func (node *stagedCompressorNode) MassRateOutput() graph.Port {
-	return node.massRateOutput
 }
 
 func (node *stagedCompressorNode) Stages() []StageNode {
@@ -231,8 +140,8 @@ func (node *stagedCompressorNode) solveAll(preFirstStage dimlessFirstStage, preM
 
 		stage := dimlessStage(geom)
 		prevStage := stages[i]
-		LinkStages(prevStage, stage)
-		InitFromPreviousStage(prevStage, stage)
+		common.LinkStages(prevStage, stage)
+		common.InitFromPreviousStage(prevStage, stage)
 
 		if err := stage.Process(); err != nil {
 			return nil, fmt.Errorf("failed on stage %d: %s", i+1, err.Error())
@@ -245,9 +154,9 @@ func (node *stagedCompressorNode) solveAll(preFirstStage dimlessFirstStage, preM
 func (node *stagedCompressorNode) initFirstStage(firstStage StageNode) {
 	graph.CopyAll(
 		[]graph.Port{
-			node.gasInput, node.temperatureInput,
-			node.pressureInput, node.massRateInput,
-			node.velocityInput,
+			node.GasInput(), node.TemperatureInput(),
+			node.PressureInput(), node.MassRateInput(),
+			node.VelocityInput(),
 		},
 		[]graph.Port{
 			firstStage.GasInput(), firstStage.TemperatureInput(),

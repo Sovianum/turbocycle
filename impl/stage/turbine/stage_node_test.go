@@ -168,8 +168,8 @@ func (suite *StageNodeTestSuite) TestGetStatorMeanInletDiameter() {
 
 func (suite *StageNodeTestSuite) TestDensity0() {
 	var density0 = p0 / (getGas().R() * t0)
-	suite.node.temperatureInput.SetState(states.NewTemperaturePortState(t0))
-	suite.node.pressureInput.SetState(states.NewPressurePortState(p0))
+	suite.node.TemperatureInput().SetState(states.NewTemperaturePortState(t0))
+	suite.node.PressureInput().SetState(states.NewPressurePortState(p0))
 	suite.node.thermo0(suite.pack)
 
 	assert.InDelta(suite.T(), density0, suite.pack.Density0, 0.1) // low precision cos use static parameters

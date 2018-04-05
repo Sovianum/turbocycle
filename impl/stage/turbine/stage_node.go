@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
@@ -15,20 +14,8 @@ import (
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
-func notNanValidator(x float64) error {
-	if math.IsNaN(x) {
-		return fmt.Errorf("nan obtained")
-	}
-	return nil
-}
-
 type StageNode interface {
-	graph.Node
-	nodes.GasChannel
-	nodes.PressureChannel
-	nodes.TemperatureChannel
-	common2.VelocityChannel
-	nodes.MassRateChannel
+	common2.StageChannel
 	SetFirstStageMode(isFirstStage bool)
 	SetAlpha1FirstStage(alpha1FirstStage float64)
 	StageGeomGen() StageGeometryGenerator
@@ -49,7 +36,7 @@ func NewTurbineStageNode(
 	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
 	gen StageGeometryGenerator,
 ) StageNode {
-	var result = &turbineStageNode{
+	result := &turbineStageNode{
 		n:                n,
 		stageHeatDrop:    stageHeatDrop,
 		reactivity:       reactivity,
@@ -61,43 +48,17 @@ func NewTurbineStageNode(
 		alpha1FirstStage: math.NaN(),
 		isFirstStageNode: false,
 	}
-	result.gasInput = graph.NewAttachedPort(result)
-	result.gasOutput = graph.NewAttachedPort(result)
-
-	result.pressureInput = graph.NewAttachedPort(result)
-	result.pressureOutput = graph.NewAttachedPort(result)
-
-	result.temperatureInput = graph.NewAttachedPort(result)
-	result.temperatureOutput = graph.NewAttachedPort(result)
-
-	result.velocityInput = graph.NewAttachedPort(result)
-	result.velocityInput.SetState(
+	result.BaseStage = common2.NewBaseStage(result)
+	result.VelocityInput().SetState(
 		states2.NewVelocityPortState(
 			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
 		),
 	)
-
-	result.velocityOutput = graph.NewAttachedPort(result)
-
-	result.massRateInput = graph.NewAttachedPort(result)
-	result.massRateOutput = graph.NewAttachedPort(result)
-
 	return result
 }
 
 type turbineStageNode struct {
-	graph.BaseNode
-
-	gasInput          graph.Port
-	gasOutput         graph.Port
-	pressureInput     graph.Port
-	pressureOutput    graph.Port
-	temperatureInput  graph.Port
-	temperatureOutput graph.Port
-	velocityInput     graph.Port
-	velocityOutput    graph.Port
-	massRateInput     graph.Port
-	massRateOutput    graph.Port
+	*common2.BaseStage
 
 	n                float64
 	stageHeatDrop    float64
@@ -176,51 +137,16 @@ func (node *turbineStageNode) GetName() string {
 	return common.EitherString(node.GetInstanceName(), "TurbineStage")
 }
 
-func (node *turbineStageNode) GetPorts() []graph.Port {
-	return []graph.Port{
-		node.gasInput,
-		node.gasOutput,
-		node.pressureInput,
-		node.pressureOutput,
-		node.temperatureInput,
-		node.temperatureOutput,
-		node.velocityInput,
-		node.velocityOutput,
-		node.massRateInput,
-		node.massRateOutput,
-	}
-}
-
-func (node *turbineStageNode) GetRequirePorts() ([]graph.Port, error) {
-	return []graph.Port{
-		node.gasInput,
-		node.pressureInput,
-		node.temperatureInput,
-		node.velocityInput,
-		node.massRateInput,
-	}, nil
-}
-
-func (node *turbineStageNode) GetUpdatePorts() ([]graph.Port, error) {
-	return []graph.Port{
-		node.gasOutput,
-		node.pressureOutput,
-		node.temperatureOutput,
-		node.velocityOutput,
-		node.massRateOutput,
-	}, nil
-}
-
 func (node *turbineStageNode) Process() error {
 	node.pack = node.getDataPack()
 	if node.pack.Err != nil {
 		return node.pack.Err
 	}
 
-	node.temperatureOutput.SetState(states.NewTemperaturePortState(node.pack.T2Stag))
-	node.pressureOutput.SetState(states.NewPressurePortState(node.pack.P2Stag))
-	node.massRateOutput.SetState(states.NewMassRatePortState(node.massRate())) // mass rate is constant
-	node.velocityOutput.SetState(states2.NewVelocityPortState(node.pack.RotorOutletTriangle, states2.OutletTriangleType))
+	node.TemperatureOutput().SetState(states.NewTemperaturePortState(node.pack.T2Stag))
+	node.PressureOutput().SetState(states.NewPressurePortState(node.pack.P2Stag))
+	node.MassRateOutput().SetState(states.NewMassRatePortState(node.massRate())) // mass rate is constant
+	node.VelocityOutput().SetState(states2.NewVelocityPortState(node.pack.RotorOutletTriangle, states2.OutletTriangleType))
 	return nil
 }
 
@@ -237,46 +163,6 @@ func (node *turbineStageNode) SetFirstStageMode(isFirstStageNode bool) {
 
 func (node *turbineStageNode) SetAlpha1FirstStage(alpha1FirstStage float64) {
 	node.alpha1FirstStage = alpha1FirstStage
-}
-
-func (node *turbineStageNode) GasOutput() graph.Port {
-	return node.gasOutput
-}
-
-func (node *turbineStageNode) GasInput() graph.Port {
-	return node.gasInput
-}
-
-func (node *turbineStageNode) VelocityInput() graph.Port {
-	return node.velocityInput
-}
-
-func (node *turbineStageNode) VelocityOutput() graph.Port {
-	return node.velocityOutput
-}
-
-func (node *turbineStageNode) PressureOutput() graph.Port {
-	return node.pressureOutput
-}
-
-func (node *turbineStageNode) PressureInput() graph.Port {
-	return node.pressureInput
-}
-
-func (node *turbineStageNode) TemperatureOutput() graph.Port {
-	return node.temperatureOutput
-}
-
-func (node *turbineStageNode) TemperatureInput() graph.Port {
-	return node.temperatureInput
-}
-
-func (node *turbineStageNode) MassRateInput() graph.Port {
-	return node.massRateInput
-}
-
-func (node *turbineStageNode) MassRateOutput() graph.Port {
-	return node.massRateOutput
 }
 
 func (node *turbineStageNode) StageGeomGen() StageGeometryGenerator {
@@ -478,7 +364,7 @@ func (node *turbineStageNode) thermo2(pack *DataPack) {
 		newT2 := t1 + ((w1*w1-w2*w2)+(u2*u2-u1*u1))/(2*cp)
 		return newT2, nil
 	}
-	t2, err := common.SolveIterativelyWithValidation(t2Func, notNanValidator, t1, node.precision, 1, nodes.DefaultN)
+	t2, err := common.SolveIterativelyWithValidation(t2Func, common2.NotNanValidator, t1, node.precision, 1, nodes.DefaultN)
 	if err != nil {
 		pack.Err = fmt.Errorf("%s: t2: thermo2", err.Error())
 		return
@@ -540,7 +426,7 @@ func (node *turbineStageNode) velocity1FirstStage(pack *DataPack) {
 	area := geometry.Area(0, pack.StageGeometry.StatorGeometry())
 	density := node.p0Stag() / (node.gas().R() * node.t0Stag()) // todo use static density instead of stag
 	ca := massRate / (area * density)
-	node.velocityInput.SetState(states2.NewVelocityPortState(
+	node.VelocityInput().SetState(states2.NewVelocityPortState(
 		states2.NewInletTriangle(0, ca, math.Pi/2),
 		states2.InletTriangleType,
 	))
@@ -600,7 +486,7 @@ func (node *turbineStageNode) thermo1(pack *DataPack) {
 		return t0Stag - c1*c1/(2*cp), nil
 	}
 	t1, err := common.SolveIterativelyWithValidation(
-		t1Func, notNanValidator, node.t0Stag(), node.precision, 1, nodes.DefaultN,
+		t1Func, common2.NotNanValidator, node.t0Stag(), node.precision, 1, nodes.DefaultN,
 	)
 	if err != nil {
 		pack.Err = fmt.Errorf("%s: t1: thermo1", err.Error())
@@ -670,21 +556,21 @@ func (node *turbineStageNode) thermo0(pack *DataPack) {
 // below are private accessors
 
 func (node *turbineStageNode) massRate() float64 {
-	return node.massRateInput.GetState().(states.MassRatePortState).MassRate
+	return node.MassRateInput().GetState().(states.MassRatePortState).MassRate
 }
 
 func (node *turbineStageNode) p0Stag() float64 {
-	return node.pressureInput.GetState().(states.PressurePortState).PStag
+	return node.PressureInput().GetState().(states.PressurePortState).PStag
 }
 
 func (node *turbineStageNode) t0Stag() float64 {
-	return node.temperatureInput.GetState().(states.TemperaturePortState).TStag
+	return node.TemperatureInput().GetState().(states.TemperaturePortState).TStag
 }
 
 func (node *turbineStageNode) gas() gases.Gas {
-	return node.gasInput.GetState().(states.GasPortState).Gas
+	return node.GasInput().GetState().(states.GasPortState).Gas
 }
 
 func (node *turbineStageNode) statorInletTriangle() states2.VelocityTriangle {
-	return node.velocityInput.GetState().(states2.VelocityPortState).Triangle
+	return node.VelocityInput().GetState().(states2.VelocityPortState).Triangle
 }
