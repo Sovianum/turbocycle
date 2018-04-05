@@ -17,6 +17,18 @@ func GetEqSys1D(sysCall variator.SysCall, funcSetter func(Func1D), fg FuncGen1D)
 
 type FuncGen1D func(p float64) Func1D
 
+func NewDistributionVariator(gen FuncGen1D, funcSetter func(Func1D)) variator.Variator {
+	var localF float64
+	setter := func(f float64) {
+		localF = f
+		funcSetter(gen(f))
+	}
+	getter := func() float64 {
+		return localF
+	}
+	return variator.FromCallables(getter, setter)
+}
+
 func Scaler(base Func1D) FuncGen1D {
 	return func(p float64) Func1D {
 		return base.Scale(p)
