@@ -1,10 +1,36 @@
 package turbine
 
 import (
-	"math"
-
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 )
+
+func NewIncompleteStageGeometryGenerator(
+	incompleteStatorGen,
+	incompleteRotorGen IncompleteBladingGeometryGenerator,
+) IncompleteStageGeometryGenerator {
+	return &incompleteStageGeometryGenerator{
+		incompleteStatorGen: incompleteStatorGen,
+		incompleteRotorGen:  incompleteRotorGen,
+	}
+}
+
+type IncompleteStageGeometryGenerator interface {
+	GetGenerator(lRelIn float64) StageGeometryGenerator
+}
+
+type incompleteStageGeometryGenerator struct {
+	incompleteStatorGen IncompleteBladingGeometryGenerator
+	incompleteRotorGen  IncompleteBladingGeometryGenerator
+}
+
+func (gen *incompleteStageGeometryGenerator) GetGenerator(lRelIn float64) StageGeometryGenerator {
+	xRelStator := (1 + gen.incompleteStatorGen.DeltaRel()) / gen.incompleteStatorGen.Elongation()
+	xRelRotor := (1 + gen.incompleteRotorGen.DeltaRel()) / gen.incompleteRotorGen.Elongation()
+
+	lRelOutStator := RecalculateLRel(lRelIn, xRelStator, gen.incompleteStatorGen.GammaIn(), gen.incompleteStatorGen.GammaOut())
+	lRelOutRotor := RecalculateLRel(lRelOutStator, xRelRotor, gen.incompleteStatorGen.GammaIn(), gen.incompleteStatorGen.GammaOut())
+	return NewStageGeometryGenerator(lRelOutRotor, gen.incompleteStatorGen, gen.incompleteRotorGen)
+}
 
 type StageGeometryGenerator interface {
 	GenerateFromRotorInlet(dMeanIn float64) geometry.StageGeometry
@@ -18,24 +44,15 @@ func NewStageGeometryGenerator(
 	statorIncompleteGen,
 	rotorIncompleteGen IncompleteBladingGeometryGenerator,
 ) StageGeometryGenerator {
-	var getFactor = func(lRelOut float64) float64 {
-		var gammaIn, gammaOut = statorIncompleteGen.GammaIn(), statorIncompleteGen.GammaOut()
-		var _, gammaMean = geometry.GetTotalAndMeanLineAngles(gammaIn, gammaOut, MidLineFactor)
+	gammaIn, gammaOut := statorIncompleteGen.GammaIn(), statorIncompleteGen.GammaOut()
+	elongation := statorIncompleteGen.Elongation()
+	deltaRel := statorIncompleteGen.DeltaRel()
 
-		var elongation = statorIncompleteGen.Elongation()
-		var deltaRel = statorIncompleteGen.DeltaRel()
+	xRel := -(1 + deltaRel) / elongation
+	lRelOutStator := RecalculateLRel(lRelOut, xRel, gammaIn, gammaOut)
 
-		var enom1 = elongation
-		var enom2 = -(1 + deltaRel) * (math.Tan(gammaOut) - math.Tan(gammaIn))
-
-		var denom1 = elongation
-		var denom2 = -2 * (1 + deltaRel) * lRelOut * math.Tan(gammaMean)
-
-		return (enom1 + enom2) / (denom1 + denom2)
-	}
-
-	var rotorLRelOut = lRelOut
-	var statorLRelOut = rotorLRelOut * getFactor(lRelOut)
+	rotorLRelOut := lRelOut
+	statorLRelOut := lRelOutStator
 
 	return &stageGeometryGenerator{
 		statorGenerator: statorIncompleteGen.GetGenerator(statorLRelOut),

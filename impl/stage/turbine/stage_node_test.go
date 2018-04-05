@@ -15,12 +15,12 @@ import (
 
 const (
 	n             = 1e4
-	stageHeatDrop = 3e5
+	stageHeatDrop = 2.5e5
 	reactivity    = 0.5
 	phi           = 0.98
 	psi           = 0.98
 	airGapRel     = 0.001
-	precision     = 0.05
+	precision     = 1e-4
 
 	c0       = 50.
 	tg       = 1200.
@@ -151,18 +151,21 @@ func (suite *StageNodeTestSuite) TestStatorHeatDrop() {
 func (suite *StageNodeTestSuite) TestGetStatorMeanInletDiameter() {
 	suite.pack.Density0 = density0
 
-	var baRel = suite.gen.StatorGenerator().Elongation()
-	var _, gammaMean = geometry.GetTotalAndMeanLineAngles(
+	baRel := suite.gen.StatorGenerator().Elongation()
+	_, gammaMean := geometry.GetTotalAndMeanLineAngles(
 		gammaIn, gammaOut, MidLineFactor,
 	)
 
-	var enom = baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
-	var denom = baRel - 2*(1+deltaRel)*lRelOut*math.Tan(gammaMean)
-	var lRelIn = enom / denom
-	var expectedDMean = math.Sqrt(massRate / (math.Pi * c0 * density0 * lRelIn))
+	enom := baRel - (1+deltaRel)*(math.Tan(gammaOut)-math.Tan(gammaIn))
+	denom := baRel - 2*(1+deltaRel)*lRelOut*math.Tan(gammaMean)
+	lRelInRotor := lRelOut * enom / denom
+
+	lRelInStator := RecalculateLRel(lRelInRotor, -(1+deltaRel)/elongation, gammaIn, gammaOut)
+	expectedDMean := math.Sqrt(massRate / (math.Pi * c0 * density0 * lRelInStator))
 
 	suite.node.getStageGeometry(suite.pack)
 
+	suite.Require().Equal(c0, suite.node.statorInletTriangle().C())
 	suite.InDelta(expectedDMean, suite.pack.StatorMeanInletDiameter, 1e-4)
 }
 
