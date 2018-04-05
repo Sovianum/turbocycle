@@ -28,6 +28,14 @@ func LRelIn(gen BladingGeometryGenerator) float64 {
 	return enom / denom
 }
 
+func LRelOutGap(gen BladingGeometryGenerator) float64 {
+	return RecalculateLRel(
+		gen.LRelOut(),
+		gen.DeltaRel()/gen.Elongation(),
+		gen.GammaIn(), gen.GammaOut(),
+	)
+}
+
 func NewBladingGeometry(bladeWidth, gapWidth float64, innerProfile, outerProfile geometry.AxialProfileLine) geometry.BladingGeometry {
 	return geometry.NewBladingGeometry(bladeWidth, gapWidth, innerProfile, outerProfile, MidLineFactor)
 }

@@ -6,6 +6,7 @@ import (
 	"math"
 	"testing"
 
+	common2 "github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/impl/engine/states"
 	"github.com/Sovianum/turbocycle/impl/stage/common"
 	states2 "github.com/Sovianum/turbocycle/impl/stage/states"
@@ -13,18 +14,21 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const (
+	alpha1 = 20. / 180. * math.Pi
+)
+
 func getTestTurbine() StagedTurbineNode {
-	genFunc := func() StageGeometryGenerator {
-		return NewStageGeometryGenerator(
-			lRelOut,
+	genFunc := func() IncompleteStageGeometryGenerator {
+		return NewIncompleteStageGeometryGenerator(
 			NewIncompleteGenerator(elongation, deltaRel, gammaIn, gammaOut, approxTRel),
 			NewIncompleteGenerator(elongation, deltaRel, gammaIn, gammaOut, approxTRel),
 		)
 	}
-	gens := []StageGeometryGenerator{genFunc(), genFunc(), genFunc()}
+	gens := []IncompleteStageGeometryGenerator{genFunc(), genFunc(), genFunc()}
 
 	node := NewStagedTurbineNode(
-		n, stageHeatDrop*2,
+		n, alpha1, stageHeatDrop*2, 0.2,
 		common.Func1DFromConst(phi),
 		common.Func1DFromConst(psi),
 		common.Func1DFromConst(reactivity),
@@ -62,7 +66,7 @@ func (suite *StagedTurbineTestSuite) TestSmoke() {
 		suite.Require().NoError(e)
 		msgs[i] = string(b)
 	}
-	hold(msgs)
+
 	for i, stage := range suite.node.stages {
 		geom := stage.GetDataPack().StageGeometry
 		stator := geom.StatorGeometry()
@@ -76,10 +80,25 @@ func (suite *StagedTurbineTestSuite) TestSmoke() {
 			rotor.OuterProfile().Diameter(rotor.XGapOut()),
 		)
 	}
+	fmt.Println()
+	for i, stage := range suite.node.Stages() {
+		fmt.Printf(
+			"#%d: inlet: %s\t outlet: %s\n",
+			i,
+			SprintfTriangle(stage.GetDataPack().RotorInletTriangle),
+			SprintfTriangle(stage.GetDataPack().RotorOutletTriangle),
+		)
+	}
 }
 
 func TestStagedTurbineTestSuite(t *testing.T) {
 	suite.Run(t, new(StagedTurbineTestSuite))
 }
 
-func hold(interface{}) {}
+func SprintfTriangle(triangle states2.VelocityTriangle) string {
+	return fmt.Sprintf(
+		"alpha: %.3f; beta: %.3f",
+		common2.ToDegrees(triangle.Alpha()),
+		common2.ToDegrees(triangle.Beta()),
+	)
+}

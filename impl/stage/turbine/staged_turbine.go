@@ -15,21 +15,24 @@ type StagedTurbineNode interface {
 }
 
 func NewStagedTurbineNode(
-	rpm, totalHeatDrop float64,
+	rpm, alpha1, totalHeatDrop, lRelIn float64,
 	phiFunc, psiFunc, reactivityFunc,
 	airGapRelFunc, heatDropDistributionFunc common.Func1D,
-	stageGeomGens []StageGeometryGenerator,
+	incompleteStageGeomGens []IncompleteStageGeometryGenerator,
 	precision float64,
 ) StagedTurbineNode {
 	result := &stagedTurbineNode{
-		rpm:                      rpm,
-		totalHeatDrop:            totalHeatDrop,
+		rpm:           rpm,
+		alpha1:        alpha1,
+		totalHeatDrop: totalHeatDrop,
+		lRelIn:        lRelIn,
+
 		phiFunc:                  phiFunc,
 		psiFunc:                  psiFunc,
 		reactivityFunc:           reactivityFunc,
 		airGapRelFunc:            airGapRelFunc,
 		heatDropDistributionFunc: heatDropDistributionFunc,
-		stageGeomGens:            stageGeomGens,
+		incompleteStageGeomGens:  incompleteStageGeomGens,
 		precision:                precision,
 	}
 	result.BaseStage = common.NewBaseStage(result)
@@ -39,8 +42,10 @@ func NewStagedTurbineNode(
 type stagedTurbineNode struct {
 	*common.BaseStage
 
+	alpha1        float64
 	rpm           float64
 	totalHeatDrop float64
+	lRelIn        float64
 
 	phiFunc                  common.Func1D
 	psiFunc                  common.Func1D
@@ -48,8 +53,9 @@ type stagedTurbineNode struct {
 	airGapRelFunc            common.Func1D
 	heatDropDistributionFunc common.Func1D
 
-	stageGeomGens []StageGeometryGenerator
-	precision     float64
+	incompleteStageGeomGens []IncompleteStageGeometryGenerator
+
+	precision float64
 
 	stages []StageNode
 }
@@ -59,14 +65,38 @@ func (node *stagedTurbineNode) GetName() string {
 }
 
 func (node *stagedTurbineNode) Process() error {
-	node.createStages()
-	node.linkStages()
-	node.initFirstStage(node.stages[0])
-	for i, stage := range node.stages {
-		if err := stage.Process(); err != nil {
-			return fmt.Errorf("failed on stage %d: %s", i, err.Error())
-		}
+	stages := make([]StageNode, node.stageNum())
+
+	normDistrib := node.heatDropDistributionFunc.GetUnitNormalizedSamples(node.stagePositions())
+	firstStage := node.createFirstStage(
+		node.incompleteStageGeomGens[0].GetGenerator(node.lRelIn),
+		node.alpha1, normDistrib[0]*node.totalHeatDrop,
+	)
+	node.initFirstStage(firstStage)
+	if err := firstStage.Process(); err != nil {
+		return fmt.Errorf("failed on first stage: %s", err.Error())
 	}
+	stages[0] = firstStage
+
+	for i := range normDistrib[1:] {
+		rotorGeom := stages[i].GetDataPack().StageGeometry.RotorGeometry()
+		stage := node.createMidStage(
+			i+1,
+			node.incompleteStageGeomGens[i+1].GetGenerator(
+				LRelOutGap(stages[i].StageGeomGen().RotorGenerator()),
+			),
+			rotorGeom.MeanProfile().Diameter(rotorGeom.XGapOut()),
+			normDistrib[i+1]*node.totalHeatDrop,
+		)
+		common.LinkStages(stages[i], stage)
+		common.InitFromPreviousStage(stages[i], stage)
+
+		if err := stage.Process(); err != nil {
+			return fmt.Errorf("failed on stage %d: %s", i+1, err.Error())
+		}
+		stages[i+1] = stage
+	}
+	node.stages = stages
 	return nil
 }
 
@@ -93,27 +123,33 @@ func (node *stagedTurbineNode) initFirstStage(firstStage StageNode) {
 	)
 }
 
-func (node *stagedTurbineNode) linkStages() {
-	for i := 0; i != len(node.stages)-1; i++ {
-		common.LinkStages(node.stages[i], node.stages[i+1])
-	}
+func (node *stagedTurbineNode) createFirstStage(
+	stageGeomGen StageGeometryGenerator, alpha1, heatDrop float64,
+) StageNode {
+	return NewTurbineFirstStageNode(
+		alpha1, node.rpm, heatDrop,
+		node.reactivityFunc(0),
+		node.phiFunc(0),
+		node.psiFunc(0),
+		node.airGapRelFunc(0),
+		node.precision, stageGeomGen,
+	)
 }
 
-func (node *stagedTurbineNode) createStages() {
-	stages := make([]StageNode, node.stageNum())
-	stagePositions := node.stagePositions()
-	normDistrib := node.heatDropDistributionFunc.GetUnitNormalizedSamples(stagePositions)
-
-	for i, geomGen := range node.stageGeomGens {
-		x := stagePositions[i]
-		stages[i] = NewTurbineStageNode(
-			node.rpm, node.totalHeatDrop*normDistrib[i],
-			node.reactivityFunc(stagePositions[i]),
-			node.phiFunc(x), node.psiFunc(x),
-			node.airGapRelFunc(x), node.precision, geomGen,
-		)
-	}
-	node.stages = stages
+func (node *stagedTurbineNode) createMidStage(
+	ind int,
+	stageGeomGen StageGeometryGenerator,
+	dMeanIn, heatDrop float64,
+) StageNode {
+	floatInd := float64(ind)
+	return NewTurbineMidStageNode(
+		dMeanIn, node.rpm, heatDrop,
+		node.reactivityFunc(floatInd),
+		node.phiFunc(floatInd),
+		node.psiFunc(floatInd),
+		node.airGapRelFunc(floatInd),
+		node.precision, stageGeomGen,
+	)
 }
 
 func (node *stagedTurbineNode) stagePositions() []float64 {
@@ -125,5 +161,5 @@ func (node *stagedTurbineNode) stagePositions() []float64 {
 }
 
 func (node *stagedTurbineNode) stageNum() int {
-	return len(node.stageGeomGens)
+	return len(node.incompleteStageGeomGens)
 }

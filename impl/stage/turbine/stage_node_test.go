@@ -49,7 +49,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 		NewIncompleteGenerator(baRel, deltaRel, gammaIn, gammaOut, rotorApproxTRel),
 	)
 
-	suite.node = NewTurbineStageNode(
+	suite.node = NewTurbineSingleStageNode(
 		n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision, suite.gen,
 	).(*turbineStageNode)
 	suite.node.GasInput().SetState(states.NewGasPortState(gases.GetAir()))
@@ -66,7 +66,7 @@ func (suite *StageNodeTestSuite) SetupTest() {
 }
 
 func (suite *StageNodeTestSuite) TestCalcFirstStage() {
-	suite.node.SetFirstStageMode(true)
+	suite.node.SetStageMode(first)
 	suite.node.SetAlpha1FirstStage(common.ToRadians(14))
 	var pack = suite.node.getDataPack()
 
@@ -100,9 +100,9 @@ func (suite *StageNodeTestSuite) TestCalcFirstStage() {
 }
 
 func (suite *StageNodeTestSuite) TestInitCalcFirstStage() {
-	suite.node.SetFirstStageMode(true)
+	suite.node.SetStageMode(first)
 	suite.node.SetAlpha1FirstStage(common.ToRadians(14))
-	suite.node.initCalcFirstStage(suite.pack)
+	suite.node.initCalcFirst(suite.pack)
 	suite.False(math.IsNaN(suite.pack.RotorHeatDrop))
 	suite.False(math.IsNaN(suite.pack.T1Prime))
 	suite.False(math.IsNaN(suite.pack.C1Ad))
@@ -121,7 +121,7 @@ func (suite *StageNodeTestSuite) TestInitCalc() {
 		states2.NewInletTriangle(0, 10, math.Pi/2),
 		states2.InletTriangleType,
 	))
-	suite.node.initCalc(suite.pack)
+	suite.node.initCalcOnly(suite.pack)
 
 	suite.False(math.IsNaN(suite.pack.T0))
 	suite.False(math.IsNaN(suite.pack.P0))

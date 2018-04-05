@@ -15,9 +15,17 @@ import (
 	"github.com/Sovianum/turbocycle/material/gases"
 )
 
+type StageMode int8
+
+const (
+	only StageMode = 1 + iota // todo remove only mode
+	first
+	mid
+)
+
 type StageNode interface {
 	common2.StageChannel
-	SetFirstStageMode(isFirstStage bool)
+	SetStageMode(mode StageMode)
 	SetAlpha1FirstStage(alpha1FirstStage float64)
 	StageGeomGen() StageGeometryGenerator
 	Ht() float64
@@ -33,7 +41,43 @@ func InitFromTurbineNode(stage StageNode, turbine constructive.TurbineNode, mass
 	stage.SetAlpha1FirstStage(alpha1)
 }
 
-func NewTurbineStageNode(
+func NewTurbineMidStageNode(
+	dMeanIn, n, stageHeatDrop,
+	reactivity, phi, psi, airGapRel, precision float64,
+	gen StageGeometryGenerator,
+) StageNode {
+	result := NewTurbineSingleStageNode(n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision, gen).(*turbineStageNode)
+	result.mode = mid
+	result.dMeanIn = dMeanIn
+	return result
+}
+
+func NewTurbineFirstStageNode(
+	alpha1, n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
+	gen StageGeometryGenerator,
+) StageNode {
+	result := &turbineStageNode{
+		n:                n,
+		stageHeatDrop:    stageHeatDrop,
+		reactivity:       reactivity,
+		phi:              phi,
+		psi:              psi,
+		airGapRel:        airGapRel,
+		precision:        precision,
+		stageGeomGen:     gen,
+		alpha1FirstStage: alpha1,
+		mode:             first,
+	}
+	result.BaseStage = common2.NewBaseStage(result)
+	result.VelocityInput().SetState(
+		states2.NewVelocityPortState(
+			states2.NewInletTriangle(0, 0, math.Pi/2), states2.InletTriangleType,
+		),
+	)
+	return result
+}
+
+func NewTurbineSingleStageNode(
 	n, stageHeatDrop, reactivity, phi, psi, airGapRel, precision float64,
 	gen StageGeometryGenerator,
 ) StageNode {
@@ -47,7 +91,7 @@ func NewTurbineStageNode(
 		precision:        precision,
 		stageGeomGen:     gen,
 		alpha1FirstStage: math.NaN(),
-		isFirstStageNode: false,
+		mode:             only,
 	}
 	result.BaseStage = common2.NewBaseStage(result)
 	result.VelocityInput().SetState(
@@ -61,6 +105,10 @@ func NewTurbineStageNode(
 type turbineStageNode struct {
 	*common2.BaseStage
 
+	lRelIn float64
+
+	dMeanIn float64
+
 	n                float64
 	stageHeatDrop    float64
 	reactivity       float64
@@ -69,13 +117,12 @@ type turbineStageNode struct {
 	airGapRel        float64
 	alpha1FirstStage float64
 
-	incompleteStageGeomGen IncompleteStageGeometryGenerator
-	stageGeomGen           StageGeometryGenerator
+	stageGeomGen StageGeometryGenerator
 
 	precision float64
 
-	isFirstStageNode bool
-	pack             *DataPack
+	mode StageMode
+	pack *DataPack
 }
 
 type DataPack struct {
@@ -189,8 +236,8 @@ func (node *turbineStageNode) GetDataPack() DataPack {
 	return *node.pack
 }
 
-func (node *turbineStageNode) SetFirstStageMode(isFirstStageNode bool) {
-	node.isFirstStageNode = isFirstStageNode
+func (node *turbineStageNode) SetStageMode(mode StageMode) {
+	node.mode = mode
 }
 
 func (node *turbineStageNode) SetAlpha1FirstStage(alpha1FirstStage float64) {
@@ -213,10 +260,15 @@ func (node *turbineStageNode) getDataPack() *DataPack {
 	var pack = new(DataPack)
 	pack.T0 = node.t0Stag()
 	pack.P0 = node.p0Stag()
-	if node.isFirstStageNode {
-		node.initCalcFirstStage(pack)
-	} else {
-		node.initCalc(pack)
+	switch node.mode {
+	case first:
+		node.initCalcFirst(pack)
+	case only:
+		node.initCalcOnly(pack)
+	case mid:
+		node.initCalcMid(pack)
+	default:
+		pack.Err = fmt.Errorf("invalid mode")
 	}
 
 	node.relativeThermo(pack)
@@ -245,17 +297,24 @@ func (node *turbineStageNode) pushExtraData(pack *DataPack) {
 	pack.AirGapRel = node.airGapRel
 }
 
-func (node *turbineStageNode) initCalc(pack *DataPack) {
+func (node *turbineStageNode) initCalcOnly(pack *DataPack) {
 	node.thermo0(pack)
 	node.getStageGeometry(pack)
 	node.thermo1(pack)
 	node.velocity1(pack)
 }
 
-func (node *turbineStageNode) initCalcFirstStage(pack *DataPack) {
+func (node *turbineStageNode) initCalcFirst(pack *DataPack) {
 	pack.Alpha1 = node.alpha1FirstStage
 	node.thermo1(pack)
 	node.velocity1FirstStage(pack)
+}
+
+func (node *turbineStageNode) initCalcMid(pack *DataPack) {
+	pack.StageGeometry = node.stageGeomGen.GenerateFromStatorInlet(node.dMeanIn)
+	node.thermo0(pack)
+	node.thermo1(pack)
+	node.velocity1(pack)
 }
 
 func (node *turbineStageNode) etaTStag(pack *DataPack) {
@@ -570,7 +629,7 @@ func (node *turbineStageNode) thermo1(pack *DataPack) {
 		pack.C1Ad*node.phi,
 		&pack.C1,
 	)
-	if node.isFirstStageNode {
+	if node.mode == first {
 		node.c1aFirstStage(pack)
 	}
 
