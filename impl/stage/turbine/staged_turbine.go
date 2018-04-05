@@ -12,6 +12,16 @@ type StagedTurbineNode interface {
 	common.StageChannel
 	Stages() []StageNode
 	Stage(num int) StageNode
+	Ht() float64
+	SetHt(ht float64)
+}
+
+func PiStag(node StagedTurbineNode) float64 {
+	result := 1.
+	for _, stage := range node.Stages() {
+		result *= stage.GetDataPack().Pi
+	}
+	return result
 }
 
 func NewStagedTurbineNode(
@@ -58,6 +68,14 @@ type stagedTurbineNode struct {
 	precision float64
 
 	stages []StageNode
+}
+
+func (node *stagedTurbineNode) SetHt(ht float64) {
+	node.totalHeatDrop = ht
+}
+
+func (node *stagedTurbineNode) Ht() float64 {
+	return node.totalHeatDrop
 }
 
 func (node *stagedTurbineNode) GetName() string {
