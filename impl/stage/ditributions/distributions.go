@@ -2,9 +2,21 @@ package ditributions
 
 import "github.com/Sovianum/turbocycle/impl/stage/common"
 
-func GetUnitConstant() common.Func1D {
+func GetLinear(x0, y0, x1, y1 float64) common.Func1D {
+	k := (y1 - y0) / (x1 - x0)
+	b := (y0*x1 - x0*y1) / (x1 - x0)
 	return func(x float64) float64 {
-		return 1
+		return k*x + b
+	}
+}
+
+func GetUnitConstant() common.Func1D {
+	return GetConstant(1)
+}
+
+func GetConstant(c float64) common.Func1D {
+	return func(x float64) float64 {
+		return c
 	}
 }
 
