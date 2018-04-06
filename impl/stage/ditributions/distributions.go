@@ -26,7 +26,14 @@ func GetUnitBiParabolic(start, end, opt, startLossRate, endLossRate float64) com
 	}
 	return func(x float64) float64 {
 		xNorm1 := (x - start) / (opt - start)
+		if opt == start {
+			xNorm1 = 1
+		}
+
 		xNorm2 := (end - x) / (end - opt)
+		if end == opt {
+			xNorm2 = 1
+		}
 
 		if x <= opt {
 			return shape(xNorm1, 1-startLossRate)

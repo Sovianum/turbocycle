@@ -56,6 +56,9 @@ func Func1DFromConst(c float64) Func1D {
 type Func1D func(x float64) float64
 
 func (f Func1D) GetUnitNormalizedSamples(xs []float64) []float64 {
+	if len(xs) == 1 {
+		return []float64{1}
+	}
 	return f.GetNormalizedSamples(xs, 1)
 }
 

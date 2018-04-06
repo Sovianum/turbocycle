@@ -9,7 +9,7 @@ import (
 )
 
 func GetCycleFitEqSys(
-	staged StagedTurbineNode, simple constructive.TurbineNode,
+	staged StagedTurbineNode, simple constructive.StaticTurbineNode,
 	phiDistribGen, psiDistribGen common.FuncGen1D,
 ) math.EquationSystem {
 	graph.CopyAll(
@@ -22,10 +22,11 @@ func GetCycleFitEqSys(
 			staged.PressureInput(),
 		},
 	)
+	staged.SetHt(constructive.Ht(simple))
 	return GetTurbinePiEtaEqSys(staged, phiDistribGen, psiDistribGen, simple.PiTStag(), simple.Eta())
 }
 
-// efficiency is changed by phi and distribution only
+// efficiency is changed by phi and psi and distribution only
 func GetTurbinePiEtaEqSys(
 	turbine StagedTurbineNode,
 	phiDistribGen, psiDistribGen common.FuncGen1D,
@@ -40,9 +41,11 @@ func GetTurbinePiEtaEqSys(
 		if err := turbine.Process(); err != nil {
 			return nil, err
 		}
+		currPi := PiStag(turbine)
+		currEta := EtaStag(turbine)
 		return mat.NewVecDense(2, []float64{
-			PiStag(turbine) - targetPi,
-			EtaStag(turbine) - targetEta,
+			currPi - targetPi,
+			currEta - targetEta,
 		}), nil
 	}, 2)
 }

@@ -51,9 +51,11 @@ func GetCompressorPiEtaEqSys(
 		if err := compressor.Process(); err != nil {
 			return nil, err
 		}
+		currPi := PiStag(compressor)
+		currEta := EtaStag(compressor)
 		return mat.NewVecDense(2, []float64{
-			PiStag(compressor) - targetPi,
-			EtaStag(compressor) - targetEta,
+			currPi - targetPi,
+			currEta - targetEta,
 		}), nil
 	}, 2)
 }

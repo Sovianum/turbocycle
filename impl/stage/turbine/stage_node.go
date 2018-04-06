@@ -606,10 +606,11 @@ func (node *turbineStageNode) u1(pack *DataPack) {
 	if pack.setChapterName("u1") {
 		return
 	}
+	d := pack.StageGeometry.RotorGeometry().MeanProfile().Diameter(
+		pack.StageGeometry.RotorGeometry().XBladeIn(),
+	)
 	pack.checkAllAndSet(
-		math.Pi*pack.StageGeometry.RotorGeometry().MeanProfile().Diameter(
-			pack.StageGeometry.RotorGeometry().XBladeIn(),
-		)*node.n/60,
+		math.Pi*d*node.n/60,
 		&pack.U1,
 	)
 }
