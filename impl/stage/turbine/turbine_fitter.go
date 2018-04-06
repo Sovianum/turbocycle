@@ -1,12 +1,31 @@
 package turbine
 
 import (
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/stage/common"
 	"gonum.org/v1/gonum/mat"
 )
 
-// efficiency is changed by phi distribution only
+func GetCycleFitEqSys(
+	staged StagedTurbineNode, simple constructive.TurbineNode,
+	phiDistribGen, psiDistribGen common.FuncGen1D,
+) math.EquationSystem {
+	graph.CopyAll(
+		[]graph.Port{
+			simple.GasInput(), simple.TemperatureInput(),
+			simple.PressureInput(),
+		},
+		[]graph.Port{
+			staged.GasInput(), staged.TemperatureInput(),
+			staged.PressureInput(),
+		},
+	)
+	return GetTurbinePiEtaEqSys(staged, phiDistribGen, psiDistribGen, simple.PiTStag(), simple.Eta())
+}
+
+// efficiency is changed by phi and distribution only
 func GetTurbinePiEtaEqSys(
 	turbine StagedTurbineNode,
 	phiDistribGen, psiDistribGen common.FuncGen1D,

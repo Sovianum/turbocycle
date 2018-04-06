@@ -92,12 +92,12 @@ type stagedCompressorNode struct {
 	stages []StageNode
 }
 
-func (s *stagedCompressorNode) GetEtaAdLaw() common.DiscreteFunc {
-	return s.etaAdLaw
+func (node *stagedCompressorNode) GetEtaAdLaw() common.DiscreteFunc {
+	return node.etaAdLaw
 }
 
-func (s *stagedCompressorNode) SetEtaAdLaw(etaAdLaw common.DiscreteFunc) {
-	s.etaAdLaw = etaAdLaw
+func (node *stagedCompressorNode) SetEtaAdLaw(etaAdLaw common.DiscreteFunc) {
+	node.etaAdLaw = etaAdLaw
 }
 
 func (node *stagedCompressorNode) GetHtLaw() common.DiscreteFunc {
@@ -123,18 +123,7 @@ func (node *stagedCompressorNode) Process() error {
 	node.stages = stages
 
 	lastStage := stages[len(stages)-1]
-	graph.CopyAll(
-		[]graph.Port{
-			lastStage.GasOutput(), lastStage.TemperatureOutput(),
-			lastStage.PressureOutput(), lastStage.MassRateOutput(),
-			lastStage.VelocityOutput(),
-		},
-		[]graph.Port{
-			node.GasOutput(), node.TemperatureOutput(),
-			node.PressureOutput(), node.MassRateOutput(),
-			node.VelocityOutput(),
-		},
-	)
+	node.setOutput(lastStage)
 	return nil
 }
 
@@ -171,6 +160,21 @@ func (node *stagedCompressorNode) solveAll(preFirstStage dimlessFirstStage, preM
 		stages[i+1] = stage
 	}
 	return stages, nil
+}
+
+func (node *stagedCompressorNode) setOutput(lastStage StageNode) {
+	graph.CopyAll(
+		[]graph.Port{
+			lastStage.GasOutput(), lastStage.TemperatureOutput(),
+			lastStage.PressureOutput(), lastStage.MassRateOutput(),
+			lastStage.VelocityOutput(),
+		},
+		[]graph.Port{
+			node.GasOutput(), node.TemperatureOutput(),
+			node.PressureOutput(), node.MassRateOutput(),
+			node.VelocityOutput(),
+		},
+	)
 }
 
 func (node *stagedCompressorNode) initFirstStage(firstStage StageNode) {

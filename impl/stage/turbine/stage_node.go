@@ -149,6 +149,7 @@ type DataPack struct {
 	EtaU                       float64                  `json:"eta_u"`
 	MeanRadiusLabour           float64                  `json:"mean_radius_labour"`
 	Pi                         float64                  `json:"pi"`
+	PiStag                     float64                  `json:"pi_stag"`
 	RotorOutletTriangle        states2.VelocityTriangle `json:"rotor_outlet_triangle"`
 	C2u                        float64                  `json:"c_2_u"`
 	Beta2                      float64                  `json:"beta_2"`
@@ -220,6 +221,7 @@ func (node *turbineStageNode) Process() error {
 	if node.pack.Err != nil {
 		return node.pack.Err
 	}
+	node.pack.PiStag = node.p0Stag() / node.pack.P2Stag
 
 	graph.CopyState(node.GasInput(), node.GasOutput())
 	node.TemperatureOutput().SetState(states.NewTemperaturePortState(node.pack.T2Stag))

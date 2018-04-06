@@ -26,7 +26,7 @@ type StagedTurbineNode interface {
 func PiStag(node StagedTurbineNode) float64 {
 	result := 1.
 	for _, stage := range node.Stages() {
-		result *= stage.GetDataPack().Pi
+		result *= stage.GetDataPack().PiStag
 	}
 	return result
 }
@@ -87,12 +87,12 @@ type stagedTurbineNode struct {
 	stages []StageNode
 }
 
-func (s *stagedTurbineNode) GetPsiFunc() common.Func1D {
-	return s.psiFunc
+func (node *stagedTurbineNode) GetPsiFunc() common.Func1D {
+	return node.psiFunc
 }
 
-func (s *stagedTurbineNode) SetPsiFunc(psiFunc common.Func1D) {
-	s.psiFunc = psiFunc
+func (node *stagedTurbineNode) SetPsiFunc(psiFunc common.Func1D) {
+	node.psiFunc = psiFunc
 }
 
 func (node *stagedTurbineNode) GetPhiFunc() common.Func1D {

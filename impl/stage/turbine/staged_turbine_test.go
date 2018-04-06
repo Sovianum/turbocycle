@@ -89,6 +89,10 @@ func (suite *StagedTurbineTestSuite) TestSmoke() {
 			SprintfTriangle(stage.GetDataPack().RotorOutletTriangle),
 		)
 	}
+
+	pIn := suite.node.PressureInput().GetState().Value().(float64)
+	pOut := suite.node.PressureOutput().GetState().Value().(float64)
+	suite.InDelta(PiStag(suite.node), pIn/pOut, 1e-9)
 }
 
 func TestStagedTurbineTestSuite(t *testing.T) {

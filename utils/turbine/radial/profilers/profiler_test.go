@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/common"
-	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/Sovianum/turbocycle/impl/stage/states"
+	"github.com/Sovianum/turbocycle/impl/stage/turbine"
 	"github.com/Sovianum/turbocycle/utils/turbine/radial/laws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -42,7 +42,7 @@ type profilingFunc func(hRel float64) float64
 type ProfilerTestSuite struct {
 	suite.Suite
 	behavior                 ProfilingBehavior
-	geomGen                  geometry.TurbineBladingGeometryGenerator
+	geomGen                  turbine.BladingGeometryGenerator
 	meanInletTriangle        states.VelocityTriangle
 	meanOutletTriangle       states.VelocityTriangle
 	inletVelocityLaw         laws.VelocityLaw
@@ -59,7 +59,7 @@ type ProfilerTestSuite struct {
 
 func (suite *ProfilerTestSuite) SetupTest() {
 	suite.behavior = NewStatorProfilingBehavior()
-	suite.geomGen = geometry.NewTurbineBladingGenerator(
+	suite.geomGen = turbine.NewBladingGenerator(
 		lRelOut, bRel, deltaRel,
 		common.ToRadians(gammaIn), common.ToRadians(gammaOut), approxTRel,
 	)

@@ -1,7 +1,9 @@
 package compressor
 
 import (
+	"github.com/Sovianum/turbocycle/core/graph"
 	"github.com/Sovianum/turbocycle/core/math"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes/constructive"
 	"github.com/Sovianum/turbocycle/impl/stage/common"
 	"gonum.org/v1/gonum/mat"
 )
@@ -17,6 +19,23 @@ func GetPiFitEqSys1D(
 		return mat.NewVecDense(1, []float64{pi - PiStag(compressor)}), nil
 	}
 	return common.GetEqSys1D(sysCall, funcSetter, fg)
+}
+
+func GetCycleFitEqSys(
+	staged StagedCompressorNode, simple constructive.CompressorNode,
+	htDistribGen, etaDistribGen common.FuncGen1D,
+) math.EquationSystem {
+	graph.CopyAll(
+		[]graph.Port{
+			simple.GasInput(), simple.TemperatureInput(),
+			simple.PressureInput(),
+		},
+		[]graph.Port{
+			staged.GasInput(), staged.TemperatureInput(),
+			staged.PressureInput(),
+		},
+	)
+	return GetCompressorPiEtaEqSys(staged, htDistribGen, simple.PiStag(), etaDistribGen, simple.Eta())
 }
 
 func GetCompressorPiEtaEqSys(
