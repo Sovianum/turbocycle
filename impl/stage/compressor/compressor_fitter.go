@@ -18,3 +18,23 @@ func GetPiFitEqSys1D(
 	}
 	return common.GetEqSys1D(sysCall, funcSetter, fg)
 }
+
+func GetCompressorPiEtaEqSys(
+	compressor StagedCompressorNode,
+	htDistribGen common.FuncGen1D, targetPi float64,
+	etaDistribGen common.FuncGen1D, targetEta float64,
+) math.EquationSystem {
+	return math.NewEquationSystem(func(v *mat.VecDense) (*mat.VecDense, error) {
+		htParameter := v.At(0, 0)
+		etaParameter := v.At(1, 0)
+		compressor.SetHtLaw(common.FromDistribution(htDistribGen(htParameter)))
+		compressor.SetEtaAdLaw(common.FromDistribution(etaDistribGen(etaParameter)))
+		if err := compressor.Process(); err != nil {
+			return nil, err
+		}
+		return mat.NewVecDense(2, []float64{
+			PiStag(compressor) - targetPi,
+			EtaStag(compressor) - targetEta,
+		}), nil
+	}, 2)
+}

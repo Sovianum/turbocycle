@@ -2,11 +2,14 @@ package compressor
 
 import (
 	"fmt"
+	"math"
 
 	common2 "github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/stage/common"
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
+	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 type dimlessFirstStage func(dRelIn float64) StageNode
@@ -18,6 +21,8 @@ type StagedCompressorNode interface {
 	Stage(num int) StageNode
 	GetHtLaw() common.DiscreteFunc
 	SetHtLaw(htLaw common.DiscreteFunc)
+	GetEtaAdLaw() common.DiscreteFunc
+	SetEtaAdLaw(etaAdLaw common.DiscreteFunc)
 }
 
 func PiStag(node StagedCompressorNode) float64 {
@@ -26,6 +31,15 @@ func PiStag(node StagedCompressorNode) float64 {
 		result *= stage.GetDataPack().PiStag
 	}
 	return result
+}
+
+func EtaStag(node StagedCompressorNode) float64 {
+	tIn := node.TemperatureInput().GetState().Value().(float64)
+	tOut := node.TemperatureOutput().GetState().Value().(float64)
+	pi := PiStag(node)
+	gas := node.GasInput().GetState().Value().(gases.Gas)
+	k := gases.KMean(gas, tIn, tOut, nodes.DefaultN)
+	return tIn / (tOut - tIn) * (math.Pow(pi, (k-1)/k) - 1)
 }
 
 func NewStagedCompressorNode(
@@ -76,6 +90,14 @@ type stagedCompressorNode struct {
 	iterLimit  int
 
 	stages []StageNode
+}
+
+func (s *stagedCompressorNode) GetEtaAdLaw() common.DiscreteFunc {
+	return s.etaAdLaw
+}
+
+func (s *stagedCompressorNode) SetEtaAdLaw(etaAdLaw common.DiscreteFunc) {
+	s.etaAdLaw = etaAdLaw
 }
 
 func (node *stagedCompressorNode) GetHtLaw() common.DiscreteFunc {
