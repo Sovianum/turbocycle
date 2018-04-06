@@ -6,15 +6,24 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func GetPiFitEqSys1D(
-	turbine StagedTurbineNode, pi float64,
-	funcSetter func(common.Func1D), fg common.FuncGen1D,
+// efficiency is changed by phi distribution only
+func GetTurbinePiEtaEqSys(
+	turbine StagedTurbineNode,
+	phiDistribGen, psiDistribGen common.FuncGen1D,
+	targetPi float64, targetEta float64,
 ) math.EquationSystem {
-	sysCall := func() (*mat.VecDense, error) {
+	return math.NewEquationSystem(func(v *mat.VecDense) (*mat.VecDense, error) {
+		ht := v.At(0, 0)
+		efficiencyFitParameter := v.At(1, 0)
+		turbine.SetHt(ht)
+		turbine.SetPhiFunc(phiDistribGen(efficiencyFitParameter))
+		turbine.SetPsiFunc(psiDistribGen(efficiencyFitParameter))
 		if err := turbine.Process(); err != nil {
 			return nil, err
 		}
-		return mat.NewVecDense(1, []float64{pi - PiStag(turbine)}), nil
-	}
-	return common.GetEqSys1D(sysCall, funcSetter, fg)
+		return mat.NewVecDense(2, []float64{
+			PiStag(turbine) - targetPi,
+			EtaStag(turbine) - targetEta,
+		}), nil
+	}, 2)
 }

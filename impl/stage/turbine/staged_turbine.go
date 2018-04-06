@@ -2,10 +2,13 @@ package turbine
 
 import (
 	"fmt"
+	"math"
 
 	common2 "github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/core/graph"
+	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	"github.com/Sovianum/turbocycle/impl/stage/common"
+	"github.com/Sovianum/turbocycle/material/gases"
 )
 
 type StagedTurbineNode interface {
@@ -14,6 +17,10 @@ type StagedTurbineNode interface {
 	Stage(num int) StageNode
 	Ht() float64
 	SetHt(ht float64)
+	GetPhiFunc() common.Func1D
+	SetPhiFunc(phiFunc common.Func1D)
+	GetPsiFunc() common.Func1D
+	SetPsiFunc(psiFunc common.Func1D)
 }
 
 func PiStag(node StagedTurbineNode) float64 {
@@ -22,6 +29,16 @@ func PiStag(node StagedTurbineNode) float64 {
 		result *= stage.GetDataPack().Pi
 	}
 	return result
+}
+
+func EtaStag(node StagedTurbineNode) float64 {
+	tIn := node.TemperatureInput().GetState().Value().(float64)
+	tOut := node.TemperatureOutput().GetState().Value().(float64)
+	pi := PiStag(node)
+	gas := node.GasInput().GetState().Value().(gases.Gas)
+	k := gases.KMean(gas, tOut, tIn, nodes.DefaultN)
+
+	return (tIn - tOut) / (tIn * (1 - math.Pow(pi, (1-k)/k)))
 }
 
 func NewStagedTurbineNode(
@@ -70,6 +87,22 @@ type stagedTurbineNode struct {
 	stages []StageNode
 }
 
+func (s *stagedTurbineNode) GetPsiFunc() common.Func1D {
+	return s.psiFunc
+}
+
+func (s *stagedTurbineNode) SetPsiFunc(psiFunc common.Func1D) {
+	s.psiFunc = psiFunc
+}
+
+func (node *stagedTurbineNode) GetPhiFunc() common.Func1D {
+	return node.phiFunc
+}
+
+func (node *stagedTurbineNode) SetPhiFunc(phiFunc common.Func1D) {
+	node.phiFunc = phiFunc
+}
+
 func (node *stagedTurbineNode) SetHt(ht float64) {
 	node.totalHeatDrop = ht
 }
@@ -115,6 +148,7 @@ func (node *stagedTurbineNode) Process() error {
 		stages[i+1] = stage
 	}
 	node.stages = stages
+	node.setOutput(stages[len(stages)-1])
 	return nil
 }
 
@@ -124,6 +158,21 @@ func (node *stagedTurbineNode) Stages() []StageNode {
 
 func (node *stagedTurbineNode) Stage(num int) StageNode {
 	return node.stages[num]
+}
+
+func (node *stagedTurbineNode) setOutput(lastStage StageNode) {
+	graph.CopyAll(
+		[]graph.Port{
+			lastStage.GasOutput(), lastStage.TemperatureOutput(),
+			lastStage.PressureOutput(), lastStage.MassRateOutput(),
+			lastStage.VelocityOutput(),
+		},
+		[]graph.Port{
+			node.GasOutput(), node.TemperatureOutput(),
+			node.PressureOutput(), node.MassRateOutput(),
+			node.VelocityOutput(),
+		},
+	)
 }
 
 func (node *stagedTurbineNode) initFirstStage(firstStage StageNode) {

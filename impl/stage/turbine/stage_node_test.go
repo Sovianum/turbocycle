@@ -18,7 +18,7 @@ const (
 	stageHeatDrop = 2.5e5
 	reactivity    = 0.5
 	phi           = 0.98
-	psi           = 0.98
+	psi           = 0.985
 	airGapRel     = 0.001
 	precision     = 1e-4
 
