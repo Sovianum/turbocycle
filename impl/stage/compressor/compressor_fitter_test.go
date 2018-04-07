@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	expectedPi  = 4
+	expectedPi  = 2
 	expectedEta = 0.82
 )
 
@@ -32,7 +32,7 @@ func (suite *CompressorFittingTetSuite) SetupTest() {
 }
 
 func (suite CompressorFittingTetSuite) TestPiUnitShape() {
-	fg := common.Scaler(ditributions.GetUnitConstant())
+	fg := common.Scaler(ditributions.GetConstant(0.1))
 	eqSys := GetPiFitEqSys1D(suite.node, expectedPi, suite.setter, fg)
 
 	solver, err := newton.NewUniformNewtonSolver(eqSys, 1e-5, newton.NoLog)
@@ -45,7 +45,9 @@ func (suite CompressorFittingTetSuite) TestPiUnitShape() {
 }
 
 func (suite CompressorFittingTetSuite) TestPiBiParabolicShape() {
-	fg := common.Scaler(ditributions.GetUnitBiParabolic(0, 2, 1, 0.1, 0.1))
+	fg := common.Scaler(
+		ditributions.GetUnitBiParabolic(0, 2, 1, 0.1, 0.1).Scale(0.1),
+	)
 	eqSys := GetPiFitEqSys1D(suite.node, expectedPi, suite.setter, fg)
 
 	solver, err := newton.NewUniformNewtonSolver(eqSys, 1e-5, newton.NoLog)
@@ -58,14 +60,14 @@ func (suite CompressorFittingTetSuite) TestPiBiParabolicShape() {
 }
 
 func (suite CompressorFittingTetSuite) TestPiEtaUnitShape() {
-	htFg := common.Scaler(ditributions.GetUnitConstant())
-	etaFg := common.Scaler(ditributions.GetUnitConstant())
-	eqSys := GetCompressorPiEtaEqSys(suite.node, htFg, expectedPi, etaFg, expectedEta)
+	htFg := common.Scaler(ditributions.GetConstant(0.1))
+	etaFg := common.Scaler(ditributions.GetConstant(0.8))
+	eqSys := GetCompressorPiEtaEqSys(suite.node, htFg, 0.5, expectedPi, etaFg, 0.9, expectedEta)
 
 	solver, err := newton.NewUniformNewtonSolver(eqSys, 1e-5, newton.NoLog)
 	suite.Require().NoError(err)
 
-	_, err = solver.Solve(mat.NewVecDense(2, []float64{0.5, 0.8}), 1e-6, 1, 100)
+	_, err = solver.Solve(mat.NewVecDense(2, []float64{1, 1}), 1e-6, 1, 100)
 	suite.Require().NoError(err)
 
 	suite.InDelta(expectedPi, PiStag(suite.node), 1e-5)
@@ -73,8 +75,8 @@ func (suite CompressorFittingTetSuite) TestPiEtaUnitShape() {
 }
 
 func (suite CompressorFittingTetSuite) TestFitCycle() {
-	htFg := common.Scaler(ditributions.GetUnitConstant())
-	etaFg := common.Scaler(ditributions.GetUnitConstant())
+	htFg := common.Scaler(ditributions.GetConstant(0.1))
+	etaFg := common.Scaler(ditributions.GetConstant(0.8))
 
 	cycleCompressor := constructive.NewCompressorNode(expectedEta, expectedPi, precision)
 	graph.SetAll(
@@ -89,7 +91,7 @@ func (suite CompressorFittingTetSuite) TestFitCycle() {
 	)
 	suite.Require().NoError(cycleCompressor.Process())
 
-	eqSys := GetCycleFitEqSys(suite.node, cycleCompressor, htFg, etaFg)
+	eqSys := GetCycleFitEqSys(suite.node, cycleCompressor, htFg, etaFg, 0.5, 0.9)
 
 	solver, err := newton.NewUniformNewtonSolver(eqSys, 1e-5, newton.NoLog)
 	suite.Require().NoError(err)
@@ -98,7 +100,7 @@ func (suite CompressorFittingTetSuite) TestFitCycle() {
 	suite.Require().NoError(err)
 
 	suite.InDelta(suite.node.TemperatureOutput().GetState().Value().(float64), cycleCompressor.TStagOut(), 3)
-	suite.InDelta(suite.node.PressureOutput().GetState().Value().(float64), cycleCompressor.PStagOut(), 1)
+	suite.InDelta(suite.node.PressureOutput().GetState().Value().(float64), cycleCompressor.PStagOut(), 1e-3)
 }
 
 func TestCompressorFittingTestSuite(t *testing.T) {

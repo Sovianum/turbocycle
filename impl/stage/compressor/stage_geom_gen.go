@@ -6,6 +6,26 @@ import (
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 )
 
+func NewIncompleteStageGeomGen(rotorGen, statorGen IncompleteBladingGeometryGenerator) IncompleteStageGeometryGenerator {
+	return &incompleteStageGeometryGenerator{
+		rotorGen:  rotorGen,
+		statorGen: statorGen,
+	}
+}
+
+type IncompleteStageGeometryGenerator interface {
+	Generate(dRelIn float64) StageGeometryGenerator
+}
+
+type incompleteStageGeometryGenerator struct {
+	rotorGen  IncompleteBladingGeometryGenerator
+	statorGen IncompleteBladingGeometryGenerator
+}
+
+func (gen *incompleteStageGeometryGenerator) Generate(dRelIn float64) StageGeometryGenerator {
+	return NewStageGeometryGenerator(dRelIn, gen.rotorGen, gen.statorGen)
+}
+
 type StageGeometryGenerator interface {
 	Generate(dOutIn float64) geometry.StageGeometry
 	StatorGenerator() BladingGeometryGenerator
@@ -17,14 +37,14 @@ func NewStageGeometryGenerator(
 	rotorIncompleteGen,
 	statorIncompleteGen IncompleteBladingGeometryGenerator,
 ) StageGeometryGenerator {
-	lRel := rotorIncompleteGen.Elongation()
+	baRel := rotorIncompleteGen.Elongation()
 	deltaRel := rotorIncompleteGen.DeltaRel()
 	gammaIn := rotorIncompleteGen.GammaIn()
 	gammaOut := rotorIncompleteGen.GammaOut()
 
-	deltaTerm := (1 + deltaRel) / lRel * (1 - dRelIn)
+	axialFactor := (1 + deltaRel) / baRel * (1 - dRelIn) / 2
 
-	factor := (1 + deltaTerm*math.Tan(gammaIn)/dRelIn) / (1 + deltaTerm*math.Tan(gammaOut))
+	factor := (1 + axialFactor*math.Tan(gammaIn)/dRelIn) / (1 + axialFactor*math.Tan(gammaOut))
 	dRelInStator := dRelIn * factor
 	return &stageGeometryGenerator{
 		rotorGenerator:  rotorIncompleteGen.GetGenerator(dRelIn),
@@ -40,7 +60,7 @@ type stageGeometryGenerator struct {
 func (gen *stageGeometryGenerator) Generate(dOutIn float64) geometry.StageGeometry {
 	rotor := gen.rotorGenerator.Generate(dOutIn)
 	dOutStator := rotor.OuterProfile().Diameter(rotor.XGapOut())
-	var stator = gen.statorGenerator.Generate(dOutStator)
+	stator := gen.statorGenerator.Generate(dOutStator)
 	return geometry.NewStageGeometry(stator, rotor)
 }
 

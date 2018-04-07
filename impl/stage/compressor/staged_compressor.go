@@ -44,7 +44,7 @@ func EtaStag(node StagedCompressorNode) float64 {
 
 func NewStagedCompressorNode(
 	rpm, dRelIn float64,
-	geomList []StageGeometryGenerator,
+	geomList []IncompleteStageGeometryGenerator,
 	htLaw, reactivityLaw, labourCoefLaw, etaAdLaw, caCoefLaw common.DiscreteFunc,
 	precision, relaxCoef, initLambda float64, iterLimit int,
 ) StagedCompressorNode {
@@ -73,7 +73,7 @@ type stagedCompressorNode struct {
 	*common.BaseStage
 
 	stageNum int
-	geomList []StageGeometryGenerator
+	geomList []IncompleteStageGeometryGenerator
 
 	rpm    float64
 	dRelIn float64
@@ -197,12 +197,13 @@ func (node *stagedCompressorNode) preInitMidStages() []dimlessMidStage {
 	for i := range result {
 		j := i // another variable used cos variables are captured by reference
 		result[j] = func(prevGeom geometry.StageGeometry) StageNode {
+			stator := prevGeom.StatorGeometry()
 			return NewMidStageNode(
 				prevGeom,
-				node.htLaw(j), node.htLaw(j+1),
-				node.reactivityLaw(j+1),
-				node.labourCoefLaw(j), node.etaAdLaw(j),
-				node.rpm, node.geomList[j],
+				node.htLaw(j+1), node.htLaw(j+2),
+				node.reactivityLaw(j+2),
+				node.labourCoefLaw(j+1), node.etaAdLaw(j+1),
+				node.rpm, node.geomList[j+1].Generate(geometry.DRel(stator.XGapOut(), stator)),
 				node.precision, node.relaxCoef, node.initLambda, node.iterLimit,
 			)
 		}
@@ -214,10 +215,10 @@ func (node *stagedCompressorNode) preInitFirstStage() dimlessFirstStage {
 	return func(dRelIn float64) StageNode {
 		return NewFirstStageNode(
 			dRelIn,
-			node.htLaw(0), node.htLaw(1),
-			node.reactivityLaw(0), node.reactivityLaw(1),
+			node.htLaw(0), node.htLaw(0),
+			node.reactivityLaw(0), node.reactivityLaw(0),
 			node.labourCoefLaw(0), node.etaAdLaw(0), node.caCoefLaw(0),
-			node.rpm, node.geomList[0],
+			node.rpm, node.geomList[0].Generate(dRelIn),
 			node.precision, node.relaxCoef, node.initLambda, node.iterLimit,
 		)
 	}

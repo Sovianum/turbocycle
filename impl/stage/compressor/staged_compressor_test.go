@@ -1,6 +1,7 @@
 package compressor
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"testing"
@@ -13,14 +14,13 @@ import (
 )
 
 func getTestCompressor() StagedCompressorNode {
-	genFunc := func() StageGeometryGenerator {
-		return NewStageGeometryGenerator(
-			dRelIn,
+	genFunc := func() IncompleteStageGeometryGenerator {
+		return NewIncompleteStageGeomGen(
 			NewIncompleteGenerator(baRel, deltaRel, gammaIn, gammaOut),
 			NewIncompleteGenerator(baRel, deltaRel, gammaIn, gammaOut),
 		)
 	}
-	gens := []StageGeometryGenerator{genFunc(), genFunc(), genFunc()}
+	gens := []IncompleteStageGeometryGenerator{genFunc(), genFunc(), genFunc()}
 
 	node := NewStagedCompressorNode(
 		rpm, dRelIn,
@@ -55,14 +55,14 @@ func (suite *StagedCompressorNodeTestSuite) SetupTest() {
 }
 
 func (suite *StagedCompressorNodeTestSuite) TestSmoke() {
-	fmt.Println(PiStag(suite.node))
-	//msgs := make([]string, stageNum)
-	//for i, stage := range suite.node.Stages() {
-	//	b, e := json.MarshalIndent(stage.GetDataPack(), "", "\t")
-	//	suite.Require().NoError(e)
-	//	msgs[i] = string(b)
-	//}
-	//fmt.Println(msgs)
+	//fmt.Println(PiStag(suite.node))
+	msgs := make([]string, len(suite.node.Stages()))
+	for i, stage := range suite.node.Stages() {
+		b, e := json.MarshalIndent(stage.GetDataPack(), "", "\t")
+		suite.Require().NoError(e)
+		msgs[i] = string(b)
+	}
+	fmt.Println(msgs)
 }
 
 func TestStagedCompressorNodeTestSuite(t *testing.T) {

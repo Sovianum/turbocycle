@@ -7,12 +7,15 @@ import (
 	"github.com/Sovianum/turbocycle/common"
 	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/core/graph"
+	math2 "github.com/Sovianum/turbocycle/core/math"
+	"github.com/Sovianum/turbocycle/core/math/solvers/newton"
 	"github.com/Sovianum/turbocycle/impl/engine/nodes"
 	states2 "github.com/Sovianum/turbocycle/impl/engine/states"
 	common2 "github.com/Sovianum/turbocycle/impl/stage/common"
 	"github.com/Sovianum/turbocycle/impl/stage/geometry"
 	"github.com/Sovianum/turbocycle/impl/stage/states"
 	"github.com/Sovianum/turbocycle/material/gases"
+	"gonum.org/v1/gonum/mat"
 )
 
 type StageNode interface {
@@ -167,21 +170,25 @@ func (node *stageNode) midVelocities(pack *DataPack) {
 	stageGeom := pack.StageGeometry
 	rotorGeom := stageGeom.RotorGeometry()
 
-	dRelOut := geometry.DRel(rotorGeom.XGapOut(), rotorGeom)
-	rRelOut := geometry.RRel(dRelOut)
+	dRelRotorIn := geometry.DRel(0, rotorGeom)
+	dRelRotorOut := geometry.DRel(rotorGeom.XGapOut(), rotorGeom)
+
+	rRelRotorOut := geometry.RRel(dRelRotorOut)
+	rRelRotorIn := geometry.RRel(dRelRotorIn)
 
 	cu1 := pack.InletTriangle.CU()
 	uOut1 := pack.UOut
+	cuRel1 := cu1 / uOut1
 
-	cu2 := 1 / rRelOut * (node.htCoef + cu1/uOut1*rRelOut)
+	cu2 := pack.UOut / rRelRotorOut * (node.htCoef + cuRel1*rRelRotorIn)
 
 	ca1 := pack.InletTriangle.CA()
-	ca3 := pack.InletTriangle.CA()
+	ca3 := pack.OutletTriangle.CA()
 	ca2 := (ca1 + ca3) / 2
 
 	dOutIn := rotorGeom.OuterProfile().Diameter(0)
 	dOutOut := rotorGeom.OuterProfile().Diameter(rotorGeom.XGapOut())
-	u2 := uOut1 / dOutIn * dOutOut * rRelOut
+	u2 := uOut1 / dOutIn * dOutOut * rRelRotorOut
 
 	pack.MidTriangle = states.NewCompressorVelocityTriangleFromProjections(cu2, ca2, u2)
 }
@@ -197,33 +204,58 @@ func (node *stageNode) outletVelocities(pack *DataPack) {
 
 	gas := node.gas()
 	k := gases.K(gas, pack.T3Stag)
-	f3 := geometry.Area(bGeom.XGapOut(), bGeom)
 	cuCoef := rRel*(1-node.reactivityNext) - node.htCoefNext/(2*rRel)
 	massRate := node.massRate()
-	massRateFactor := massRate * math.Sqrt(pack.T3Stag) / pack.P3Stag
+	thermoFactor := massRate * math.Sqrt(pack.T3Stag) / pack.P3Stag
+	f3 := geometry.Area(bGeom.XGapOut(), bGeom)
+	aCrit := gdf.ACrit(k, gas.R(), pack.T3Stag)
 
+	lambdaFactor := math.Abs(cuCoef*pack.UOut) / aCrit
 	lambda3Func := func(lambda3 float64) (float64, error) {
-		sinAlpha := massRateFactor / gdf.Q(lambda3, k, gas.R())
+		f3Norm := thermoFactor / gdf.Q(lambda3, k, gas.R())
+		if f3 <= f3Norm {
+			err := fmt.Errorf("outlet area is not enough to pass the mass rate: lambda3")
+			return 0, err
+		}
+		sinAlpha := f3Norm / f3
+
 		cosAlpha := math.Sqrt(1 - sinAlpha*sinAlpha)
-		return cuCoef * pack.UOut / (gdf.ACrit(k, gas.R(), pack.T3Stag) * cosAlpha * f3), nil
+		result := lambdaFactor / cosAlpha
+		if math.IsNaN(result) {
+			err := fmt.Errorf("got NaN as lambda3")
+			return 0, err
+		}
+		return result, nil
 	}
 
-	lambda3, err := common.SolveIterativelyWithValidation(
-		lambda3Func, common2.NotNanValidator, node.initLambda,
-		node.precision, node.relaxCoef, node.iterLimit,
-	)
+	eq := math2.NewEquationSystem(func(x *mat.VecDense) (*mat.VecDense, error) {
+		lambda := x.At(0, 0)
+		lambda1, err := lambda3Func(lambda)
+		if err != nil {
+			return nil, err
+		}
+		return mat.NewVecDense(1, []float64{lambda - lambda1}), nil
+	}, 1)
+
+	solver, _ := newton.NewUniformNewtonSolver(eq, 1e-5, newton.NoLog)
+
+	c1 := pack.InletTriangle.C()
+	initLambda := c1 / aCrit
+	solution, err := solver.Solve(mat.NewVecDense(1, []float64{initLambda}), node.precision, node.relaxCoef, node.iterLimit)
 	if err != nil {
 		pack.Err = fmt.Errorf("%s: outlet_velocities", err.Error())
 		return
 	}
+	lambda3 := solution.At(0, 0)
+
 	q3 := gdf.Q(lambda3, k, gas.R())
-	alpha3 := math.Asin(massRateFactor / q3)
+	alpha3 := math.Asin(thermoFactor / (f3 * q3))
 	cu := cuCoef * pack.UOut
-	ca := math.Tan(alpha3) * cu
+	ca := math.Tan(alpha3) * math.Abs(cu)
 
 	dOutIn1 := pack.StageGeometry.RotorGeometry().OuterProfile().Diameter(0)
-	dOutIn3 := pack.StageGeometry.StatorGeometry().OuterProfile().Diameter(0)
-	u3 := pack.UOut / dOutIn1 * dOutIn3 * rRel
+	dOutOut3 := pack.StageGeometry.StatorGeometry().OuterProfile().Diameter(bGeom.XGapOut())
+	u3 := pack.UOut / dOutIn1 * dOutOut3 * rRel
 
 	pack.OutletTriangle = states.NewCompressorVelocityTriangleFromProjections(cu, ca, u3)
 	pack.Area3 = geometry.Area(
@@ -289,8 +321,8 @@ func (node *stageNode) hT(pack *DataPack) {
 		return
 	}
 	pack.HTCoef = node.htCoef
-	u := pack.InletTriangle.U()
-	pack.HT = node.htCoef * u * u
+	uOut := pack.UOut
+	pack.HT = node.htCoef * uOut * uOut
 }
 
 func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
@@ -316,12 +348,12 @@ func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 
 	caFactor := node.caCoef / (math.Sin(alpha1) * gdf.ACrit(kGas, gas.R(), node.t1Stag()))
 	lambda1Func := func(lambda1 float64) (float64, error) {
-		rpmFactor := node.rpm / 30
 		f1 := area1Func(lambda1)
-		areaFactor := math.Sqrt(
-			math.Pi * f1 / (1 - node.dRelIn*node.dRelIn),
+		dOut := math.Sqrt(
+			4 / math.Pi * f1 / (1 - node.dRelIn*node.dRelIn),
 		)
-		return rpmFactor * areaFactor * caFactor, nil
+		uOut := math.Pi * dOut * node.rpm / 60
+		return uOut * caFactor, nil
 	}
 
 	lambda1, err := common.SolveIterativelyWithValidation(
@@ -330,7 +362,7 @@ func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 		node.initLambda, node.precision, node.relaxCoef, node.iterLimit,
 	)
 	if err != nil {
-		pack.Err = fmt.Errorf("%s: inlet_velocities", err)
+		pack.Err = fmt.Errorf("%s: inlet_velocities_first_stage", err)
 		return
 	}
 
@@ -356,11 +388,11 @@ func (node *stageNode) inletVelocities(pack *DataPack) {
 		return
 	}
 	prevGeom := node.prevStageGeom.StatorGeometry()
-	area1 := geometry.Area(prevGeom.XGapOut(), prevGeom)
 
+	area1 := geometry.Area(prevGeom.XGapOut(), prevGeom)
 	pack.Area1 = area1
 
-	dOutIn := math.Sqrt(4 / math.Pi * 1 / (1 - node.dRelIn*node.dRelIn) * area1)
+	dOutIn := prevGeom.OuterProfile().Diameter(prevGeom.XGapOut())
 	pack.StageGeometry = node.stageGeomGen.Generate(dOutIn)
 
 	u1Out := math.Pi * dOutIn * node.rpm / 60

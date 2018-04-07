@@ -121,7 +121,7 @@ func (triangle *compressorVelocityTriangle) Beta() float64 {
 }
 
 func (triangle *compressorVelocityTriangle) WU() float64 {
-	return triangle.u - triangle.c*math.Sin(triangle.alpha)
+	return triangle.u - triangle.c*math.Cos(triangle.alpha)
 }
 
 type velocityTriangle struct {
