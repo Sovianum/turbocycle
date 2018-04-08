@@ -214,6 +214,10 @@ func (node *stageNode) outletVelocities(pack *DataPack) {
 	lambda3Func := func(lambda3 float64) (float64, error) {
 		f3Norm := thermoFactor / gdf.Q(lambda3, k, gas.R())
 		if f3 <= f3Norm {
+			if lambda3 < 1 {
+				fallbackLambda := lambda3 + (1-lambda3)/2
+				return fallbackLambda, nil // fallback to prevent error like below on start
+			}
 			err := fmt.Errorf("outlet area is not enough to pass the mass rate: lambda3")
 			return 0, err
 		}
@@ -378,7 +382,6 @@ func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 	cu1 := cuCoef * u1Out
 
 	u1 := rRel * u1Out
-
 	pack.InletTriangle = states.NewCompressorVelocityTriangleFromProjections(cu1, ca1, u1)
 }
 

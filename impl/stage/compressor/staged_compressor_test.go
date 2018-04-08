@@ -24,7 +24,7 @@ func getTestCompressor() StagedCompressorNode {
 
 	node := NewStagedCompressorNode(
 		rpm, dRelIn,
-		gens,
+		true, gens,
 		common.FromConst(htCoef),
 		common.FromConst(reactivity),
 		common.FromConst(labourCoef),

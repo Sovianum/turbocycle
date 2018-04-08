@@ -43,7 +43,7 @@ func EtaStag(node StagedCompressorNode) float64 {
 }
 
 func NewStagedCompressorNode(
-	rpm, dRelIn float64,
+	rpm, dRelIn float64, hasInletSwirl bool,
 	geomList []IncompleteStageGeometryGenerator,
 	htLaw, reactivityLaw, labourCoefLaw, etaAdLaw, caCoefLaw common.DiscreteFunc,
 	precision, relaxCoef, initLambda float64, iterLimit int,
@@ -53,6 +53,8 @@ func NewStagedCompressorNode(
 		dRelIn:   dRelIn,
 		stageNum: len(geomList),
 		geomList: geomList,
+
+		hasInletSwirl: hasInletSwirl,
 
 		htLaw:         htLaw,
 		reactivityLaw: reactivityLaw,
@@ -77,6 +79,8 @@ type stagedCompressorNode struct {
 
 	rpm    float64
 	dRelIn float64
+
+	hasInletSwirl bool
 
 	htLaw         common.DiscreteFunc
 	reactivityLaw common.DiscreteFunc
@@ -213,13 +217,25 @@ func (node *stagedCompressorNode) preInitMidStages() []dimlessMidStage {
 
 func (node *stagedCompressorNode) preInitFirstStage() dimlessFirstStage {
 	return func(dRelIn float64) StageNode {
+		reactivityLaw := node.reactivityLaw
+		if !node.hasInletSwirl {
+			rRel := geometry.RRel(dRelIn)
+			htCoef := node.htLaw(0)
+			reactivity := node.getAxialFlowReactivity(rRel, htCoef)
+			reactivityLaw = node.reactivityLaw.SetValue(0, reactivity)
+		}
+
 		return NewFirstStageNode(
 			dRelIn,
-			node.htLaw(0), node.htLaw(0),
-			node.reactivityLaw(0), node.reactivityLaw(0),
+			node.htLaw(0), node.htLaw(1),
+			reactivityLaw(0), reactivityLaw(1),
 			node.labourCoefLaw(0), node.etaAdLaw(0), node.caCoefLaw(0),
 			node.rpm, node.geomList[0].Generate(dRelIn),
 			node.precision, node.relaxCoef, node.initLambda, node.iterLimit,
 		)
 	}
+}
+
+func (*stagedCompressorNode) getAxialFlowReactivity(rRel, htCoef float64) float64 {
+	return 1 - htCoef/(2*rRel*rRel)
 }

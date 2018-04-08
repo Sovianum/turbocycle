@@ -2,6 +2,15 @@ package common
 
 type DiscreteFunc func(id int) float64
 
+func (f DiscreteFunc) SetValue(x int, y float64) DiscreteFunc {
+	return func(id int) float64 {
+		if id == x {
+			return y
+		}
+		return f(id)
+	}
+}
+
 func FromConst(c float64) DiscreteFunc {
 	return func(id int) float64 {
 		return c
