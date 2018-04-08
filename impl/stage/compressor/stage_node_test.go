@@ -1,8 +1,6 @@
 package compressor
 
 import (
-	"encoding/json"
-	"fmt"
 	"math"
 	"testing"
 
@@ -26,7 +24,7 @@ const (
 	deltaRel = 0.1
 
 	gammaOut = 0
-	gammaIn  = 0.06
+	gammaIn  = 0.5
 
 	dRelIn     = 0.5
 	htCoef     = 0.2
@@ -74,12 +72,28 @@ func (suite *StageNodeTestSuite) SetupTest() {
 	suite.pack = suite.node.pack
 }
 
+func (suite *StageNodeTestSuite) TestGeom() {
+	rotorGeom := suite.node.pack.StageGeometry.RotorGeometry()
+	rotorWidth := rotorGeom.XGapOut()
+
+	statorGeom := suite.node.pack.StageGeometry.StatorGeometry()
+	statorWidth := statorGeom.XGapOut()
+
+	suite.EqualValues(rotorGeom.InnerProfile().Diameter(rotorWidth), statorGeom.InnerProfile().Diameter(0))
+
+	stageWidth := rotorWidth + statorWidth
+	dInIn := rotorGeom.InnerProfile().Diameter(0)
+
+	suite.InDelta(dInIn+2*rotorWidth*math.Tan(gammaIn), rotorGeom.InnerProfile().Diameter(rotorWidth), 1e-9)
+	suite.InDelta(dInIn+2*stageWidth*math.Tan(gammaIn), statorGeom.InnerProfile().Diameter(statorWidth), 1e-9)
+}
+
 func (suite *StageNodeTestSuite) TestSmoke() {
-	if b, e := json.MarshalIndent(suite.pack, "", "\t"); e != nil {
-		suite.Require().Nil(e)
-	} else {
-		fmt.Println(string(b))
-	}
+	//if b, e := json.MarshalIndent(suite.pack, "", "\t"); e != nil {
+	//	suite.Require().Nil(e)
+	//} else {
+	//	fmt.Println(string(b))
+	//}
 }
 
 func TestStageNodeTestSuite(t *testing.T) {

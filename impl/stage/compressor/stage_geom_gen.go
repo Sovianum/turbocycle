@@ -44,7 +44,7 @@ func NewStageGeometryGenerator(
 
 	axialFactor := (1 + deltaRel) / baRel * (1 - dRelIn) / 2
 
-	factor := (1 + axialFactor*math.Tan(gammaIn)/dRelIn) / (1 + axialFactor*math.Tan(gammaOut))
+	factor := (1 + 2*axialFactor*math.Tan(gammaIn)/dRelIn) / (1 + 2*axialFactor*math.Tan(gammaOut))
 	dRelInStator := dRelIn * factor
 	return &stageGeometryGenerator{
 		rotorGenerator:  rotorIncompleteGen.GetGenerator(dRelIn),

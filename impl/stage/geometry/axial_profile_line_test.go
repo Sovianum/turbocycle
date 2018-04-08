@@ -9,13 +9,20 @@ import (
 )
 
 func TestAxialProfileLine(t *testing.T) {
-	var x0 float64 = 10
-	var d0 float64 = 10
+	x0 := 10.
+	d0 := 10.
 	var angle = math.Pi / 4
 
 	var line = NewAxialProfileLine(x0, d0, angle)
 	var gotD = line.Diameter(11)
-	assert.True(t, common.ApproxEqual(12, gotD, 0.001), "got %f", gotD)
+	assert.InDelta(t, 12, gotD, 1e-9)
+
+	d0 = 494.
+	x0 = 0.
+	dx := 107.
+	angle = common.ToRadians(25)
+	line = NewAxialProfileLine(x0, d0, angle)
+	assert.InDelta(t, 593.789, line.Diameter(dx), 1e-1)
 }
 
 func TestMeanLine(t *testing.T) {

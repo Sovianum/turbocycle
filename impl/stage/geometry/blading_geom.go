@@ -2,14 +2,6 @@ package geometry
 
 import "math"
 
-func NewCompressorBladingGeometry(bladeWidth, gapWidth float64, innerProfile, outerProfile AxialProfileLine) BladingGeometry {
-	dIn := innerProfile.Diameter(0)
-	dOut := outerProfile.Diameter(0)
-	dRel := dIn / dOut
-	midLineFactor := math.Sqrt(1 - dRel*dRel)
-	return NewBladingGeometry(bladeWidth, gapWidth, innerProfile, outerProfile, midLineFactor)
-}
-
 func NewBladingGeometry(
 	bladeWidth, gapWidth float64,
 	innerProfile, outerProfile AxialProfileLine,
