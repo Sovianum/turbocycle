@@ -1,6 +1,9 @@
 package states
 
-import "math"
+import (
+	"encoding/json"
+	"math"
+)
 
 type VelocityTriangle interface {
 	C() float64
@@ -12,6 +15,30 @@ type VelocityTriangle interface {
 	WA() float64
 	CU() float64
 	WU() float64
+}
+
+func MarshalTriangle(triangle VelocityTriangle) ([]byte, error) {
+	return json.Marshal(struct {
+		C     float64 `json:"c"`
+		CU    float64 `json:"cu"`
+		CA    float64 `json:"ca"`
+		W     float64 `json:"w"`
+		WU    float64 `json:"wu"`
+		WA    float64 `json:"wa"`
+		U     float64 `json:"u"`
+		Alpha float64 `json:"alpha"`
+		Beta  float64 `json:"beta"`
+	}{
+		C:     triangle.C(),
+		CU:    triangle.CU(),
+		CA:    triangle.CA(),
+		W:     triangle.W(),
+		WU:    triangle.WU(),
+		WA:    triangle.WA(),
+		U:     triangle.U(),
+		Alpha: triangle.Alpha(),
+		Beta:  triangle.Beta(),
+	})
 }
 
 func NewInletTriangle(u, c, alpha float64) VelocityTriangle {
@@ -46,6 +73,10 @@ type rotorOutletVelocityTriangle struct {
 	velocityTriangle
 }
 
+func (triangle rotorOutletVelocityTriangle) MarshalJSON() ([]byte, error) {
+	return MarshalTriangle(triangle)
+}
+
 func (triangle rotorOutletVelocityTriangle) WU() float64 {
 	return triangle.CU() + triangle.U()
 }
@@ -64,6 +95,10 @@ func (triangle rotorOutletVelocityTriangle) W() float64 {
 
 type rotorInletVelocityTriangle struct {
 	velocityTriangle
+}
+
+func (triangle rotorInletVelocityTriangle) MarshalJSON() ([]byte, error) {
+	return MarshalTriangle(triangle)
 }
 
 func (triangle rotorInletVelocityTriangle) WU() float64 {
@@ -106,6 +141,10 @@ func NewCompressorVelocityTriangleFromProjections(cu, ca, u float64) VelocityTri
 
 type compressorVelocityTriangle struct {
 	velocityTriangle
+}
+
+func (triangle *compressorVelocityTriangle) MarshalJSON() ([]byte, error) {
+	return MarshalTriangle(triangle)
 }
 
 func (triangle *compressorVelocityTriangle) W() float64 {

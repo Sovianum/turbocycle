@@ -1,6 +1,9 @@
 package geometry
 
-import "math"
+import (
+	"encoding/json"
+	"math"
+)
 
 func NewBladingGeometry(
 	bladeWidth, gapWidth float64,
@@ -78,6 +81,46 @@ type bladingGeometry struct {
 	innerProfile AxialProfileLine
 	meanProfile  AxialProfileLine
 	outerProfile AxialProfileLine
+}
+
+func (geom *bladingGeometry) MarshalJSON() ([]byte, error) {
+	data := struct {
+		DInIn   float64 `json:"d_in_in"`
+		DMeanIn float64 `json:"d_mean_in"`
+		DOutIn  float64 `json:"d_out_in"`
+
+		DInOut   float64 `json:"d_in_out"`
+		DMeanOut float64 `json:"d_mean_out"`
+		DOutOut  float64 `json:"d_out_out"`
+
+		GammaIn  float64 `json:"gamma_in"`
+		GammaOut float64 `json:"gamma_out"`
+
+		Width      float64 `json:"width"`
+		BladeWidth float64 `json:"blade_width"`
+		GapWidth   float64 `json:"gap_width"`
+
+		BladeHeight float64 `json:"blade_height"`
+	}{
+		DInIn:   geom.innerProfile.Diameter(0),
+		DMeanIn: geom.meanProfile.Diameter(0),
+		DOutIn:  geom.outerProfile.Diameter(0),
+
+		DInOut:   geom.innerProfile.Diameter(geom.XGapOut()),
+		DMeanOut: geom.meanProfile.Diameter(geom.XGapOut()),
+		DOutOut:  geom.outerProfile.Diameter(geom.XGapOut()),
+
+		GammaIn:  geom.innerProfile.Angle(),
+		GammaOut: geom.outerProfile.Angle(),
+
+		Width:      geom.XGapOut(),
+		BladeWidth: geom.bladeWidth,
+		GapWidth:   geom.gapWidth,
+
+		BladeHeight: Height(0, geom),
+	}
+
+	return json.Marshal(data)
 }
 
 func (geom *bladingGeometry) InnerProfile() AxialProfileLine {

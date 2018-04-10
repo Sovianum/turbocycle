@@ -129,11 +129,11 @@ type DataPack struct {
 	Err     error
 	chapter string
 
-	RPM        float64
-	Reactivity float64
-	Phi        float64
-	Psi        float64
-	AirGapRel  float64
+	RPM        float64 `json:"rpm"`
+	Reactivity float64 `json:"reactivity"`
+	Phi        float64 `json:"phi"`
+	Psi        float64 `json:"psi"`
+	AirGapRel  float64 `json:"air_gap_rel"`
 
 	EtaTStag                   float64                  `json:"eta_t_stag"`
 	StageHeatDropStag          float64                  `json:"stage_heat_drop_stag"`
