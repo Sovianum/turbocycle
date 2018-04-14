@@ -21,6 +21,14 @@ import (
 type StageNode interface {
 	common2.StageChannel
 	GetDataPack() *DataPack
+	Gas() gases.Gas
+	MassRate() float64
+	HtCoef() float64
+	HtCoefNext() float64
+	Reactivity() float64
+	ReactivityNext() float64
+	GeomGen() StageGeometryGenerator
+	RPM() float64
 }
 
 type DataPack struct {
@@ -47,6 +55,14 @@ type DataPack struct {
 	InletTriangle  states.VelocityTriangle `json:"inlet_triangle"`
 	OutletTriangle states.VelocityTriangle `json:"outlet_triangle"`
 	MidTriangle    states.VelocityTriangle `json:"mid_triangle"`
+
+	ACrit1 float64 `json:"a_crit_1"`
+	ACrit3 float64 `json:"a_crit_3"`
+
+	Lambda1 float64 `json:"lambda_1"`
+	Lambda3 float64 `json:"lambda_3"`
+
+	Q1 float64 `json:"q_1"`
 }
 
 func NewMidStageNode(
@@ -132,6 +148,38 @@ type stageNode struct {
 	prevStageGeom geometry.StageGeometry
 }
 
+func (node *stageNode) RPM() float64 {
+	return node.rpm
+}
+
+func (node *stageNode) GeomGen() StageGeometryGenerator {
+	return node.stageGeomGen
+}
+
+func (node *stageNode) Reactivity() float64 {
+	return node.reactivity
+}
+
+func (node *stageNode) ReactivityNext() float64 {
+	return node.reactivityNext
+}
+
+func (node *stageNode) HtCoef() float64 {
+	return node.htCoef
+}
+
+func (node *stageNode) HtCoefNext() float64 {
+	return node.htCoefNext
+}
+
+func (node *stageNode) MassRate() float64 {
+	return node.massRate()
+}
+
+func (node *stageNode) Gas() gases.Gas {
+	return node.GasInput().GetState().Value().(gases.Gas)
+}
+
 func (node *stageNode) GetDataPack() *DataPack {
 	return node.pack
 }
@@ -142,6 +190,7 @@ func (node *stageNode) GetName() string {
 
 func (node *stageNode) Process() error {
 	node.pack = new(DataPack)
+	node.pack.LabourCoef = node.labourCoef
 	if node.isFirstStage {
 		node.inletVelocitiesFirstStage(node.pack)
 	} else {
@@ -209,6 +258,7 @@ func (node *stageNode) outletVelocities(pack *DataPack) {
 	thermoFactor := massRate * math.Sqrt(pack.T3Stag) / pack.P3Stag
 	f3 := geometry.Area(bGeom.XGapOut(), bGeom)
 	aCrit := gdf.ACrit(k, gas.R(), pack.T3Stag)
+	pack.ACrit3 = aCrit
 
 	lambdaFactor := math.Abs(cuCoef*pack.UOut) / aCrit
 	lambda3Func := func(lambda3 float64) (float64, error) {
@@ -251,6 +301,7 @@ func (node *stageNode) outletVelocities(pack *DataPack) {
 		return
 	}
 	lambda3 := solution.At(0, 0)
+	pack.Lambda3 = lambda3
 
 	q3 := gdf.Q(lambda3, k, gas.R())
 	alpha3 := math.Asin(thermoFactor / (f3 * q3))
@@ -372,6 +423,8 @@ func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 
 	area1 := area1Func(lambda1)
 	pack.Area1 = area1
+	pack.Lambda1 = lambda1
+	pack.Q1 = gdf.Q(lambda1, kGas, gas.R())
 
 	dOutIn := math.Sqrt(4 / math.Pi * 1 / (1 - node.dRelIn*node.dRelIn) * area1)
 	pack.StageGeometry = node.stageGeomGen.Generate(dOutIn)
@@ -383,6 +436,7 @@ func (node *stageNode) inletVelocitiesFirstStage(pack *DataPack) {
 
 	u1 := rRel * u1Out
 	pack.InletTriangle = states.NewCompressorVelocityTriangleFromProjections(cu1, ca1, u1)
+	pack.ACrit1 = gdf.ACrit(kGas, gas.R(), t1)
 }
 
 func (node *stageNode) inletVelocities(pack *DataPack) {
@@ -402,6 +456,14 @@ func (node *stageNode) inletVelocities(pack *DataPack) {
 	pack.UOut = u1Out
 
 	pack.InletTriangle = node.VelocityInput().GetState().Value().(states.VelocityTriangle)
+
+	t1 := node.t1Stag()
+	gas := node.gas()
+	kGas := gases.K(gas, pack.T1Stag)
+	pack.ACrit1 = gdf.ACrit(kGas, gas.R(), t1)
+
+	pack.Lambda1 = node.inletTriangle().C() / gdf.ACrit(kGas, gas.R(), t1)
+	pack.Q1 = gdf.Q(pack.Lambda1, kGas, gas.R())
 }
 
 // below are private accessors
