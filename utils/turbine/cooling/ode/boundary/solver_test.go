@@ -1,11 +1,9 @@
 package boundary
 
 import (
-	"fmt"
 	"math"
 	"testing"
 
-	"github.com/gin-gonic/gin/json"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +11,7 @@ import (
 // precise solution y = (1 - e^(-x)) / (1 - e^(-L)) * L - x
 func TestSolver1Type(t *testing.T) {
 	length := 10.
-	s := NewSolver(
+	s := NewSolverFromFuncs(
 		func(x float64) float64 { return 1 },
 		func(x float64) float64 { return 0 },
 		func(x float64) float64 { return -1 },
@@ -23,6 +21,9 @@ func TestSolver1Type(t *testing.T) {
 	)
 	solution, err := s.Solve()
 	assert.Nil(t, err)
+	if err != nil {
+		return
+	}
 
 	precise := func(x float64) float64 {
 		return (1-math.Exp(-x))/(1-math.Exp(-length))*length - x
@@ -42,7 +43,7 @@ func TestSolver1Type(t *testing.T) {
 // precise solution y = e^(-L) - e^(-x) + L - x
 func TestSolver2Type(t *testing.T) {
 	length := 10.
-	s := NewSolver(
+	s := NewSolverFromFuncs(
 		func(x float64) float64 { return 1 },
 		func(x float64) float64 { return 0 },
 		func(x float64) float64 { return -1 },
@@ -68,7 +69,7 @@ func TestSolver2Type(t *testing.T) {
 // precise solution y = e^L*(2 - e^(-x)) - x
 func TestSolver3Type(t *testing.T) {
 	length := 1.
-	s := NewSolver(
+	s := NewSolverFromFuncs(
 		func(x float64) float64 { return 1 },
 		func(x float64) float64 { return 0 },
 		func(x float64) float64 { return -1 },
@@ -88,10 +89,4 @@ func TestSolver3Type(t *testing.T) {
 	for i := range x {
 		assert.InDelta(t, precise(x[i]), y[i], 1e-1, "%d", i)
 	}
-
-	b, _ := json.MarshalIndent(struct {
-		X []float64 `json:"x"`
-		Y []float64 `json:"y"`
-	}{x, y}, "", "    ")
-	fmt.Println(string(b))
 }

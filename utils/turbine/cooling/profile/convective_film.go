@@ -7,6 +7,7 @@ import (
 	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling"
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/boundary"
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/forward"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"gonum.org/v1/gonum/mat"
@@ -90,7 +91,8 @@ func NewConvFilmTemperatureSystem(
 }
 
 type convFilmTemperatureSystem struct {
-	solver forward.Solver
+	solver         forward.Solver
+	wallTempSolver boundary.Solver
 
 	coolerMassRate0 float64
 
@@ -136,6 +138,15 @@ func (system *convFilmTemperatureSystem) Solve(t0, theta0, tMax, maxStep float64
 	tSolution.AirTemperature = tAirArr
 
 	system.extendSolutionArray(&tSolution, t0, system.solutionStep, solutionLen)
+
+	system.initWalTempSolver(tSolution.LengthCoord, tSolution.AirTemperature, tSolution.FilmTemperature)
+	if wallTempSolution, err := system.wallTempSolver.Solve(); err != nil {
+		panic(err)
+	} else {
+		_, t := wallTempSolution.Build()
+		tSolution.SmoothWallTemperature = t
+	}
+
 	return tSolution
 }
 
@@ -250,6 +261,31 @@ func (system *convFilmTemperatureSystem) wallTemp(lengthCoord, theta float64) fl
 	var kFactor = system.heatTransferCoef(lengthCoord, theta) / alphaFilm
 	var tFactor = tFilm - theta
 	return tFilm - kFactor*tFactor
+}
+
+func (system *convFilmTemperatureSystem) initWalTempSolver(lengthCoord, tAir, tFilm []float64) {
+	fArr := make([]float64, len(lengthCoord))
+	gArr := make([]float64, len(lengthCoord))
+	hArr := make([]float64, len(lengthCoord))
+
+	for i, xi := range lengthCoord {
+		wallThkVal := system.wallThk(xi)
+		lambdaVal := system.lambda(xi)
+		tFilmVal := tFilm[i]
+		tAirVal := tAir[i]
+		alphaAirVal := system.AlphaAir(xi, tAirVal)
+		alphaFilmVal := system.AlphaGas(xi, tFilmVal)
+
+		//fArr[i] == 0 for all i
+		gArr[i] = -(alphaAirVal + alphaFilmVal) / (wallThkVal * lambdaVal)
+		hArr[i] = -(alphaAirVal*tAirVal + alphaFilmVal*tFilmVal) / (wallThkVal * lambdaVal)
+	}
+
+	system.wallTempSolver = boundary.NewSolverFromArrays(
+		lengthCoord, fArr, gArr, hArr,
+		boundary.NewSecondTypeBC(0),
+		boundary.NewSecondTypeBC(0),
+	)
 }
 
 func (system *convFilmTemperatureSystem) heatTransferCoef(lengthCoord, theta float64) float64 {

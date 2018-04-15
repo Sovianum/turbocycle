@@ -1,7 +1,7 @@
 package boundary
 
 // BC is a boundary condition for equation of type
-// yVec'' + f(x, yVec)*yVec' + g(x, yVec) = 0
+// yArr'' + fArr(x, yArr)*yArr' + gArr(x, yArr) = 0
 type BC interface {
 	LHS0(step float64) float64
 	LHS1(step float64) float64
@@ -15,7 +15,7 @@ func NewThirdTypeBC(alpha, y0 float64) BC {
 	}
 }
 
-// bc of type yVec'(x_0) = alpha * (y_0 - y(x_0))
+// bc of type yArr'(x_0) = alpha * (y_0 - y(x_0))
 type thirdTypeBC struct {
 	alpha float64
 	y0    float64
@@ -37,7 +37,7 @@ func NewSecondTypeBC(derivative float64) BC {
 	return &secondTypeBC{derivative: derivative}
 }
 
-// bc of type yVec'(x_0) = yVec'_0
+// bc of type yArr'(x_0) = yArr'_0
 type secondTypeBC struct {
 	derivative float64
 }
@@ -58,7 +58,7 @@ func NewFirstTypeBC(value float64) BC {
 	return &firstTypeBC{value: value}
 }
 
-// bc of type yVec(x_0) = y_0
+// bc of type yArr(x_0) = y_0
 type firstTypeBC struct {
 	value float64
 }

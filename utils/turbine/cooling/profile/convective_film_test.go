@@ -1,12 +1,14 @@
 package profile
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/forward"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
+	"github.com/gin-gonic/gin/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gonum.org/v1/gonum/mat"
@@ -130,6 +132,15 @@ func (suite *ConvectiveFilmTestSuite) TestFilmAlphaHole() {
 			)
 		}
 	}
+
+	b, _ := json.MarshalIndent(struct {
+		Length      []float64 `json:"length"`
+		TWall       []float64 `json:"t_wall"`
+		TWallSmooth []float64 `json:"t_wall_smooth"`
+	}{
+		solution.LengthCoord, solution.WallTemperature, solution.SmoothWallTemperature,
+	}, "", "    ")
+	fmt.Println(string(b))
 }
 
 func TestConvectiveFilmTestSuite(t *testing.T) {

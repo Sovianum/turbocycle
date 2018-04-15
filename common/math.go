@@ -34,36 +34,6 @@ func SolveIteratively(
 	}, x0, precision, relaxCoef, iterLimit)
 }
 
-//func SolveIterativelyWithValidation(
-//	f func(xCurr float64) (xNew float64, err error),
-//	validator func(x float64) error,
-//	x0, precision, relaxCoef float64, iterLimit int,
-//) (float64, error) {
-//	eq := math2.NewEquationSystem(func(xVec *mat.VecDense) (*mat.VecDense, error) {
-//		xOld := xVec.At(0, 0)
-//		xNew, err := f(xOld)
-//		if err != nil {
-//			return nil, err
-//		}
-//		if err := validator(xNew); err != nil {
-//			return nil, err
-//		}
-//		return mat.NewVecDense(1, []float64{xNew - xOld}), nil
-//	}, 1)
-//	solver, err := newton.NewUniformNewtonSolver(eq, 1e-5, newton.NoLog)
-//	if err != nil {
-//		return 0, err
-//	}
-//	solution, err := solver.Solve(
-//		mat.NewVecDense(1, []float64{x0}),
-//		precision, relaxCoef, iterLimit,
-//	)
-//	if err != nil {
-//		return 0, err
-//	}
-//	return solution.At(0, 0), nil
-//}
-
 func SolveIterativelyWithValidation(
 	f func(xCurr float64) (xNew float64, err error),
 	validator func(x float64) error,
