@@ -2,13 +2,13 @@ package profile
 
 import (
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling"
-	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/forward"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"gonum.org/v1/gonum/mat"
 )
 
 func NewConvectiveTemperatureSystem(
-	solver ode.Solver,
+	solver forward.Solver,
 	airMassRate float64,
 	cpAir func(theta float64) float64,
 	gasTemp func(x float64) float64,
@@ -34,7 +34,7 @@ func NewConvectiveTemperatureSystem(
 }
 
 type convectiveTemperatureSystem struct {
-	solver ode.Solver
+	solver forward.Solver
 
 	airMassRate float64
 	cpAir       func(theta float64) float64

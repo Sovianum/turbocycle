@@ -5,7 +5,7 @@ import (
 
 	"github.com/Sovianum/turbocycle/material/fuel"
 	"github.com/Sovianum/turbocycle/material/gases"
-	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/forward"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -15,7 +15,7 @@ import (
 type ConvectiveFilmTestSuite struct {
 	suite.Suite
 
-	solver ode.Solver
+	solver forward.Solver
 
 	coolerMassRate0 float64
 
@@ -41,7 +41,7 @@ type ConvectiveFilmTestSuite struct {
 }
 
 func (suite *ConvectiveFilmTestSuite) SetupTest() {
-	suite.solver = ode.NewEulerSolver()
+	suite.solver = forward.NewEulerSolver()
 	suite.coolerMassRate0 = 0.05
 
 	suite.cooler = gases.GetAir()

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/Sovianum/turbocycle/material/gases"
-	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/forward"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -14,7 +14,7 @@ import (
 type ConvectiveTestSuite struct {
 	suite.Suite
 
-	solver      ode.Solver
+	solver      forward.Solver
 	airMassRate float64
 
 	cpAir   func(theta float64) float64
@@ -31,7 +31,7 @@ type ConvectiveTestSuite struct {
 }
 
 func (suite *ConvectiveTestSuite) SetupTest() {
-	suite.solver = ode.NewEulerSolver()
+	suite.solver = forward.NewEulerSolver()
 	suite.airMassRate = 0.05
 	suite.cpAir = gases.GetAir().Cp
 	suite.gasTemp = func(x float64) float64 {

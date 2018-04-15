@@ -1,9 +1,12 @@
-package ode
+package forward
 
-import "gonum.org/v1/gonum/floats"
+import (
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+	"gonum.org/v1/gonum/floats"
+)
 
 type Solver interface {
-	Solution(derivative func(x, y float64) float64, x0, y0, xMax, maxStep float64) Solution
+	Solution(derivative func(x, y float64) float64, x0, y0, xMax, maxStep float64) ode.Solution
 }
 
 func NewEulerSolver() Solver {
@@ -12,7 +15,7 @@ func NewEulerSolver() Solver {
 
 type eulerSolver struct{}
 
-func (e eulerSolver) Solution(derivative func(x, y float64) float64, x0, y0, xMax, maxStep float64) Solution {
+func (e eulerSolver) Solution(derivative func(x, y float64) float64, x0, y0, xMax, maxStep float64) ode.Solution {
 	var distance = xMax - x0
 	var stepNum = floats.Round(distance/maxStep, 1)
 	var stepDistance = maxStep * stepNum

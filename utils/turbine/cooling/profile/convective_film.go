@@ -7,7 +7,7 @@ import (
 	"github.com/Sovianum/turbocycle/common/gdf"
 	"github.com/Sovianum/turbocycle/material/gases"
 	"github.com/Sovianum/turbocycle/utils/turbine/cooling"
-	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
+	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode/forward"
 	"github.com/Sovianum/turbocycle/utils/turbine/geom"
 	"gonum.org/v1/gonum/mat"
 )
@@ -48,7 +48,7 @@ type thermoPoint struct {
 }
 
 func NewConvFilmTemperatureSystem(
-	solver ode.Solver,
+	solver forward.Solver,
 	coolerMassRate0 float64,
 	cooler gases.Gas,
 	gas gases.Gas,
@@ -90,7 +90,7 @@ func NewConvFilmTemperatureSystem(
 }
 
 type convFilmTemperatureSystem struct {
-	solver ode.Solver
+	solver forward.Solver
 
 	coolerMassRate0 float64
 
