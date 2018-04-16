@@ -29,20 +29,20 @@ type SlitSolution struct {
 }
 
 type TemperatureSolution struct {
-	ParametricCoord       []float64
-	X                     []float64
-	Y                     []float64
-	LengthCoord           []float64
-	AlphaAir              []float64
-	AlphaGas              []float64
-	FilmTemperature       []float64
-	AirTemperature        []float64
-	WallTemperature       []float64
-	SmoothWallTemperature []float64
-	HeatTransferCoef      []float64
-	FilmEfficiency        []float64
+	ParametricCoord       []float64 `json:"parametric_coord"`
+	X                     []float64 `json:"x"`
+	Y                     []float64 `json:"y"`
+	LengthCoord           []float64 `json:"l"`
+	AlphaAir              []float64 `json:"alpha_air"`
+	AlphaGas              []float64 `json:"alpha_gas"`
+	FilmTemperature       []float64 `json:"t_film"`
+	AirTemperature        []float64 `json:"t_air"`
+	WallTemperature       []float64 `json:"t_wall"`
+	SmoothWallTemperature []float64 `json:"t_wall_smooth"`
+	HeatTransferCoef      []float64 `json:"k_transfer"`
+	FilmEfficiency        []float64 `json:"film_efficiency"`
 
-	SlitsSolution []SlitSolution
+	SlitsSolution []SlitSolution `json:"-"`
 }
 
 func (s TemperatureSolution) String() string {
@@ -57,26 +57,6 @@ func (s TemperatureSolution) String() string {
 			s.AirTemperature[i],
 			s.WallTemperature[i],
 		)
-	}
-	return result
-}
-
-func (s TemperatureSolution) ToMatrix() [][]float64 {
-	var result = make([][]float64, len(s.ParametricCoord))
-	for i := 0; i != len(s.ParametricCoord); i++ {
-		result[i] = []float64{
-			s.ParametricCoord[i],
-			s.X[i],
-			s.Y[i],
-			s.LengthCoord[i],
-			s.AlphaAir[i],
-			s.AlphaGas[i],
-			s.FilmTemperature[i],
-			s.AirTemperature[i],
-			s.WallTemperature[i],
-			s.HeatTransferCoef[i],
-			s.FilmEfficiency[i],
-		}
 	}
 	return result
 }
