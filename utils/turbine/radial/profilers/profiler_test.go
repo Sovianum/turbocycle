@@ -94,20 +94,22 @@ func (suite *ProfilerTestSuite) SetupTest() {
 	}
 
 	suite.profiler = NewProfiler(
-		windage, approxTRel,
-		suite.behavior,
-		suite.geomGen,
-		suite.meanInletTriangle,
-		suite.meanOutletTriangle,
-		suite.inletVelocityLaw,
-		suite.outletVelocityLaw,
-		suite.inletProfileAngleFunc,
-		suite.outletProfileAngleFunc,
-		suite.installationAngleFunc,
-		suite.inletExpansionAngleFunc,
-		suite.outletExpansionAngleFunc,
-		suite.inletFractionFunc,
-		suite.outletFractionFunc,
+		ProfilerConfig{
+			windage, approxTRel,
+			suite.behavior,
+			suite.geomGen,
+			suite.meanInletTriangle,
+			suite.meanOutletTriangle,
+			suite.inletVelocityLaw,
+			suite.outletVelocityLaw,
+			suite.inletProfileAngleFunc,
+			suite.outletProfileAngleFunc,
+			suite.installationAngleFunc,
+			suite.inletExpansionAngleFunc,
+			suite.outletExpansionAngleFunc,
+			suite.inletFractionFunc,
+			suite.outletFractionFunc,
+		},
 	)
 }
 

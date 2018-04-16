@@ -8,53 +8,55 @@ import (
 	"github.com/Sovianum/turbocycle/utils/turbine/radial/laws"
 )
 
-func NewProfiler(
-	windage float64,
-	approxTRel float64,
+type ProfilerConfig struct {
+	Windage    float64
+	ApproxTRel float64
 
-	behavior ProfilingBehavior,
-	geomGen turbine.BladingGeometryGenerator,
+	Behavior ProfilingBehavior
+	GeomGen  turbine.BladingGeometryGenerator
 
-	meanInletTriangle states.VelocityTriangle,
-	meanOutletTriangle states.VelocityTriangle,
+	MeanInletTriangle  states.VelocityTriangle
+	MeanOutletTriangle states.VelocityTriangle
 
-	inletVelocityLaw laws.InletVelocityLaw,
-	outletVelocityLaw laws.OutletVelocityLaw,
+	InletVelocityLaw  laws.VelocityLaw
+	OutletVelocityLaw laws.OutletVelocityLaw
 
-	inletProfileAngleFunc func(characteristicAngle, hRel float64) float64,
-	outletProfileAngleFunc func(characteristicAngle, hRel float64) float64,
+	InletProfileAngleFunc  func(characteristicAngle, hRel float64) float64
+	OutletProfileAngleFunc func(characteristicAngle, hRel float64) float64
 
-	installationAngleFunc func(hRel float64) float64,
+	InstallationAngleFunc func(hRel float64) float64
 
-	inletExpansionAngleFunc func(hRel float64) float64,
-	outletExpansionAngleFunc func(hRel float64) float64,
+	InletExpansionAngleFunc  func(hRel float64) float64
+	OutletExpansionAngleFunc func(hRel float64) float64
 
-	inletPSAngleFractionFunc func(hRel float64) float64,
-	outletPSAngleFractionFunc func(hRel float64) float64,
-) Profiler {
+	InletPSAngleFractionFunc  func(hRel float64) float64
+	OutletPSAngleFractionFunc func(hRel float64) float64
+}
+
+func NewProfiler(config ProfilerConfig) Profiler {
 	return &profiler{
-		windage:    windage,
-		approxTRel: approxTRel,
+		windage:    config.Windage,
+		approxTRel: config.ApproxTRel,
 
-		behavior: behavior,
-		geomGen:  geomGen,
+		behavior: config.Behavior,
+		geomGen:  config.GeomGen,
 
-		meanInletTriangle:  meanInletTriangle,
-		meanOutletTriangle: meanOutletTriangle,
+		meanInletTriangle:  config.MeanInletTriangle,
+		meanOutletTriangle: config.MeanOutletTriangle,
 
-		inletVelocityLaw:  inletVelocityLaw,
-		outletVelocityLaw: outletVelocityLaw,
+		inletVelocityLaw:  config.InletVelocityLaw,
+		outletVelocityLaw: config.OutletVelocityLaw,
 
-		inletProfileAngleFunc:  inletProfileAngleFunc,
-		outletProfileAngleFunc: outletProfileAngleFunc,
+		inletProfileAngleFunc:  config.InletProfileAngleFunc,
+		outletProfileAngleFunc: config.OutletProfileAngleFunc,
 
-		installationAngleFunc: installationAngleFunc,
+		installationAngleFunc: config.InstallationAngleFunc,
 
-		inletExpansionAngleFunc:  inletExpansionAngleFunc,
-		outletExpansionAngleFunc: outletExpansionAngleFunc,
+		inletExpansionAngleFunc:  config.InletExpansionAngleFunc,
+		outletExpansionAngleFunc: config.OutletExpansionAngleFunc,
 
-		inletPSAngleFractionFunc:  inletPSAngleFractionFunc,
-		outletPSAngleFractionFunc: outletPSAngleFractionFunc,
+		inletPSAngleFractionFunc:  config.InletPSAngleFractionFunc,
+		outletPSAngleFractionFunc: config.OutletPSAngleFractionFunc,
 	}
 }
 
