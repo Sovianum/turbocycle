@@ -85,6 +85,8 @@ func (s *solver) Solve() (ode.Solution, error) {
 func (s *solver) fillMatrices() {
 	s.lhs = mat.NewDense(s.pointNum, s.pointNum, nil)
 	s.rhs = mat.NewVecDense(s.pointNum, nil)
+	firstDerAcceptor := make([]float64, 3)
+	secondDerAcceptor := make([]float64, 3)
 
 	// first and last lines are excluded
 	// (they will be filled with boundary conditions)
@@ -93,11 +95,18 @@ func (s *solver) fillMatrices() {
 		gi := s.gArr[i]
 		hi := s.hArr[i]
 
-		s.lhs.Set(i, i-1, 2-fi*s.step)
-		s.lhs.Set(i, i, 2*(gi*s.step*s.step-2))
-		s.lhs.Set(i, i+1, 2+fi*s.step)
+		xPrev := s.xArr[i-1]
+		xCurr := s.xArr[i]
+		xNext := s.xArr[i+1]
 
-		s.rhs.SetVec(i, 2*hi*s.step*s.step)
+		getFirstDerivativeFactors(xPrev, xCurr, xNext, firstDerAcceptor)
+		getSecondDerivativeFactors(xPrev, xCurr, xNext, secondDerAcceptor)
+
+		s.lhs.Set(i, i-1, fi*firstDerAcceptor[0]+secondDerAcceptor[0])
+		s.lhs.Set(i, i, fi*firstDerAcceptor[1]+secondDerAcceptor[1]+gi)
+		s.lhs.Set(i, i+1, fi*firstDerAcceptor[2]+secondDerAcceptor[2])
+
+		s.rhs.SetVec(i, hi)
 	}
 
 	s.lhs.Set(0, 0, s.startBC.LHS0(s.step))
@@ -107,4 +116,22 @@ func (s *solver) fillMatrices() {
 	s.lhs.Set(s.pointNum-1, s.pointNum-1, s.endBC.LHS0(s.step))
 	s.lhs.Set(s.pointNum-1, s.pointNum-2, s.endBC.LHS1(s.step))
 	s.rhs.SetVec(s.pointNum-1, s.endBC.RHS(s.step))
+}
+
+func getFirstDerivativeFactors(xPrev, xCurr, xNext float64, acceptor []float64) {
+	dxPrev := xCurr - xPrev
+	dxCurr := xNext - xCurr
+
+	acceptor[0] = -dxCurr / (dxPrev * (dxPrev + dxCurr))
+	acceptor[1] = (dxPrev - dxCurr) / (dxCurr * dxPrev)
+	acceptor[2] = dxPrev / (dxCurr * (dxPrev + dxCurr))
+}
+
+func getSecondDerivativeFactors(xPrev, xCurr, xNext float64, acceptor []float64) {
+	dxPrev := xCurr - xPrev
+	dxCurr := xNext - xCurr
+
+	acceptor[0] = 2 / (dxPrev * (dxPrev + dxCurr))
+	acceptor[1] = -2 / (dxCurr * dxPrev)
+	acceptor[2] = 2 / (dxCurr * (dxPrev + dxCurr))
 }
