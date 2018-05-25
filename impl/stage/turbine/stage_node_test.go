@@ -31,8 +31,6 @@ const (
 	t0       = 1130.
 	p0       = 7.8e5
 	density0 = 2.405
-
-	alpha = 0.5
 )
 
 type StageNodeTestSuite struct {
@@ -184,6 +182,79 @@ func (suite *StageNodeTestSuite) TestT0() {
 	assert.True(
 		suite.T(),
 		common.ApproxEqual(tg-c0*c0/(2*cp), suite.pack.T0, 0.0001),
+	)
+}
+
+func (suite *StageNodeTestSuite) TestAlpha1Trend() {
+	alpha11 := common.ToRadians(14)
+	alpha12 := common.ToRadians(16)
+
+	node1 := NewTurbineFirstStageNode(alpha11, n, stageHeatDrop, reactivity, phi, psi, airGapRel, 1e-5, suite.gen)
+	node2 := NewTurbineFirstStageNode(alpha12, n, stageHeatDrop, reactivity, phi, psi, airGapRel, 1e-5, suite.gen)
+
+	node1.GasInput().SetState(states.NewGasPortState(gases.GetAir()))
+	node1.VelocityInput().SetState(states2.NewVelocityPortState(
+		states2.NewInletTriangle(0, c0, math.Pi/2),
+		states2.InletTriangleType,
+	))
+	node1.TemperatureInput().SetState(states.NewTemperaturePortState(tg))
+	node1.PressureInput().SetState(states.NewPressurePortState(pg))
+	node1.MassRateInput().SetState(states.NewMassRatePortState(massRate))
+
+	node2.GasInput().SetState(states.NewGasPortState(gases.GetAir()))
+	node2.VelocityInput().SetState(states2.NewVelocityPortState(
+		states2.NewInletTriangle(0, c0, math.Pi/2),
+		states2.InletTriangleType,
+	))
+	node2.TemperatureInput().SetState(states.NewTemperaturePortState(tg))
+	node2.PressureInput().SetState(states.NewPressurePortState(pg))
+	node2.MassRateInput().SetState(states.NewMassRatePortState(massRate))
+
+	suite.Require().NoError(node1.Process())
+	suite.Require().NoError(node2.Process())
+
+	suite.True(
+		node1.GetDataPack().RotorOutletTriangle.Alpha() > node2.GetDataPack().RotorOutletTriangle.Alpha(),
+		"alpha_21 = %.3f, alpha_22 = %.3f",
+		common.ToDegrees(node1.GetDataPack().RotorOutletTriangle.Alpha()),
+		common.ToDegrees(node2.GetDataPack().RotorOutletTriangle.Alpha()),
+	)
+}
+
+func (suite *StageNodeTestSuite) TestReactivityTrend() {
+	reactivity1 := 0.5
+	reactivity2 := 0.6
+	dMean := 0.75
+
+	node1 := NewTurbineMidStageNode(dMean, n, stageHeatDrop, reactivity1, phi, psi, airGapRel, 1e-5, suite.gen)
+	node2 := NewTurbineMidStageNode(dMean, n, stageHeatDrop, reactivity2, phi, psi, airGapRel, 1e-5, suite.gen)
+
+	node1.GasInput().SetState(states.NewGasPortState(gases.GetAir()))
+	node1.VelocityInput().SetState(states2.NewVelocityPortState(
+		states2.NewInletTriangle(0, c0, math.Pi/2),
+		states2.InletTriangleType,
+	))
+	node1.TemperatureInput().SetState(states.NewTemperaturePortState(tg))
+	node1.PressureInput().SetState(states.NewPressurePortState(pg))
+	node1.MassRateInput().SetState(states.NewMassRatePortState(massRate))
+
+	node2.GasInput().SetState(states.NewGasPortState(gases.GetAir()))
+	node2.VelocityInput().SetState(states2.NewVelocityPortState(
+		states2.NewInletTriangle(0, c0, math.Pi/2),
+		states2.InletTriangleType,
+	))
+	node2.TemperatureInput().SetState(states.NewTemperaturePortState(tg))
+	node2.PressureInput().SetState(states.NewPressurePortState(pg))
+	node2.MassRateInput().SetState(states.NewMassRatePortState(massRate))
+
+	suite.Require().NoError(node1.Process())
+	suite.Require().NoError(node2.Process())
+
+	suite.True(
+		node1.GetDataPack().RotorInletTriangle.Alpha() < node2.GetDataPack().RotorInletTriangle.Alpha(),
+		"alpha_11 = %.3f, alpha_12 = %.3f",
+		common.ToDegrees(node1.GetDataPack().RotorInletTriangle.Alpha()),
+		common.ToDegrees(node2.GetDataPack().RotorInletTriangle.Alpha()),
 	)
 }
 
