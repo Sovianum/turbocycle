@@ -17,6 +17,18 @@ func ReduceFloat64(xArr []float64, reducer func(x, y float64) float64, init floa
 	return result
 }
 
+func MaxID(xArr []float64) int {
+	result := -1
+	max := -1e10
+	for i, x := range xArr {
+		if x > max {
+			max = x
+			result = i
+		}
+	}
+	return result
+}
+
 func Sum(xArr []float64) float64 {
 	return ReduceFloat64(xArr, func(x, y float64) float64 { return x + y }, 0)
 }

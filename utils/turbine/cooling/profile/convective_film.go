@@ -270,7 +270,7 @@ func (system *convFilmTemperatureSystem) initWalTempSolver(lengthCoord, tAir, tF
 
 	for i, xi := range lengthCoord {
 		wallThkVal := system.wallThk(xi)
-		lambdaVal := system.lambda(xi)
+		lambdaVal := system.lambdaM(xi)
 		tFilmVal := tFilm[i]
 		tAirVal := tAir[i]
 		alphaAirVal := system.AlphaAir(xi, tAirVal)
@@ -281,10 +281,16 @@ func (system *convFilmTemperatureSystem) initWalTempSolver(lengthCoord, tAir, tF
 		hArr[i] = -(alphaAirVal*tAirVal + alphaFilmVal*tFilmVal) / (wallThkVal * lambdaVal)
 	}
 
+	pointNum := len(lengthCoord)
+	lastStep := lengthCoord[pointNum-1] - lengthCoord[pointNum-2]
+	dtAir := tAir[pointNum-1] - tAir[pointNum-2]
+	dtFilm := tFilm[pointNum-1] - tFilm[pointNum-2]
+
 	system.wallTempSolver = boundary.NewSolverFromArrays(
 		lengthCoord, fArr, gArr, hArr,
 		boundary.NewSecondTypeBC(0),
-		boundary.NewSecondTypeBC(0),
+		boundary.NewSecondTypeBC((dtAir+dtFilm*0)/(2*lastStep)),
+		//boundary.NewSecondTypeBC(0),
 	)
 }
 

@@ -1,7 +1,6 @@
 package boundary
 
 import (
-	"github.com/Sovianum/turbocycle/utils/turbine/cooling/ode"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -10,19 +9,16 @@ type CoefFunc func(x float64) float64
 // Solver represents solver for the equation of type
 // y'' + fArr(x)*y' + gArr(x)*y = hArr(x)
 type Solver interface {
-	Solve() (ode.Solution, error)
+	Solve() (Solution, error)
 }
 
 func NewSolverFromArrays(xArr, fArr, gArr, hArr []float64, startBC, endBC BC) Solver {
-	step := xArr[1] - xArr[0]
-
 	return &solver{
 		xArr:     xArr,
 		fArr:     fArr,
 		gArr:     gArr,
 		hArr:     hArr,
 		pointNum: len(xArr),
-		step:     step,
 		startBC:  startBC,
 		endBC:    endBC,
 	}
@@ -40,7 +36,6 @@ func NewSolverFromFuncs(f, g, h CoefFunc, startBC, endBC BC, x0, xMax, maxStep f
 		gArr:     make([]float64, pointNum),
 		hArr:     make([]float64, pointNum),
 		pointNum: pointNum,
-		step:     step,
 		startBC:  startBC,
 		endBC:    endBC,
 	}
@@ -62,7 +57,6 @@ type solver struct {
 	hArr []float64
 
 	pointNum int
-	step     float64
 
 	startBC BC
 	endBC   BC
@@ -71,7 +65,7 @@ type solver struct {
 	rhs *mat.VecDense
 }
 
-func (s *solver) Solve() (ode.Solution, error) {
+func (s *solver) Solve() (Solution, error) {
 	s.fillMatrices()
 
 	solution := mat.NewVecDense(s.pointNum, nil)
@@ -79,7 +73,7 @@ func (s *solver) Solve() (ode.Solution, error) {
 	if err := solution.SolveVec(s.lhs, s.rhs); err != nil {
 		return nil, err
 	}
-	return newBoundarySolution(s.xArr, solution.RawVector().Data, s.step), nil
+	return newBoundarySolution(s.xArr, solution.RawVector().Data), nil
 }
 
 func (s *solver) fillMatrices() {
@@ -109,13 +103,15 @@ func (s *solver) fillMatrices() {
 		s.rhs.SetVec(i, hi)
 	}
 
-	s.lhs.Set(0, 0, s.startBC.LHS0(s.step))
-	s.lhs.Set(0, 1, s.startBC.LHS1(s.step))
-	s.rhs.SetVec(0, s.startBC.RHS(s.step))
+	startStep := s.xArr[1] - s.xArr[0]
+	s.lhs.Set(0, 0, s.startBC.LHS0(startStep))
+	s.lhs.Set(0, 1, s.startBC.LHS1(startStep))
+	s.rhs.SetVec(0, s.startBC.RHS(startStep))
 
-	s.lhs.Set(s.pointNum-1, s.pointNum-1, s.endBC.LHS0(s.step))
-	s.lhs.Set(s.pointNum-1, s.pointNum-2, s.endBC.LHS1(s.step))
-	s.rhs.SetVec(s.pointNum-1, s.endBC.RHS(s.step))
+	endStep := s.xArr[len(s.xArr)-2] - s.xArr[len(s.xArr)-1]
+	s.lhs.Set(s.pointNum-1, s.pointNum-1, s.endBC.LHS0(endStep))
+	s.lhs.Set(s.pointNum-1, s.pointNum-2, s.endBC.LHS1(endStep))
+	s.rhs.SetVec(s.pointNum-1, s.endBC.RHS(endStep))
 }
 
 func getFirstDerivativeFactors(xPrev, xCurr, xNext float64, acceptor []float64) {
